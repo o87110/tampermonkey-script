@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      1.0.4
+// @version      1.0.0
 // @description  修改：增加显示等级(原插件显示等级报错)，全自动吃肉，吃肉记忆功能(默认记忆2天，吃过的肉帖不会再吃)。
 // @author       龙少c(id:20469)开发，根据其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M。修改并集成
 // @match        *yaohuo.me/*
