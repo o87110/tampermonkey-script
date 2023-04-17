@@ -718,7 +718,6 @@
         display: inline-block;
         width: 60px;
         height: 30px;
-        margin: 10px;
       }
 
       .yaohuo-wrap .switch input {
