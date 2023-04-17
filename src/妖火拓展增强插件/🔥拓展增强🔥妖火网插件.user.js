@@ -47,14 +47,14 @@
     isShowLevel: true,
     // 是否自动增加用户时长
     isAddOnlineDuration: false,
-    // 吃肉的时间间隔
+    // 刷新时间间隔
     timeInterval: 60,
     // 设置肉帖过期时间，过期前不会再自动吃肉
     expiredDays: 1,
     // 是否自动加载下一页
     isLoadNextPage: false,
     // 一页最大的加载数量，超过数量就不会自动加载
-    maxLoadNum: 50,
+    maxLoadNum: 150,
     // 滑块range最小和最大值
     minNumRange: 50,
     maxNumRange: 500,
