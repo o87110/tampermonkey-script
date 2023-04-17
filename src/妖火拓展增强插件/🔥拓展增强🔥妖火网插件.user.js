@@ -62,6 +62,10 @@
     // 设置悬浮按钮位置
     settingBtnLeft: 0,
     settingBtnTop: 0,
+    // 按钮的响应试大小，单位vw，默认18vw
+    settingIconResponsiveSize: 18,
+    // 按钮最大的大小，单位px，默认100px
+    settingIconMaxSize: 100,
 
     // 自动加载页面时是否执行尾部。由于节流函数500ms执行一次，如不想继续加载下一页，可以以极快速度滑到底部不触发自动加载页面
     isExecTrail: true,
@@ -98,6 +102,9 @@
 
     settingBtnLeft,
     settingBtnTop,
+
+    settingIconMaxSize,
+    settingIconResponsiveSize,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -346,7 +353,46 @@
         GM_setValue("yaohuo_userData", yaohuo_userData);
       }
     }
+
+    initSettingBtnPosition("init");
   }
+  // 更新按钮位置到最右边
+  /**
+   * 当按钮靠最右边时，设置按钮的left偏移
+   * @param {'init' | 'update'} type type值为init / update
+   */
+  function initSettingBtnPosition(type = "update") {
+    let { settingBtnTop, settingIconResponsiveSize, settingIconMaxSize } =
+      yaohuo_userData;
+    let newLeft;
+
+    // btn最大100px，根据屏幕视口取18vw
+    newLeft = Math.floor(
+      window.innerWidth -
+        Math.min(
+          (window.innerWidth / 100) * settingIconResponsiveSize,
+          settingIconMaxSize
+        )
+    );
+    if (type === "update") {
+      const floatingDiv = $("#floating-setting-btn")[0];
+      floatingDiv.style.left = newLeft + "px";
+    }
+    saveSettingBtnPosition({ left: newLeft, top: settingBtnTop });
+  }
+  /**
+   * 保存设置按钮的位置
+   * @param {Object} pos - 按钮位置信息
+   * @param {number} pos.left - 按钮左边距
+   * @param {number} pos.top - 按钮上边距
+   */
+  function saveSettingBtnPosition({ left, top }) {
+    yaohuo_userData.settingBtnLeft = left;
+    yaohuo_userData.settingBtnTop = top;
+
+    setItem("yaohuo_userData", yaohuo_userData);
+  }
+
   function addSettingBtn() {
     if ($("#floating-setting-btn").length) {
       return;
@@ -355,10 +401,10 @@
     GM_addStyle(`
       #floating-setting-btn {
         display: ${isShowSettingIcon ? "block" : "none"};
-        max-width: 100px;
-        max-height: 100px;
-        width: 18vw;
-        height: 18vw;
+        max-width: ${settingIconMaxSize}px;
+        max-height: ${settingIconMaxSize}px;
+        width: ${settingIconResponsiveSize}vw;
+        height: ${settingIconResponsiveSize}vw;
         user-select: none;
         box-sizing: border-box;
         position: fixed;
@@ -444,17 +490,10 @@
 
     // 窗口改变重新计算悬浮按钮的位置
     window.addEventListener("resize", function (e) {
-      const floatingDiv = $("#floating-setting-btn")[0];
-      let { settingBtnLeft, settingBtnTop } = yaohuo_userData;
-      let newLeft;
+      let { settingBtnLeft } = yaohuo_userData;
 
       if (settingBtnLeft !== 0) {
-        newLeft = Math.floor(
-          window.innerWidth - Math.min((window.innerWidth / 100) * 18, 100)
-        );
-        console.log(newLeft);
-        floatingDiv.style.left = newLeft + "px";
-        saveSettingBtnPosition({ left: newLeft, top: settingBtnTop });
+        initSettingBtnPosition("update");
       }
 
       console.log("窗口大小发生了变化");
@@ -616,14 +655,6 @@
 
       // 更新悬浮图标位置信息
       saveSettingBtnPosition({ top: position.top, left: newLeft });
-    }
-
-    // 保存设置按钮位置
-    function saveSettingBtnPosition({ left, top }) {
-      yaohuo_userData.settingBtnLeft = left;
-      yaohuo_userData.settingBtnTop = top;
-
-      setItem("yaohuo_userData", yaohuo_userData);
     }
   }
 
@@ -870,7 +901,7 @@
   }
   /**
    * 设置设置菜单，点击设置打开菜单，并且回显数据，保存则保存数据
-   * @param {*} status edit和save两种模式
+   * @param {"edit" | 'save'} status edit和save两种模式
    */
   function setSettingInputEvent(status = "edit") {
     $(".yaohuo-wrap input, .yaohuo-wrap select").each((index, item) => {
@@ -939,12 +970,13 @@
           break;
       }
     });
+
     /**
      * 根据当前的选中状态处理子项的显示或隐藏
-     * @param {*} { fatherIdAry, childId, dataKey }
-     * fatherIdAry 表示一级菜单需要处理的id，数组格式
-     * childId 表示根据一级菜单需要处理的二级菜单，具有联动关系
-     * dataKey 当前操作元素的data-Key自定义属性，和id等同
+     * @param {Object} options - 选项对象
+     * @param {Array<string>} options.fatherIdAry - 包含父元素ID的字符串数组
+     * @param {Array<string>} options.childId - 子元素的ID
+     * @param {string} options.dataKey - 存储在父元素上的数据键名
      */
     function autoShowElement({ fatherIdAry, childId, dataKey }) {
       execFn();
@@ -1200,9 +1232,9 @@
   /**
    * 返回指定天数后的一天开始的时间，例如1天，则为明天00:00:00，2天则为后天00:00:00
    * 肉帖1天有效期则代表明天00:00:00过期，2天有效期则是后天00:00:00
-   * @param {*} time 传入一个时间戳
-   * @param {*} days 传入过期的天数
-   * @returns 返回到期时间的时间戳
+   * @param {number} time 传入一个时间戳
+   * @param {number} days 传入过期的天数
+   * @returns {number} 返回到期时间的时间戳
    */
 
   function timeLeft(time, days = 1) {
@@ -1230,20 +1262,20 @@
     GM_setValue(key, value);
   }
   /**
-   * 返回yaohuo_userData的数据
-   * @param {*} key 要获取值的属性
-   * @param {*} value 获取的值
-   * @returns
+   * 返回yaohuo_userData里的数据
+   * @param {string} key 要获取值的属性
+   * @param {any} value 获取的值
+   * @returns {any}
    */
   function getValue(key, value) {
     let setting = yaohuo_userData;
     return setting[key] || value;
   }
   /**
-   * 更新yaohuo_userData的数据
-   * @param {*} key 要设置值的属性
-   * @param {*} value 设置的值
-   * @returns
+   * 更新yaohuo_userData里的数据
+   * @param {string} key 要设置值的属性
+   * @param {any} value 设置的值
+   * @returns {any}
    */
   function setValue(key, value) {
     yaohuo_userData[key] = value;
@@ -1415,7 +1447,10 @@
       }, timeInterval * 1000);
     }
   }
-  // 删除过期的帖子
+  /**
+   * 删除过期的帖子
+   * @param {number|string} value 存储肉帖的对象
+   */
   function deleteExpiredID(value) {
     let nowTime = new Date().getTime();
 
@@ -1517,10 +1552,12 @@
   }
   /**
    * 节流函数
-   * @param {*} fn 要节流的函数
-   * @param {*} interval 节流的时间
-   * @param {*} param2 { leading, trailing } leading：是否立即执行，trailing：是否执行最好一次
-   * @returns 返回res或者error，返回一个Promise
+   * @param {function} fn - 要节流的函数
+   * @param {number} interval - 节流时间间隔（毫秒）
+   * @param {Object} options - 选项对象
+   * @param {boolean} [options.leading=true] - 是否在开始时立即执行一次函数
+   * @param {boolean} [options.trailing=isExecTrail] - 是否在结束时再执行一次函数
+   * @returns {function} 节流后的函数
    */
   function throttle(
     fn,
@@ -1579,10 +1616,10 @@
   }
   /**
    * 添加事件监听
-   * @param {*} id dom元素id
-   * @param {*} textarea 插入的文本框
-   * @param {*} ubb 插入的内容
-   * @param {*} offset 插入的位置
+   * @param {string} id dom元素id
+   * @param {HTMLElement} textarea 插入的文本框
+   * @param {string} ubb 插入的内容
+   * @param {number} offset 插入的位置
    */
   function handleEventListener(id, textarea, ubb, offset) {
     document.getElementById(id)?.addEventListener("click", (e) => {
