@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      1.0.0
+// @version      1.0.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *yaohuo.me/*
@@ -30,6 +30,7 @@
  *
  * 参考了以下大佬代码：外卖不用券(id:23825)、侯莫晨、Swilder-M，特此感谢
  */
+
 (function () {
   ("use strict");
 
@@ -47,7 +48,7 @@
     // 是否自动增加用户时长
     isAddOnlineDuration: false,
     // 吃肉的时间间隔
-    timeInterval: 40,
+    timeInterval: 60,
     // 设置肉帖过期时间，过期前不会再自动吃肉
     expiredDays: 1,
     // 是否自动加载下一页
