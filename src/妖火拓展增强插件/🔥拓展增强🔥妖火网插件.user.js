@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      1.0.4
+// @version      1.0.5
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *yaohuo.me/*
@@ -373,6 +373,12 @@
         opacity: 0.6;
         filter: drop-shadow(0px 0px 3px #666);
       }
+      .overflow-hidden-scroll {
+        overflow: hidden !important;
+      }
+      .touch-action-none {
+        touch-action: none;
+      }   
     `);
 
     let innerH = `
@@ -545,13 +551,15 @@
 
       e.preventDefault();
       e.stopPropagation();
+
+      $("body").addClass("touch-action-none");
+      $("body").addClass("overflow-hidden-scroll");
     }
 
     function onTouchMove(e) {
       if (!isDragging) {
         return;
       }
-      $("body").addClass("overflow-hidden-scroll");
 
       const left = e.touches[0].clientX - mouseOffsetX;
       const top = e.touches[0].clientY - mouseOffsetY;
@@ -561,15 +569,13 @@
 
       floatingDiv.style.left = Math.min(Math.max(0, left), maxLeft) + "px";
       floatingDiv.style.top = Math.min(Math.max(0, top), maxTop) + "px";
-
-      // e.preventDefault();
-      // e.stopPropagation();
     }
 
     function onTouchEnd(e) {
       if (!isDragging) {
         return;
       }
+      $("body").removeClass("touch-action-none");
       $("body").removeClass("overflow-hidden-scroll");
 
       // 拖动结束重置数据
@@ -757,10 +763,6 @@
 
       .yaohuo-wrap .switch input:checked + label::before {
         transform: translateX(26px);
-      }
-
-      .overflow-hidden-scroll {
-        overflow: hidden !important;
       }
     `);
     let innerH = `
