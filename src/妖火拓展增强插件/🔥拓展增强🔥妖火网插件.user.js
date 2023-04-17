@@ -495,6 +495,8 @@
       if (settingBtnLeft !== 0) {
         initSettingBtnPosition("update");
       }
+
+      console.log("resize");
     });
 
     // 鼠标事件监听器
