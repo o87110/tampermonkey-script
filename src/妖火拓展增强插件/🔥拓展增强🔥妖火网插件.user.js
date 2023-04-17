@@ -495,8 +495,6 @@
       if (settingBtnLeft !== 0) {
         initSettingBtnPosition("update");
       }
-
-      console.log("窗口大小发生了变化");
     });
 
     // 鼠标事件监听器
