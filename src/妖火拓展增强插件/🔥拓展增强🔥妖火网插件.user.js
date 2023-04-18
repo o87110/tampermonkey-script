@@ -1662,7 +1662,6 @@
       // 加载更多按钮距离距底部小于300px才开始加载
       // 没有加载完成前不会再次加载
       // 小于页面最大加载数量才会加载
-      console.log(nextBtn, isClickLoadMoreBtn, newLength, maxLoadNum);
       if (A <= B + 300 && !isClickLoadMoreBtn && newLength < maxLoadNum) {
         nextBtn.click();
         // 放到加载更多按钮里面监听，此处不处理
