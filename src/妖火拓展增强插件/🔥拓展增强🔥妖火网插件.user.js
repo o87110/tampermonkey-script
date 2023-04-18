@@ -332,8 +332,6 @@
     handleAddReplyUBB();
     // 增加发帖ubb
     handleAddNewPostUBB();
-    // 增加在线时长
-    handleAutoAddOnlineDuration();
     // 显示用户等级
     handleShowUserLevel();
     // 处理404页面跳回新帖页面
@@ -1260,7 +1258,6 @@
         (e) => {
           if (autoEatList[id] && !confirm("当前已经吃过肉，是否继续回复")) {
             // 取消提交
-            e.preventDefault();
             textarea.value = "";
           }
         },
