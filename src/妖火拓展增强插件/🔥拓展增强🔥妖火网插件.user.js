@@ -41,8 +41,8 @@
     isAutoEat: false,
     // 是否开启全自动吃肉，会自动进入肉帖自动吃肉
     isFullAutoEat: false,
-    // 全自动吃肉是否新窗口打开，否则直接当前页面打开肉帖，推荐false，当前页面打开
-    isNewOpen: false,
+    // 全自动吃肉是否无跳转通过iframe吃肉，否则直接当前页面跳转打开肉帖吃肉。
+    isNewOpenIframe: false,
     // 帖子里是否显示用户等级
     isShowLevel: true,
     // 是否自动增加用户时长
@@ -71,8 +71,12 @@
     isExecTrail: true,
     // 滑块range间隔
     timeStep: 5,
-    minTimeRange: 40,
+    minTimeRange: 45,
     maxTimeRange: 120,
+    // 是否增加发帖ubb
+    isAddNewPostUBB: true,
+    // 是否增加回帖ubb
+    isAddReplyUBB: true,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -81,7 +85,7 @@
   let {
     isAutoEat,
     isFullAutoEat,
-    isNewOpen,
+    isNewOpenIframe,
     isShowLevel,
     isAddOnlineDuration,
     timeInterval,
@@ -105,6 +109,9 @@
 
     settingIconMaxSize,
     settingIconResponsiveSize,
+
+    isAddNewPostUBB,
+    isAddReplyUBB,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -291,6 +298,13 @@
     },
   ];
 
+  let timer = null;
+
+  // 是否点击加载更多
+  let isClickLoadMoreBtn = false;
+  // 是否是新页面
+  let isNewPage = false;
+
   const spanstyle =
     "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #ccc;";
   const a2style =
@@ -298,30 +312,30 @@
 
   // ==主代码执行==
   (function () {
-    try {
-      // 添加站内设置按钮
-      addSettingBtn();
-      // 点开脚本设置
-      GM_registerMenuCommand("打开设置界面", setMenu);
-      // 自动吃肉：手动进入肉帖自动吃
-      handleAutoEat();
-      // 全自动吃肉：自动进入肉帖自动吃
-      handleFullAutoEat();
-      // 增加回帖ubb
-      handleAddReplyUBB();
-      // 增加发帖ubb
-      handleAddNewPostUBB();
-      // 增加在线时长
-      handleAutoAddOnlineDuration();
-      // 显示用户等级
-      handleShowUserLevel();
-      // 自动加载下一页
-      handleLoadNextPage();
-      // 处理404页面跳回新帖页面
-      handleNotFoundPage();
-    } catch (error) {
-      console.error(error);
-    }
+    // 处理浏览器滚动条事件
+    handleWindowScroll();
+    // 处理窗口改变事件
+    handleWindowResize();
+    // 添加站内设置按钮
+    addSettingBtn();
+    // 点开脚本设置
+    GM_registerMenuCommand("打开设置界面", setMenu);
+    // 加载更多按钮点击事件监听
+    handleAddLoadMoreBtnClick();
+    // 自动吃肉：手动进入肉帖自动吃
+    handleAutoEat();
+    // 全自动吃肉：自动进入肉帖自动吃
+    handleFullAutoEat();
+    // 增加回帖ubb
+    handleAddReplyUBB();
+    // 增加发帖ubb
+    handleAddNewPostUBB();
+    // 增加在线时长
+    handleAutoAddOnlineDuration();
+    // 显示用户等级
+    handleShowUserLevel();
+    // 处理404页面跳回新帖页面
+    handleNotFoundPage();
   })();
 
   // ==其他功能函数和方法==
@@ -488,16 +502,6 @@
     document.addEventListener("touchmove", throttle(onTouchMove, 5));
     document.addEventListener("touchend", onTouchEnd);
 
-    // 窗口改变重新计算悬浮按钮的位置
-    window.addEventListener("resize", function (e) {
-      let { settingBtnLeft } = yaohuo_userData;
-
-      if (settingBtnLeft !== 0) {
-        initSettingBtnPosition("update");
-      }
-      console.log(resize);
-    });
-
     // 鼠标事件监听器
     function onMouseDown(e) {
       floatingDiv.style.transition = "unset";
@@ -656,7 +660,17 @@
       saveSettingBtnPosition({ top: position.top, left: newLeft });
     }
   }
+  // 处理窗口改变事件
+  function handleWindowResize() {
+    // 窗口改变重新计算悬浮按钮的位置
+    window.addEventListener("resize", function (e) {
+      let { settingBtnLeft } = yaohuo_userData;
 
+      if (settingBtnLeft !== 0) {
+        initSettingBtnPosition("update");
+      }
+    });
+  }
   function setMenu() {
     // 避免重复添加
     if ($(".yaohuo-modal-mask").length) {
@@ -676,18 +690,19 @@
         background-color: rgba(0, 0, 0, 0.45);
       }
       .yaohuo-wrap {
-        padding: 20px;
+        padding: 20px 0;
         box-sizing: border-box;
         position: relative;
         margin: 0 auto;
         background: #fff;
         border-radius: 12px;
-        top: 100px;
+        top: 10%;
         width: 400px;
         max-width: 95vw;
         user-select: none;
       }
       .yaohuo-wrap header {
+        padding: 0 20px;
         color: rgba(0, 0, 0, 0.88);
         font-weight: 600;
         font-size: 16px;
@@ -698,6 +713,7 @@
         font-size: 0px;
         text-align: right;
         margin-top: 10px;
+        padding: 0 20px;
       }
       .yaohuo-wrap footer button {
         font-size: 14px;
@@ -719,8 +735,21 @@
         box-shadow: 0 2px 0 rgba(5, 145, 255, 0.1);
       }
       .yaohuo-wrap ul {
-        padding: 0;
         margin: 0;
+        padding: 0 10px 0 20px;
+        margin-right: 7px;
+        max-height: 65vh;
+        overflow: auto;
+      }
+      /* 设置滚动条的宽度和高度 */
+      .yaohuo-wrap ::-webkit-scrollbar {
+        width: 3px;
+      }
+
+      /* 设置滚动条滑块的背景色 */
+      .yaohuo-wrap ::-webkit-scrollbar-thumb {
+        background-color: #999;
+        border-radius:10px;
       }
       .yaohuo-wrap i {
         font-style: normal;
@@ -808,27 +837,37 @@
               </div>
             </li>
             <li>
-              <span>手动进贴自动吃肉</span>
+              <span>手动进贴半自动吃肉</span>
               <div class="switch">
                 <input type="checkbox" id="isAutoEat" data-key="isAutoEat" />
                 <label for="isAutoEat"></label>
               </div>
             </li>
             <li>
-              <span>自动进贴自动吃肉</span>
+              <span>自动进贴全自动吃肉</span>
               <div class="switch">
                 <input type="checkbox" id="isFullAutoEat" data-key="isFullAutoEat" />
                 <label for="isFullAutoEat"></label>
               </div>
             </li>
             <li>
+              <span>全自动吃肉是否无跳转</span>
+              <div class="switch">
+                <input type="checkbox" id="isNewOpenIframe" data-key="isNewOpenIframe" />
+                <label for="isNewOpenIframe"></label>
+              </div>
+            </li>
+            <li>
               <span>肉帖过期时间：<i class="range-num">${expiredDays}</i>天</span>
-              <select data-key="expiredDays" id="expiredDays">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-              </select>
+              <input
+                type="range"
+                id="expiredDays"
+                data-key="expiredDays"
+                min="${1}"
+                value="${expiredDays}"
+                max="${7}"
+                step="${1}"
+              />
             </li>
             <li>
               <span>自动增加时长</span>
@@ -860,7 +899,7 @@
               </div>
             </li>
             <li>
-              <span>自动加载最大个数：<i class="range-num">${getValue(
+              <span>自动加载最大数：<i class="range-num">${getValue(
                 "maxLoadNum",
                 40
               )}</i>个</span>
@@ -879,6 +918,20 @@
               <div class="switch">
                 <input type="checkbox" id="isShowLevel" data-key="isShowLevel" />
                 <label for="isShowLevel"></label>
+              </div>
+            </li>
+            <li>
+              <span>发帖增强</span>
+              <div class="switch">
+                <input type="checkbox" id="isAddNewPostUBB" data-key="isAddNewPostUBB" />
+                <label for="isAddNewPostUBB"></label>
+              </div>
+            </li>
+            <li>
+              <span>回帖增强</span>
+              <div class="switch">
+                <input type="checkbox" id="isAddReplyUBB" data-key="isAddReplyUBB" />
+                <label for="isAddReplyUBB"></label>
               </div>
             </li>
           </ul>
@@ -910,7 +963,7 @@
         case "checkbox":
           if (status === "edit") {
             item.checked = getValue(dataKey) ? true : false;
-
+            // 根据当前的按钮选中状态处理子项的联动显示或隐藏
             autoShowElement({
               fatherIdAry: ["isLoadNextPage"],
               childId: ["maxLoadNum"],
@@ -924,6 +977,11 @@
             autoShowElement({
               fatherIdAry: ["isAutoEat", "isFullAutoEat"],
               childId: ["expiredDays"],
+              dataKey,
+            });
+            autoShowElement({
+              fatherIdAry: ["isFullAutoEat"],
+              childId: ["isNewOpenIframe"],
               dataKey,
             });
           } else {
@@ -987,6 +1045,8 @@
       function execFn() {
         if (fatherIdAry.includes(dataKey)) {
           let parent = $(`#${childId}`).parent();
+          parent = parent.prop("tagName") === "LI" ? parent : parent.parent();
+
           let isShow = fatherIdAry.some((item) =>
             $(`#${item}`).prop("checked")
           );
@@ -1020,8 +1080,8 @@
     if (bbsPage.includes(window.location.pathname)) {
       if (isFullAutoEat) {
         // 定时刷新页面
-        if (!isAddOnlineDuration) {
-          setInterval(function () {
+        if (!isAddOnlineDuration && !timer) {
+          timer = setInterval(function () {
             location.reload();
           }, timeInterval * 1000);
         }
@@ -1037,7 +1097,6 @@
           let href = bbs.getAttribute("href");
           // 肉帖标识
           let id = href.match(/bbs-(\d+)/)[1];
-          console.log(id);
 
           // 新的url，用于区分自动打开的肉帖和手动打开的肉帖
           let newHref = href.includes(".html?")
@@ -1048,28 +1107,73 @@
            * 吃过的肉帖在肉帖过期时间内不会再吃
            * 吃完的肉帖在记录里的也不会再吃
            *
-           * 1.吃肉方式默认当前窗口打开，更推荐，相当于静默模式无感觉，不会影响其他窗口使用
-           * 2.新开窗口会影响其他窗口，可自行体验
+           * 1.吃肉方式默认当前窗口打开
+           * 2.新开窗口打开通过iframe
            */
           let autoEatList = getItem("autoEatList");
 
           if (!autoEatList[id]) {
-            if (isNewOpen) {
-              // 避免一次性打开太多窗口
+            if (isNewOpenIframe) {
+              // 新窗口
               setTimeout(() => {
-                window.open(newHref);
-              }, (index + 1) * 1500);
+                // 不通过window.open方式吃肉，无法设置静默状态
+                // 无法保持原窗口焦点 打开新窗口。会影响其他窗口页面
+                // 创建一个 iframe 元素
+                let iframe = document.createElement("iframe");
+
+                // 设置 iframe 的属性
+                iframe.src = newHref;
+                iframe.style.display = "none";
+
+                document.body.appendChild(iframe);
+              }, (index + 1) * 1000);
             } else {
               bbs.href = newHref;
               bbs.click();
               break;
             }
           } else {
-            console.log("已经吃过肉:", id);
+            console.log("无需跳转进肉帖，已经吃过肉:", id);
           }
         }
       }
     }
+  }
+  // 浏览器scroll事件
+  function handleWindowScroll() {
+    window.addEventListener(
+      "scroll",
+      throttle(() => {
+        // 处理自动加载更多
+        handleLoadNextPage();
+
+        // 处理点击加载更多后的全自动吃肉
+        if (bbsPage.includes(window.location.pathname) && isFullAutoEat) {
+          let nextBtn = document.querySelector("span[id$=show_tip]");
+          if (nextBtn.innerText.includes("加载更多")) {
+            // 加载完成了
+            isNewPage = true;
+
+            // 滚动时加载新页的时候自动吃肉
+            if (isClickLoadMoreBtn && isNewPage) {
+              handleFullAutoEat();
+            }
+            isClickLoadMoreBtn = false;
+            isNewPage = false;
+          }
+        }
+      }, 500)
+    );
+  }
+  // 返回当前列表数据的长度
+  function getListLength() {
+    let length = 0;
+    if ($(".listdata").length) {
+      length = $(".listdata").length;
+    } else {
+      length = $(".reline").length + $(".list-reply").length;
+    }
+    return length;
   }
   // 自动吃肉：手动进入肉帖自动吃
   function handleAutoEat() {
@@ -1175,10 +1279,11 @@
           if (!autoEatList[id]) {
             console.log("有肉快7");
             eatMeat.click();
-            autoEatCallback();
           } else {
             console.log("已经吃过了");
           }
+
+          autoEatCallback();
         }
       }
 
@@ -1220,8 +1325,17 @@
 
     if (isFullAutoEat && isAutoEatBbs) {
       setTimeout(() => {
-        if (isNewOpen) {
-          window.close();
+        if (isNewOpenIframe) {
+          if (window.self !== window.top) {
+            // 如果是在iframe里移除iframe
+            let iframe = window.frameElement; // 获取当前 iframe 元素
+            let parent = iframe.parentElement; // 获取包含当前 iframe 的父窗口对象
+
+            parent.removeChild(iframe);
+          } else {
+            // 新窗口则关闭当前窗口
+            window.close();
+          }
         } else {
           history.back();
         }
@@ -1282,7 +1396,7 @@
   }
   // 增加发帖ubb
   function handleAddNewPostUBB() {
-    if (postPage.includes(window.location.pathname)) {
+    if (postPage.includes(window.location.pathname) && isAddNewPostUBB) {
       let bookContent = document.getElementsByName("book_content")[0];
       bookContent.insertAdjacentHTML(
         "beforebegin",
@@ -1351,8 +1465,9 @@
   // 增加回帖ubb
   function handleAddReplyUBB() {
     if (
-      /^\/bbs-.*\.html$/.test(window.location.pathname) ||
-      viewPage.includes(window.location.pathname)
+      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
+        viewPage.includes(window.location.pathname)) &&
+      isAddReplyUBB
     ) {
       const form = document.getElementsByName("f")[0];
       if (!form) {
@@ -1441,7 +1556,7 @@
   function handleAutoAddOnlineDuration() {
     // 是否自动增加时长
     if (isAddOnlineDuration) {
-      setInterval(function () {
+      timer = setInterval(function () {
         location.reload();
       }, timeInterval * 1000);
     }
@@ -1508,45 +1623,42 @@
       info_d.insertBefore(lv_d, user_name_d);
     }
   }
+  function handleAddLoadMoreBtnClick() {
+    // 如果打开了全自动吃肉和自动加载更多，并且在帖子列表页才添加事件
+    if (
+      loadNextPage ||
+      (isFullAutoEat && bbsPage.includes(window.location.pathname))
+    ) {
+      let loadMoreBtn = document.querySelector("#KL_loadmore");
+
+      loadMoreBtn?.addEventListener("click", (e) => {
+        isClickLoadMoreBtn = true;
+        isNewPage = false;
+      });
+    }
+  }
   // 自动加载下一页
   function handleLoadNextPage() {
+    // 处理自动加载更多
     let isPage = loadNextPage.some((item) =>
       item.test(window.location.pathname)
     );
     if (isPage && isLoadNextPage) {
       let nextBtn = document.querySelector("span[id$=show_tip]");
+      let A = nextBtn.getBoundingClientRect().bottom;
+      let B = document.documentElement.clientHeight;
+      // 获取当前列表的长度
+      let newLength = getListLength();
 
-      let isClick = false;
-
-      window.onscroll = throttle(function () {
-        let A = nextBtn.getBoundingClientRect().bottom;
-        let B = document.documentElement.clientHeight;
-        // 距离底部300就开始加载下一页
-        let newLength = getListLength();
-
-        if (nextBtn.innerText.includes("加载更多")) {
-          isClick = false;
-        }
-
-        // 加载更多按钮距离距底部小于300px才开始加载
-        // 没有加载完成前不会再次加载
-        // 小于页面最大加载数量才会加载
-        if (A <= B + 300 && !isClick && newLength < maxLoadNum) {
-          nextBtn.click();
-          isClick = true;
-        }
-      }, 500);
-    }
-
-    // 返回当前列表数据的长度
-    function getListLength() {
-      let length = 0;
-      if ($(".listdata").length) {
-        length = $(".listdata").length;
-      } else {
-        length = $(".reline").length + $(".list-reply").length;
+      // 加载更多按钮距离距底部小于300px才开始加载
+      // 没有加载完成前不会再次加载
+      // 小于页面最大加载数量才会加载
+      if (A <= B + 300 && !isClickLoadMoreBtn && newLength < maxLoadNum) {
+        nextBtn.click();
+        // 放到加载更多按钮里面监听，此处不处理
+        // isClickLoadMoreBtn = true;
+        // isNewPage = false;
       }
-      return length;
     }
   }
   /**
