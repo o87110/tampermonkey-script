@@ -1137,22 +1137,25 @@
     window.addEventListener(
       "scroll",
       throttle(() => {
-        // 处理自动加载更多
-        handleLoadNextPage();
-
         // 处理点击加载更多后的全自动吃肉
-        if (bbsPage.includes(window.location.pathname) && isFullAutoEat) {
+        if (bbsPage.includes(window.location.pathname)) {
           let nextBtn = document.querySelector("span[id$=show_tip]");
           if (nextBtn.innerText.includes("加载更多")) {
             // 加载完成了
             isNewPage = true;
 
-            // 滚动时加载新页的时候自动吃肉
-            if (isClickLoadMoreBtn && isNewPage) {
-              handleFullAutoEat();
+            if (isFullAutoEat) {
+              if (isClickLoadMoreBtn && isNewPage) {
+                // 滚动时加载新页的时候自动吃肉
+                handleFullAutoEat();
+              }
             }
+
             isClickLoadMoreBtn = false;
             isNewPage = false;
+
+            // 处理自动加载更多，需要放到最后
+            handleLoadNextPage();
           }
         }
       }, 500)
@@ -1658,6 +1661,7 @@
       // 加载更多按钮距离距底部小于300px才开始加载
       // 没有加载完成前不会再次加载
       // 小于页面最大加载数量才会加载
+      console.log(nextBtn, isClickLoadMoreBtn, newLength, maxLoadNum);
       if (A <= B + 300 && !isClickLoadMoreBtn && newLength < maxLoadNum) {
         nextBtn.click();
         // 放到加载更多按钮里面监听，此处不处理
