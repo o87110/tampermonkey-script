@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.0.0
+// @version      2.0.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *yaohuo.me/*
@@ -1137,18 +1137,22 @@
     window.addEventListener(
       "scroll",
       throttle(() => {
+        let isPage = loadNextPage.some((item) =>
+          item.test(window.location.pathname)
+        );
+
         // 处理点击加载更多后的全自动吃肉
-        if (bbsPage.includes(window.location.pathname)) {
+        if (isPage) {
           let nextBtn = document.querySelector("span[id$=show_tip]");
+          // 已经请求到数据
           if (nextBtn.innerText.includes("加载更多")) {
             // 加载完成了
             isNewPage = true;
 
-            if (isFullAutoEat) {
-              if (isClickLoadMoreBtn && isNewPage) {
-                // 滚动时加载新页的时候自动吃肉
-                handleFullAutoEat();
-              }
+            // 开始自动吃肉
+            if (isClickLoadMoreBtn && isNewPage) {
+              // 滚动时加载新页的时候自动吃肉
+              handleFullAutoEat();
             }
 
             isClickLoadMoreBtn = false;
@@ -1634,8 +1638,11 @@
   }
   function handleAddLoadMoreBtnClick() {
     // 如果打开了全自动吃肉和自动加载更多，并且在帖子列表页才添加事件
+    let isPage = loadNextPage.some((item) =>
+      item.test(window.location.pathname)
+    );
     if (
-      loadNextPage ||
+      isPage ||
       (isFullAutoEat && bbsPage.includes(window.location.pathname))
     ) {
       let loadMoreBtn = document.querySelector("#KL_loadmore");
