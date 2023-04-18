@@ -1262,6 +1262,7 @@
           if (autoEatList[id] && !confirm("当前已经吃过肉，是否继续回复")) {
             // 取消提交
             textarea.value = "";
+            e.preventDefault();
           }
         },
         true
