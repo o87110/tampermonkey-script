@@ -1259,6 +1259,19 @@
         replyBtn.click();
       });
 
+      // 添加事件监听，如果吃过肉则会提示
+      document.getElementsByName("g")[0].addEventListener(
+        "click",
+        (e) => {
+          if (autoEatList[id] && !confirm("当前已经吃过肉，是否继续回复")) {
+            // 取消提交
+            e.preventDefault();
+            textarea.value = "";
+          }
+        },
+        true
+      );
+
       const meatTag = document.querySelector(
         "body > div.content > div.paibi > span.shengyu > span.yushuzi"
       );
