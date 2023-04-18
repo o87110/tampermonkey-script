@@ -48,7 +48,7 @@
     isNewOpenIframe: false,
     // 帖子里是否显示用户等级
     isShowLevel: true,
-    // 是否自动增加用户时长
+    // 是否自动增加时长
     isAddOnlineDuration: false,
     // 刷新时间间隔
     timeInterval: 60,
@@ -873,13 +873,6 @@
               />
             </li>
             <li>
-              <span>自动增加时长</span>
-              <div class="switch">
-                <input type="checkbox" id="isAddOnlineDuration" data-key="isAddOnlineDuration" />
-                <label for="isAddOnlineDuration"></label>
-              </div>
-            </li>
-            <li>
               <span>执行时间间隔：<i class="range-num">${getValue(
                 "timeInterval",
                 40
@@ -1568,7 +1561,7 @@
       location.href = `/bbs/book_list.aspx?gettotal=${year}&action=new`;
     }
   }
-  // 自动增加在线时长
+  // 自动增加时长
   function handleAutoAddOnlineDuration() {
     // 是否自动增加时长
     if (isAddOnlineDuration) {
