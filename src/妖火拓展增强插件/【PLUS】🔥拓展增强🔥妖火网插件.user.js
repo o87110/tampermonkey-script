@@ -874,7 +874,6 @@
               />
             </li>
             <li>
-            <li>
               <span>回帖表情默认展开</span>
               <div class="switch">
                 <input type="checkbox" id="isUnfoldFace" data-key="isUnfoldFace" />
