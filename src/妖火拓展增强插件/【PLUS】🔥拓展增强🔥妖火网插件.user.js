@@ -1198,6 +1198,7 @@
         }
         return;
       }
+      const face = form.getElementsByTagName("select")[0];
       const replyBtn = document.getElementsByName("g")[0];
 
       const textarea = document.querySelector(
@@ -1264,8 +1265,17 @@
           "先吃肉..",
           "先吃肉。。",
         ];
+
         let index = Math.floor(Math.random() * eatWordsArr.length);
         console.log("吃肉回复：", eatWordsArr[index]);
+
+        // 随机添加表情
+        const randomNum = Math.floor(Math.random() * faceList);
+        const isAddFaceEatMeat = Math.random() < 0.5;
+        if (isAddFaceEatMeat) {
+          face.value = faceList[randomNum];
+        }
+
         insertText(textarea, eatWordsArr[index], 0);
         replyBtn.click();
       });
