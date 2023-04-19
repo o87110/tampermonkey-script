@@ -881,6 +881,7 @@
                 <label for="isUnfoldFace"></label>
               </div>
             </li>
+            <li>
               <span>自动吃肉时间间隔：<i class="range-num">${getValue(
                 "timeInterval",
                 40
