@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         🔥拓展增强🔥妖火网插件
+// @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.0.1
+// @version      2.1.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *yaohuo.me/*
@@ -29,7 +29,7 @@
   6. 贴子页显示楼主等级（默认打开）
   7. 支持自动加载更多+全自动吃肉+全自动无跳转同时开启。自动加载更多的同时自动无跳转吃肉
   8. 增加可配置菜单，默认移动端开启，悬浮在右上角，PC 端不打开。所有功能都能单独开启和关闭，兼容其他插件，可以和其他插件一起使用，关闭本插件的相同功能即可。
-
+  9. 妖火表情添加折叠可配置开关（默认展开）
   参考了以下大佬代码：外卖不用券(id:23825)、侯莫晨、Swilder-M，特此感谢 
  */
 
@@ -79,6 +79,8 @@
     isAddNewPostUBB: true,
     // 是否增加回帖ubb
     isAddReplyUBB: true,
+    // 是否默认展开表情
+    isUnfoldFace: true,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -114,6 +116,7 @@
 
     isAddNewPostUBB,
     isAddReplyUBB,
+    isUnfoldFace,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -308,10 +311,11 @@
   let isNewPage = false;
 
   const spanstyle =
-    "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #ccc;";
+    "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #ccc;border-radius: 10%;";
   const a2style =
-    "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #d19275;";
-
+    "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #d19275;border-radius: 10%;";
+  const a3style =
+    "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #66ccff;border-radius: 10%;";
   // ==主代码执行==
   (function () {
     // 处理浏览器滚动条事件
@@ -870,6 +874,13 @@
               />
             </li>
             <li>
+            <li>
+              <span>回帖表情默认展开</span>
+              <div class="switch">
+                <input type="checkbox" id="isUnfoldFace" data-key="isUnfoldFace" />
+                <label for="isUnfoldFace"></label>
+              </div>
+            </li>
               <span>自动吃肉时间间隔：<i class="range-num">${getValue(
                 "timeInterval",
                 40
@@ -1491,26 +1502,56 @@
       const content = form.getElementsByTagName("textarea")[0];
       const replyBtn = document.getElementsByName("g")[0];
 
+      // 显示表情
       content.insertAdjacentHTML("beforebegin", '<div id="facearea"></div>');
       const facearea = document.getElementById("facearea");
 
-      let allfacehtml = "";
-      faceList.slice(0, faceList.length).forEach((faceStr, i) => {
-        allfacehtml +=
-          '<img id="setFace' +
-          i +
-          '" style="width: 32px; height: 32px" src="face/' +
-          faceStr +
-          '" value="' +
-          faceStr.split(".")[0] +
-          '.gif"></img>';
+      let allFaceHtml = "";
+
+      faceList.forEach((faceStr, i) => {
+        let name = faceStr.split(".")[0];
+        allFaceHtml += `
+        <img
+          id="setFace${i}"
+          style="width: 32px;height: 32px"
+          src="face/${faceStr}"
+          value="${name}.gif"
+        />`;
       });
-      facearea.innerHTML += allfacehtml;
-      for (let i = 0; i < faceList.length; i++) {
-        document.getElementById("setFace" + i).onclick = function setFace() {
-          face.value = faceList[i];
-        };
+      facearea.innerHTML = allFaceHtml;
+
+      // 添加表情展开按钮
+      sendmsg.insertAdjacentHTML(
+        "afterend",
+        `<span 
+          style="${a3style}display:${
+          isUnfoldFace ? "display: block" : "display: none"
+        }" id="unfold"
+          >表情${isUnfoldFace ? "折叠" : "展开"}</span>`
+      );
+
+      if (isUnfoldFace) {
+        $("#facearea").show();
+      } else {
+        $("#facearea").hide();
       }
+      // 处理点击事件
+      $("#unfold").click(function (event) {
+        if (this.innerText == "表情展开") {
+          $("#facearea").show();
+          this.innerText = "表情折叠";
+        } else {
+          $("#facearea").hide();
+          this.innerText = "表情展开";
+        }
+      });
+
+      facearea.onclick = function (event) {
+        if (event.target.tagName.toLowerCase() === "img") {
+          // 处理图片的点击事件
+          face.value = event.target.getAttribute("value");
+        }
+      };
 
       // 妖火图床、超链接、图片
       form.removeChild(form.lastChild);
@@ -1568,7 +1609,7 @@
   // 自动增加时长
   function handleAutoAddOnlineDuration() {
     // 是否自动增加时长
-    if (isAddOnlineDuration) {
+    if (!timer) {
       timer = setInterval(function () {
         location.reload();
       }, timeInterval * 1000);
