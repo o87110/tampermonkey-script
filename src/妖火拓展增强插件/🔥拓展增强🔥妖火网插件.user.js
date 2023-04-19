@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.0.1
+// @version      2.1.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *yaohuo.me/*
@@ -22,13 +22,12 @@
 /* 
  功能描述：
   1. 贴子列表、贴子页、回复页支持自动加载更多、最大加载数量内自动加载（默认 150 条可单独配置），达到最大加载数量则不会自动加载。
-  2. 支持半自动吃肉，和全自动吃肉。区别是半自动吃肉需要手动点进肉帖，才会自动吃肉；而全自动吃肉会在当前页面自动点肉帖进去并自动回复吃肉，吃完再返回列表页面，每隔一段检测新肉帖并自动吃肉（默认 60 秒可单独配置）。
-  3. 全自动吃肉默认当前页面内自动点肉帖进去自动吃肉，可更改静默无跳转自动吃肉，通过 iframe 实现，全程无感
+  2. 自己手动进入肉帖吃肉（默认关闭）
+  3. 妖火表情添加折叠可配置开关（默认展开）
   4. 吃过的肉帖。自己手动提交会弹窗提示已吃过肉，是否确认提交
   5. 自动记忆所有吃过的肉帖，在配置天数内（默认一天可单独配置），吃过的肉帖不会重复吃肉。
   6. 贴子页显示楼主等级（默认打开）
-  7. 支持自动加载更多+全自动吃肉+全自动无跳转同时开启。自动加载更多的同时自动无跳转吃肉
-  8. 增加可配置菜单，默认移动端开启，悬浮在右上角，PC 端不打开。所有功能都能单独开启和关闭，兼容其他插件，可以和其他插件一起使用，关闭本插件的相同功能即可。
+  7. 增加可配置菜单，默认移动端开启，悬浮在右上角，PC 端不打开。所有功能都能单独开启和关闭，兼容其他插件，可以和其他插件一起使用，关闭本插件的相同功能即可。
 
   参考了以下大佬代码：外卖不用券(id:23825)、侯莫晨、Swilder-M，特此感谢 
  */
@@ -41,14 +40,10 @@
     isShowSettingIcon: false,
     // 是否开启自动吃肉，手动进去肉帖自动吃肉
     isAutoEat: false,
-    // 是否开启全自动吃肉，会自动进入肉帖自动吃肉
-    isFullAutoEat: false,
     // 全自动吃肉是否无跳转通过iframe吃肉，否则直接当前页面跳转打开肉帖吃肉。
     isNewOpenIframe: false,
     // 帖子里是否显示用户等级
     isShowLevel: true,
-    // 是否自动增加时长
-    isAddOnlineDuration: false,
     // 刷新时间间隔
     timeInterval: 60,
     // 设置肉帖过期时间，过期前不会再自动吃肉
@@ -71,14 +66,13 @@
 
     // 自动加载页面时是否执行尾部。由于节流函数500ms执行一次，如不想继续加载下一页，可以以极快速度滑到底部不触发自动加载页面
     isExecTrail: true,
-    // 滑块range间隔
-    timeStep: 5,
-    minTimeRange: 45,
-    maxTimeRange: 120,
+
     // 是否增加发帖ubb
     isAddNewPostUBB: true,
     // 是否增加回帖ubb
     isAddReplyUBB: true,
+    // 是否默认展开表情
+    isUnfoldFace: true,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -86,18 +80,11 @@
 
   let {
     isAutoEat,
-    isFullAutoEat,
-    isNewOpenIframe,
     isShowLevel,
-    isAddOnlineDuration,
     timeInterval,
     expiredDays,
     isLoadNextPage,
     isExecTrail,
-
-    timeStep,
-    minTimeRange,
-    maxTimeRange,
 
     maxLoadNum,
     minNumRange,
@@ -114,6 +101,7 @@
 
     isAddNewPostUBB,
     isAddReplyUBB,
+    isUnfoldFace,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -308,10 +296,11 @@
   let isNewPage = false;
 
   const spanstyle =
-    "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #ccc;";
+    "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #ccc;border-radius: 10%;";
   const a2style =
-    "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #d19275;";
-
+    "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #d19275;border-radius: 10%;";
+  const a3style =
+    "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #66ccff;border-radius: 10%;";
   // ==主代码执行==
   (function () {
     // 处理浏览器滚动条事件
@@ -324,10 +313,8 @@
     GM_registerMenuCommand("打开设置界面", setMenu);
     // 加载更多按钮点击事件监听
     handleAddLoadMoreBtnClick();
-    // 自动吃肉：手动进入肉帖自动吃
+    // 手动吃肉：手动进入肉帖吃
     handleAutoEat();
-    // 全自动吃肉：自动进入肉帖自动吃
-    handleFullAutoEat();
     // 增加回帖ubb
     handleAddReplyUBB();
     // 增加发帖ubb
@@ -837,24 +824,10 @@
               </div>
             </li>
             <li>
-              <span>手动进贴半自动吃肉</span>
+              <span>手动进贴吃肉</span>
               <div class="switch">
                 <input type="checkbox" id="isAutoEat" data-key="isAutoEat" />
                 <label for="isAutoEat"></label>
-              </div>
-            </li>
-            <li>
-              <span>自动进贴全自动吃肉</span>
-              <div class="switch">
-                <input type="checkbox" id="isFullAutoEat" data-key="isFullAutoEat" />
-                <label for="isFullAutoEat"></label>
-              </div>
-            </li>
-            <li>
-              <span>全自动吃肉是否无跳转</span>
-              <div class="switch">
-                <input type="checkbox" id="isNewOpenIframe" data-key="isNewOpenIframe" />
-                <label for="isNewOpenIframe"></label>
               </div>
             </li>
             <li>
@@ -870,19 +843,11 @@
               />
             </li>
             <li>
-              <span>自动吃肉时间间隔：<i class="range-num">${getValue(
-                "timeInterval",
-                40
-              )}</i>秒</span>
-              <input
-                type="range"
-                id="timeInterval"
-                data-key="timeInterval"
-                min="${minTimeRange}"
-                value="${timeInterval}"
-                max="${maxTimeRange}"
-                step="${timeStep}"
-              />
+              <span>回帖表情默认展开</span>
+              <div class="switch">
+                <input type="checkbox" id="isUnfoldFace" data-key="isUnfoldFace" />
+                <label for="isUnfoldFace"></label>
+              </div>
             </li>
             <li>
               <span>自动加载下一页</span>
@@ -963,18 +928,8 @@
               dataKey,
             });
             autoShowElement({
-              fatherIdAry: ["isAddOnlineDuration", "isFullAutoEat"],
-              childId: ["timeInterval"],
-              dataKey,
-            });
-            autoShowElement({
-              fatherIdAry: ["isAutoEat", "isFullAutoEat"],
+              fatherIdAry: ["isAutoEat"],
               childId: ["expiredDays"],
-              dataKey,
-            });
-            autoShowElement({
-              fatherIdAry: ["isFullAutoEat"],
-              childId: ["isNewOpenIframe"],
               dataKey,
             });
           } else {
@@ -1068,70 +1023,6 @@
     }, 300);
   }
 
-  // 全自动吃肉：自动进入肉帖自动吃
-  function handleFullAutoEat() {
-    if (bbsPage.includes(window.location.pathname)) {
-      if (isFullAutoEat) {
-        // 定时刷新页面
-        if (!isAddOnlineDuration && !timer) {
-          timer = setInterval(function () {
-            location.reload();
-          }, timeInterval * 1000);
-        }
-
-        let eatImgSrc = "/NetImages/li.gif";
-
-        let eatList = document.querySelectorAll(`img[src='${eatImgSrc}']`);
-
-        for (let index = 0; index < eatList.length; index++) {
-          const element = eatList[index];
-          // 拿到肉帖dom
-          let bbs = element.parentElement.querySelector("a[href^='/bbs-']");
-          let href = bbs.getAttribute("href");
-          // 肉帖标识
-          let id = href.match(/bbs-(\d+)/)[1];
-
-          // 新的url，用于区分自动打开的肉帖和手动打开的肉帖
-          let newHref = href.includes(".html?")
-            ? `${href}&open=new`
-            : `${href}?open=new`;
-          /**
-           * 只吃没吃过的肉帖
-           * 吃过的肉帖在肉帖过期时间内不会再吃
-           * 吃完的肉帖在记录里的也不会再吃
-           *
-           * 1.吃肉方式默认当前窗口打开
-           * 2.新开窗口打开通过iframe
-           */
-          let autoEatList = getItem("autoEatList");
-
-          if (!autoEatList[id]) {
-            if (isNewOpenIframe) {
-              // 新窗口
-              setTimeout(() => {
-                // 不通过window.open方式吃肉，无法设置静默状态
-                // 无法保持原窗口焦点 打开新窗口。会影响其他窗口页面
-                // 创建一个 iframe 元素
-                let iframe = document.createElement("iframe");
-
-                // 设置 iframe 的属性
-                iframe.src = newHref;
-                iframe.style.display = "none";
-
-                document.body.appendChild(iframe);
-              }, (index + 1) * 1000);
-            } else {
-              bbs.href = newHref;
-              bbs.click();
-              break;
-            }
-          } else {
-            console.log("无需跳转进肉帖，已经吃过肉:", id);
-          }
-        }
-      }
-    }
-  }
   // 浏览器scroll事件
   function handleWindowScroll() {
     window.addEventListener(
@@ -1147,13 +1038,6 @@
           // 已经请求到数据
           if (nextBtn.innerText.includes("加载更多")) {
             // 加载完成了
-            isNewPage = true;
-
-            // 开始自动吃肉
-            if (isClickLoadMoreBtn && isNewPage) {
-              // 滚动时加载新页的时候自动吃肉
-              handleFullAutoEat();
-            }
 
             isClickLoadMoreBtn = false;
             isNewPage = false;
@@ -1276,7 +1160,7 @@
         "body > div.content > div.paibi > span.shengyu > span.yushuzi"
       );
 
-      if (!isAutoEat && !isFullAutoEat) {
+      if (!isAutoEat) {
         console.log("未开启自动吃肉，可在编辑脚本进行开启");
       } else {
         if (meatTag == undefined) {
@@ -1335,25 +1219,6 @@
     autoEatList[id] = new Date().getTime();
 
     setItem("autoEatList", autoEatList);
-
-    if (isFullAutoEat && isAutoEatBbs) {
-      setTimeout(() => {
-        if (isNewOpenIframe) {
-          if (window.self !== window.top) {
-            // 如果是在iframe里移除iframe
-            let iframe = window.frameElement; // 获取当前 iframe 元素
-            let parent = iframe.parentElement; // 获取包含当前 iframe 的父窗口对象
-
-            parent.removeChild(iframe);
-          } else {
-            // 新窗口则关闭当前窗口
-            window.close();
-          }
-        } else {
-          history.back();
-        }
-      }, 2000);
-    }
   }
   /**
    * 返回指定天数后的一天开始的时间，例如1天，则为明天00:00:00，2天则为后天00:00:00
@@ -1491,26 +1356,56 @@
       const content = form.getElementsByTagName("textarea")[0];
       const replyBtn = document.getElementsByName("g")[0];
 
+      // 显示表情
       content.insertAdjacentHTML("beforebegin", '<div id="facearea"></div>');
       const facearea = document.getElementById("facearea");
 
-      let allfacehtml = "";
-      faceList.slice(0, faceList.length).forEach((faceStr, i) => {
-        allfacehtml +=
-          '<img id="setFace' +
-          i +
-          '" style="width: 32px; height: 32px" src="face/' +
-          faceStr +
-          '" value="' +
-          faceStr.split(".")[0] +
-          '.gif"></img>';
+      let allFaceHtml = "";
+
+      faceList.forEach((faceStr, i) => {
+        let name = faceStr.split(".")[0];
+        allFaceHtml += `
+        <img
+          id="setFace${i}"
+          style="width: 32px;height: 32px"
+          src="face/${faceStr}"
+          value="${name}.gif"
+        />`;
       });
-      facearea.innerHTML += allfacehtml;
-      for (let i = 0; i < faceList.length; i++) {
-        document.getElementById("setFace" + i).onclick = function setFace() {
-          face.value = faceList[i];
-        };
+      facearea.innerHTML = allFaceHtml;
+
+      // 添加表情展开按钮
+      sendmsg.insertAdjacentHTML(
+        "afterend",
+        `<span 
+          style="${a3style}display:${
+          isUnfoldFace ? "display: block" : "display: none"
+        }" id="unfold"
+          >表情${isUnfoldFace ? "折叠" : "展开"}</span>`
+      );
+
+      if (isUnfoldFace) {
+        $("#facearea").show();
+      } else {
+        $("#facearea").hide();
       }
+      // 处理点击事件
+      $("#unfold").click(function (event) {
+        if (this.innerText == "表情展开") {
+          $("#facearea").show();
+          this.innerText = "表情折叠";
+        } else {
+          $("#facearea").hide();
+          this.innerText = "表情展开";
+        }
+      });
+
+      facearea.onclick = function (event) {
+        if (event.target.tagName.toLowerCase() === "img") {
+          // 处理图片的点击事件
+          face.value = event.target.getAttribute("value");
+        }
+      };
 
       // 妖火图床、超链接、图片
       form.removeChild(form.lastChild);
@@ -1568,7 +1463,7 @@
   // 自动增加时长
   function handleAutoAddOnlineDuration() {
     // 是否自动增加时长
-    if (isAddOnlineDuration) {
+    if (!timer) {
       timer = setInterval(function () {
         location.reload();
       }, timeInterval * 1000);
@@ -1641,10 +1536,7 @@
     let isPage = loadNextPage.some((item) =>
       item.test(window.location.pathname)
     );
-    if (
-      isPage ||
-      (isFullAutoEat && bbsPage.includes(window.location.pathname))
-    ) {
+    if (isPage) {
       let loadMoreBtn = document.querySelector("#KL_loadmore");
 
       loadMoreBtn?.addEventListener("click", (e) => {
