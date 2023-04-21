@@ -10,7 +10,8 @@
 // ==/UserScript==
 
 (function () {
-  "use strict";
-
+  ("use strict");
+  // <img id="fx_checkin_b" src="source/plugin/k_misign/static/mini.gif" alt="点击签到" style="position:relative;top:5px;height:18px;">
+  let;
   // Your code here...
 })();
