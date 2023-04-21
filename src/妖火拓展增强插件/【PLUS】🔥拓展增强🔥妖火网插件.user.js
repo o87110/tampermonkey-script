@@ -56,7 +56,7 @@
     // 是否自动加载下一页
     isLoadNextPage: false,
     // 加载按钮方式: more / nextPage
-    loadNextPageType: "more",
+    loadNextPageType: isMobile() ? "more" : "nextPage",
     // 一页最大的加载数量，超过数量就不会自动加载
     maxLoadNum: 150,
     // 滑块range最小和最大值
@@ -347,12 +347,12 @@
   })();
 
   // ==其他功能函数和方法==
-
+  function isMobile() {
+    return /Mobile/i.test(navigator.userAgent);
+  }
   function initSetting() {
-    const isMobile = /Mobile/i.test(navigator.userAgent);
-
     // 在移动设备上执行的代码
-    if (isMobile) {
+    if (isMobile()) {
       // 移动端默认显示站内设置图标
       settingData.isShowSettingIcon = true;
     } else {
