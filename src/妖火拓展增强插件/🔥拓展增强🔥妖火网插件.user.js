@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.1.0
+// @version      2.2.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *yaohuo.me/*
@@ -50,6 +50,8 @@
     expiredDays: 1,
     // 是否自动加载下一页
     isLoadNextPage: false,
+    // 加载按钮方式: more / nextPage
+    loadNextPageType: "more",
     // 一页最大的加载数量，超过数量就不会自动加载
     maxLoadNum: 150,
     // 滑块range最小和最大值
@@ -102,6 +104,8 @@
     isAddNewPostUBB,
     isAddReplyUBB,
     isUnfoldFace,
+
+    loadNextPageType,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -425,6 +429,9 @@
       }
       .touch-action-none {
         touch-action: none;
+      }
+      .add-position-static{
+        position: static !important;
       }   
     `);
 
@@ -857,6 +864,13 @@
               </div>
             </li>
             <li>
+              <span>自动加载下一页方式</span>
+              <select data-key="loadNextPageType" id="loadNextPageType">
+                <option value="more">加载更多按钮</option>
+                <option value="nextPage">下一页按钮</option>
+              </select>
+            </li>
+            <li>
               <span>自动加载最大数：<i class="range-num">${getValue(
                 "maxLoadNum",
                 40
@@ -924,6 +938,11 @@
             // 根据当前的按钮选中状态处理子项的联动显示或隐藏
             autoShowElement({
               fatherIdAry: ["isLoadNextPage"],
+              childId: ["loadNextPageType"],
+              dataKey,
+            });
+            autoShowElement({
+              fatherIdAry: ["isLoadNextPage"],
               childId: ["maxLoadNum"],
               dataKey,
             });
@@ -954,7 +973,7 @@
               $(item).prev().children(".range-num").text(item.value);
             });
           } else {
-            setValue(dataKey, parseInt(item.value));
+            setValue(dataKey, item.value);
           }
           break;
 
@@ -1034,19 +1053,33 @@
 
         // 处理点击加载更多后的全自动吃肉
         if (isPage) {
-          let nextBtn = document.querySelector("span[id$=show_tip]");
-          // 已经请求到数据
-          if (nextBtn.innerText.includes("加载更多")) {
-            // 加载完成了
+          let nextBtn = null;
+          // 下一页按钮的父节点
+          let nextPageWrap = document.querySelector(".bt2");
 
-            isClickLoadMoreBtn = false;
-            isNewPage = false;
+          if (loadNextPageType === "more" || !nextPageWrap) {
+            // 加载更多加载下一页
+            nextBtn = document.querySelector("span[id$=show_tip]");
 
-            // 处理自动加载更多，需要放到最后
+            // 已经请求到数据
+            if (nextBtn.innerText.includes("加载更多")) {
+              // 加载完成了
+
+              isClickLoadMoreBtn = false;
+              isNewPage = false;
+
+              // 处理自动加载更多，需要放到最后
+              handleLoadNextPage();
+            }
+          } else {
+            // 下一页按钮加载下一页
+
+            nextBtn = nextPageWrap.firstChild;
+
             handleLoadNextPage();
           }
         }
-      }, 500)
+      }, 100)
     );
   }
   // 返回当前列表数据的长度
@@ -1071,6 +1104,7 @@
         }
         return;
       }
+      const face = form.getElementsByTagName("select")[0];
       const replyBtn = document.getElementsByName("g")[0];
 
       const textarea = document.querySelector(
@@ -1082,6 +1116,7 @@
       // 吃肉 必须放在后面
       const fileTag = document.querySelector("body > div.sticky > form > a");
       let eatMeat = document.createElement("input");
+      eatMeat.style.float = "right";
       eatMeat.type = "submit";
       eatMeat.value = "一键吃肉";
       eatMeat.addEventListener("click", (e) => {
@@ -1137,6 +1172,7 @@
           "先吃肉..",
           "先吃肉。。",
         ];
+
         let index = Math.floor(Math.random() * eatWordsArr.length);
         console.log("吃肉回复：", eatWordsArr[index]);
         insertText(textarea, eatWordsArr[index], 0);
@@ -1183,8 +1219,8 @@
           autoEatCallback();
         }
       }
-
-      form.insertBefore(eatMeat, fileTag);
+      // 将吃肉插入到文件回帖后面
+      fileTag.after(eatMeat);
     }
   }
   function insertText(obj, str, offset) {
@@ -1355,7 +1391,7 @@
       const sendmsg = form.getElementsByTagName("select")[1];
       const content = form.getElementsByTagName("textarea")[0];
       const replyBtn = document.getElementsByName("g")[0];
-
+      const eatMeat = document.querySelector("input[value=一键吃肉]");
       // 显示表情
       content.insertAdjacentHTML("beforebegin", '<div id="facearea"></div>');
       const facearea = document.getElementById("facearea");
@@ -1389,17 +1425,13 @@
       } else {
         $("#facearea").hide();
       }
-      // 处理点击事件
-      $("#unfold").click(function (event) {
-        if (this.innerText == "表情展开") {
-          $("#facearea").show();
-          this.innerText = "表情折叠";
-        } else {
-          $("#facearea").hide();
-          this.innerText = "表情展开";
-        }
-      });
 
+      eatMeat.insertAdjacentHTML(
+        "afterend",
+        `<input id="ubb_unfold" type="submit" value="折叠UBB" style="float:right"/>`
+      );
+
+      // 处理点击添加表情包
       facearea.onclick = function (event) {
         if (event.target.tagName.toLowerCase() === "img") {
           // 处理图片的点击事件
@@ -1413,12 +1445,13 @@
         "beforeend",
         `
         <hr>
-        <div style="text-align: center;">
+        <div class="ubb_wrap" style="text-align: center;overflow: hidden;">
           <span id='ubb_url' style="${spanstyle}">链接</span>
           <span id='ubb_img' style="${spanstyle}">图片</span>
           <span id='ubb_audio' style="${spanstyle}">音频</span>
           <span id='ubb_movie' style="${spanstyle}">视频</span>
           <span id='ubb_nzgsa' style="${a2style}">你真该死啊</span>
+
           <br>
           <span id='ubb_text' style="${spanstyle}">半角</span>
           <span id='ubb_br' style="${spanstyle}">换行</span>
@@ -1446,6 +1479,29 @@
         <hr>
         `
       );
+      // 处理折叠表情
+      $("#unfold").click(function (event) {
+        if (this.innerText == "表情展开") {
+          $("#facearea").show();
+          this.innerText = "表情折叠";
+        } else {
+          $("#facearea").hide();
+          this.innerText = "表情展开";
+        }
+      });
+      // 处理折叠ubb
+      $("#ubb_unfold").click(function (event) {
+        if (this.value == "折叠UBB") {
+          $(".ubb_wrap").height(32);
+          this.value = "展开UBB";
+        } else {
+          $(".ubb_wrap").height("auto");
+          this.value = "折叠UBB";
+        }
+        event.preventDefault();
+      });
+      // 不让整个form粘性定位。
+      $(".sticky").addClass("add-position-static");
       // 超链接
       const textarea = document.querySelector("form > .retextarea");
       addEventAry.forEach((item) => {
@@ -1537,8 +1593,13 @@
       item.test(window.location.pathname)
     );
     if (isPage) {
-      let loadMoreBtn = document.querySelector("#KL_loadmore");
-
+      let loadMoreBtn = null;
+      let nextPageWrap = document.querySelector(".bt2");
+      if (loadNextPageType === "nextPage" && nextPageWrap) {
+        loadMoreBtn = nextPageWrap.firstChild;
+      } else {
+        loadMoreBtn = document.querySelector("#KL_loadmore");
+      }
       loadMoreBtn?.addEventListener("click", (e) => {
         isClickLoadMoreBtn = true;
         isNewPage = false;
@@ -1552,7 +1613,16 @@
       item.test(window.location.pathname)
     );
     if (isPage && isLoadNextPage) {
-      let nextBtn = document.querySelector("span[id$=show_tip]");
+      let nextBtn = null;
+      let nextPageWrap = document.querySelector(".bt2");
+      // 距离按钮最大多少就会触发
+      let bottomMaxDistance = 250;
+      if (loadNextPageType === "more" || !nextPageWrap) {
+        nextBtn = document.querySelector("span[id$=show_tip]");
+      } else {
+        nextBtn = nextPageWrap.firstChild;
+        bottomMaxDistance = 150;
+      }
       let A = nextBtn.getBoundingClientRect().bottom;
       let B = document.documentElement.clientHeight;
       // 获取当前列表的长度
@@ -1561,7 +1631,11 @@
       // 加载更多按钮距离距底部小于300px才开始加载
       // 没有加载完成前不会再次加载
       // 小于页面最大加载数量才会加载
-      if (A <= B + 300 && !isClickLoadMoreBtn && newLength < maxLoadNum) {
+      if (
+        A <= B + bottomMaxDistance &&
+        !isClickLoadMoreBtn &&
+        newLength < maxLoadNum
+      ) {
         nextBtn.click();
         // 放到加载更多按钮里面监听，此处不处理
         // isClickLoadMoreBtn = true;
