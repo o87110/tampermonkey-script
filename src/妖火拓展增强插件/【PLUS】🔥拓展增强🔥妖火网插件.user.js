@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.2.0
+// @version      2.2.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *yaohuo.me/*
@@ -1234,14 +1234,14 @@
       const face = form.getElementsByTagName("select")[0];
       const replyBtn = document.getElementsByName("g")[0];
 
-      const textarea = document.querySelector(
-        "body > div.sticky > form > textarea"
-      );
+      const textarea = document.querySelector(".retextarea");
       // 帖子标识id
       let id = window.location.pathname.match(/\d+/)[0];
 
       // 吃肉 必须放在后面
-      const fileTag = document.querySelector("body > div.sticky > form > a");
+      const fileTag = document.querySelector(
+        "a[href^='/bbs/book_re_addfile.aspx']"
+      );
       let eatMeat = document.createElement("input");
       eatMeat.style.float = "right";
       eatMeat.type = "submit";
@@ -1327,9 +1327,7 @@
         true
       );
 
-      const meatTag = document.querySelector(
-        "body > div.content > div.paibi > span.shengyu > span.yushuzi"
-      );
+      const meatTag = document.querySelector("span.yushuzi");
 
       if (!isAutoEat && !isFullAutoEat) {
         console.log("未开启自动吃肉，可在编辑脚本进行开启");
@@ -1545,7 +1543,9 @@
       const sendmsg = form.getElementsByTagName("select")[1];
       const content = form.getElementsByTagName("textarea")[0];
       const replyBtn = document.getElementsByName("g")[0];
-      const eatMeat = document.querySelector("input[value=一键吃肉]");
+      const fileTag = document.querySelector(
+        "a[href^='/bbs/book_re_addfile.aspx']"
+      );
       // 显示表情
       content.insertAdjacentHTML("beforebegin", '<div id="facearea"></div>');
       const facearea = document.getElementById("facearea");
@@ -1580,7 +1580,7 @@
         $("#facearea").hide();
       }
 
-      eatMeat.insertAdjacentHTML(
+      fileTag.insertAdjacentHTML(
         "afterend",
         `<input id="ubb_unfold" type="submit" value="折叠UBB" style="float:right"/>`
       );
@@ -1594,7 +1594,6 @@
       };
 
       // 妖火图床、超链接、图片
-      form.removeChild(form.lastChild);
       form.insertAdjacentHTML(
         "beforeend",
         `
