@@ -1,10 +1,13 @@
 // ==UserScript==
 // @name         瑞克论坛插件
 // @namespace    https://www.ruike1.com/
-// @version      0.1
-// @description  瑞克网站的一些脚本
+// @version      0.2
+// @description  瑞克网站、教育盘、助学盘的复制脚本
 // @author       You
 // @match        *ruike1.com/*
+// @match        *www.ruike1.com/*
+// @match        *zhuxuepan.com/*
+// @match        *jiaoyupan.com/*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @grant        GM_setClipboard
 // ==/UserScript==
@@ -15,7 +18,7 @@
   let signInBtn = document.querySelector("#fx_checkin_b");
   let thread_types = document.querySelector("#thread_types");
   // 自动签到
-  if (signInBtn.alt === "点击签到") {
+  if (signInBtn?.alt === "点击签到") {
     signInBtn.click();
   }
   if (thread_types) {
@@ -41,7 +44,9 @@
           item.parentElement.tagName === "TR"
             ? item.parentElement
             : item.parentElement.parentElement;
-        let text = parent.querySelector(".common .xst").innerText;
+        let text = parent
+          .querySelector(".common .xst")
+          .innerText.replace("[百度云网盘]", "");
 
         if (item.checked) {
           titleAry.push(text);
