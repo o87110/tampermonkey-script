@@ -7,7 +7,6 @@
 // @match        *ruike1.com/*
 // @icon         data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==
 // @grant        GM_setClipboard
-// @grant        unsafeWindow
 // ==/UserScript==
 
 (function () {
