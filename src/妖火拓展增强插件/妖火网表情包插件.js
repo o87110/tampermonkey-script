@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         妖火网增强插件
+// @name         妖火网表情包插件
 // @namespace    https://yaohuo.me/
-// @version      1.8.4
+// @version      1.8.7
 // @description  二改添加修改发帖ubb、回帖表情等功能
 // @author       ID12167
 // @match        *yaohuo.me/*
@@ -139,6 +139,7 @@ if (
     <option id="ubb_mq" value="ubb_mq">没钱</option>
     <option id="ubb_tg" value="ubb_tg">听歌</option>
     <option id="ubb_nt" value="ubb_nt">男同</option>
+    <option id="ubb_gj" value="ubb_gj">跪稽</option>
     <option id="ubb_qy" value="ubb_qt">乞讨</option>
     <option id="ubb_gz" value="ubb_gz">鼓掌</option>
     <option id="ubb_sw" value="ubb_sw">骚舞</option>
@@ -148,6 +149,10 @@ if (
     <option id="ubb_st" value="ubb_st">伸头</option>
     <option id="ubb_zj" value="ubb_zj">追稽</option>
     <option id="ubb_lsj" value="ubb_lsj">司稽</option>
+    <option id="ubb_dn" value="ubb_dn">刀你</option>
+    <option id="ubb_cc" value="ubb_cc">冲刺</option>
+    <option id="ubb_zq" value="ubb_zq">转圈</option>
+    <option id="ubb_cj" value="ubb_cj">吃稽</option>
   </select>
 
         <br><center><span id='ubb_nzgsa' style="${a2style}">你真该死啊</span>
@@ -211,31 +216,67 @@ if (
       if (selectedValue === "ubb_jy") {
         insertText(textarea, "[img]https://i.ibb.co/hXBXGq8/jy.gif[/img]", 0);
       } else if (selectedValue === "ubb_jw") {
-        insertText(textarea, "[img]https://i.ibb.co/L0scf9m/jw.gif[/img]", 0);
+        insertText(
+          textarea,
+          "[img=46,70]https://i.ibb.co/L0scf9m/jw.gif[/img]",
+          0
+        );
       } else if (selectedValue === "ubb_sj") {
         insertText(textarea, "[img]https://i.ibb.co/rmQY19V/sj.gif[/img]", 0);
       } else if (selectedValue === "ubb_jj") {
-        insertText(textarea, "[img]https://i.ibb.co/h14QP4d/jj.gif[/img]", 0);
+        insertText(
+          textarea,
+          "[img=57,70]https://i.ibb.co/h14QP4d/jj.gif[/img]",
+          0
+        );
       } else if (selectedValue === "ubb_jg") {
-        insertText(textarea, "[img]https://i.ibb.co/9yD4mFW/jg.gif[/img]", 0);
+        insertText(
+          textarea,
+          "[img=70,70]https://i.ibb.co/9yD4mFW/jg.gif[/img]",
+          0
+        );
       } else if (selectedValue === "ubb_mq") {
-        insertText(textarea, "[img]https://i.ibb.co/CnNY1SG/mq.gif[/img]", 0);
+        insertText(
+          textarea,
+          "[img=70,70]https://i.ibb.co/CnNY1SG/mq.gif[/img]",
+          0
+        );
       } else if (selectedValue === "ubb_sw") {
-        insertText(textarea, "[img]https://i.ibb.co/0qTfStm/sw.gif[/img]", 0);
+        insertText(
+          textarea,
+          "[img=70,70]https://i.ibb.co/0qTfStm/sw.gif[/img]",
+          0
+        );
       } else if (selectedValue === "ubb_cs") {
-        insertText(textarea, "[img]https://i.ibb.co/yh8bSx7/cs.gif[/img]", 0);
+        insertText(
+          textarea,
+          "[img=70,51]https://i.ibb.co/yh8bSx7/cs.gif[/img]",
+          0
+        );
       } else if (selectedValue === "ubb_bs") {
-        insertText(textarea, "[img]https://i.ibb.co/3BxqbXX/bs.gif[/img]", 0);
+        insertText(
+          textarea,
+          "[img=70,70]https://i.ibb.co/3BxqbXX/bs.gif[/img]",
+          0
+        );
       } else if (selectedValue === "ubb_tg") {
         insertText(textarea, "[img]https://i.ibb.co/3NrbQfQ/tg.gif[/img]", 0);
       } else if (selectedValue === "ubb_st") {
-        insertText(textarea, "[img]https://i.ibb.co/whDBFQd/st.gif[/img]", 0);
+        insertText(
+          textarea,
+          "[img=70,70]https://i.ibb.co/whDBFQd/st.gif[/img]",
+          0
+        );
       } else if (selectedValue === "ubb_gz") {
-        insertText(textarea, "[img]https://i.ibb.co/7KzRsmd/gz.gif[/img]", 0);
+        insertText(
+          textarea,
+          "[img=70,86]https://i.ibb.co/7KzRsmd/gz.gif[/img]",
+          0
+        );
       } else if (selectedValue === "ubb_tt") {
         insertText(textarea, "[img]https://i.ibb.co/KNGfHFw/tt.gif[/img]", 0);
       } else if (selectedValue === "ubb_nt") {
-        insertText(textarea, "[img]https://i.ibb.co/sKS4R3x/nt.png[/img]", 0);
+        insertText(textarea, "[img]https://i.ibb.co/g9fYccg/nt.jpg[/img]", 0);
       } else if (selectedValue === "ubb_sq") {
         insertText(textarea, "[img]https://i.ibb.co/VCWLFgz/sq.gif[/img]", 0);
       } else if (selectedValue === "ubb_pt") {
@@ -245,11 +286,27 @@ if (
       } else if (selectedValue === "ubb_zj") {
         insertText(textarea, "[img]https://i.ibb.co/5jJwwdQ/zj.gif[/img]", 0);
       } else if (selectedValue === "ubb_lsj") {
-        insertText(textarea, "[img]https://i.ibb.co/mRLMkyv/lsj.gif[/img]", 0);
+        insertText(
+          textarea,
+          "[img=70,70]https://i.ibb.co/mRLMkyv/lsj.gif[/img]",
+          0
+        );
       } else if (selectedValue === "ubb_qt") {
-        insertText(textarea, "[img]https://i.ibb.co/7KKybVg/qt.gif[/img]", 0);
-      } else if (selectedValue === "ubb_sj") {
-        insertText(textarea, "[img]https://i.ibb.co/rmQY19V/sj.gif[/img]", 0);
+        insertText(
+          textarea,
+          "[img=70,45]https://i.ibb.co/7KKybVg/qt.gif[/img]",
+          0
+        );
+      } else if (selectedValue === "ubb_gj") {
+        insertText(textarea, "[img]https://i.ibb.co/3r8mtKh/gj.gif[/img]", 0);
+      } else if (selectedValue === "ubb_dn") {
+        insertText(textarea, "[img]https://i.ibb.co/PWMFdB8/dn.gif[/img]", 0);
+      } else if (selectedValue === "ubb_cc") {
+        insertText(textarea, "[img]https://i.ibb.co/BcHh8kn/dp.gif[/img]", 0);
+      } else if (selectedValue === "ubb_zq") {
+        insertText(textarea, "[img]https://i.ibb.co/LDycW8K/zq.gif[/img]", 0);
+      } else if (selectedValue === "ubb_cj") {
+        insertText(textarea, "[img]https://i.ibb.co/7gNd669/cj.gif[/img]", 0);
       }
 
       // 插入智能回复的内容

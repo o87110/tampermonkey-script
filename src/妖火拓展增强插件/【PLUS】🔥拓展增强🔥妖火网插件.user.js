@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.2.1
+// @version      2.3.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *yaohuo.me/*
@@ -83,6 +83,8 @@
     isAddReplyUBB: true,
     // 是否默认展开表情
     isUnfoldFace: true,
+    // 是否默认展开表情
+    isUnfoldUbb: false,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -119,6 +121,7 @@
     isAddNewPostUBB,
     isAddReplyUBB,
     isUnfoldFace,
+    isUnfoldUbb,
 
     loadNextPageType,
   } = yaohuo_userData;
@@ -187,6 +190,108 @@
     "耶耶.gif",
     "被揍.gif",
     "抱走.gif",
+  ];
+  const diyFaceList = [
+    {
+      url: "https://i.ibb.co/hXBXGq8/jy.gif",
+      name: "摸鱼",
+    },
+    {
+      url: "https://i.ibb.co/L0scf9m/jw.gif",
+      name: "稽舞",
+    },
+    {
+      url: "https://i.ibb.co/rmQY19V/sj.gif",
+      name: "色稽",
+    },
+    {
+      url: "https://i.ibb.co/h14QP4d/jj.gif",
+      name: "撒娇",
+    },
+    {
+      url: "https://i.ibb.co/9yD4mFW/jg.gif",
+      name: "稽狗",
+    },
+    {
+      url: "https://i.ibb.co/CnNY1SG/mq.gif",
+      name: "没钱",
+    },
+    {
+      url: "https://i.ibb.co/0qTfStm/sw.gif",
+      name: "骚舞",
+    },
+    {
+      url: "https://i.ibb.co/yh8bSx7/cs.gif",
+      name: "吃屎",
+    },
+    {
+      url: "https://i.ibb.co/3BxqbXX/bs.gif",
+      name: "鄙视",
+    },
+    {
+      url: "https://i.ibb.co/3NrbQfQ/tg.gif",
+      name: "听歌",
+    },
+    {
+      url: "https://i.ibb.co/whDBFQd/st.gif",
+      name: "伸头",
+    },
+    {
+      url: "https://i.ibb.co/7KzRsmd/gz.gif",
+      name: "鼓掌",
+    },
+    {
+      url: "https://i.ibb.co/KNGfHFw/tt.gif",
+      name: "踢腿",
+    },
+    {
+      url: "https://i.ibb.co/sKS4R3x/nt.png",
+      name: "男同",
+    },
+    {
+      url: "https://i.ibb.co/VCWLFgz/sq.gif",
+      name: "手枪",
+    },
+    {
+      url: "https://i.ibb.co/pjw803c/pt.gif",
+      name: "拍头",
+    },
+    {
+      url: "https://i.ibb.co/fNcvwj0/tp.gif",
+      name: "躺平",
+    },
+    {
+      url: "https://i.ibb.co/5jJwwdQ/zj.gif",
+      name: "追稽",
+    },
+    {
+      url: "https://i.ibb.co/mRLMkyv/lsj.gif",
+      name: "司稽",
+    },
+    {
+      url: "https://i.ibb.co/7KKybVg/qt.gif",
+      name: "乞讨",
+    },
+    {
+      url: "https://i.ibb.co/3r8mtKh/gj.gif",
+      name: "跪稽",
+    },
+    {
+      url: "https://i.ibb.co/PWMFdB8/dn.gif",
+      name: "刀你",
+    },
+    {
+      url: "https://i.ibb.co/BcHh8kn/dp.gif",
+      name: "冲刺",
+    },
+    {
+      url: "https://i.ibb.co/LDycW8K/zq.gif",
+      name: "转圈",
+    },
+    {
+      url: "https://i.ibb.co/7gNd669/cj.gif",
+      name: "吃稽",
+    },
   ];
   // 批量添加事件数组
   let addEventAry = [
@@ -888,6 +993,13 @@
               </div>
             </li>
             <li>
+              <span>回帖UBB默认展开</span>
+              <div class="switch">
+                <input type="checkbox" id="isUnfoldUbb" data-key="isUnfoldUbb" />
+                <label for="isUnfoldUbb"></label>
+              </div>
+            </li>
+            <li>
               <span>自动吃肉时间间隔：<i class="range-num">${getValue(
                 "timeInterval",
                 40
@@ -1566,6 +1678,16 @@
           value="${name}.gif"
         />`;
       });
+      diyFaceList.forEach((item, i) => {
+        allFaceHtml += `
+        <img
+          id="diyFace${i}"
+          data-src="${item.url}"
+          style="width: 32px;height: 32px"
+          src="${item.url}"
+          value="${item.name}.gif"
+        />`;
+      });
       facearea.innerHTML = allFaceHtml;
 
       // 添加表情展开按钮
@@ -1578,20 +1700,26 @@
           >表情${isUnfoldFace ? "折叠" : "展开"}</span>`
       );
 
-      if (isUnfoldFace) {
-        $("#facearea").show();
-      } else {
-        $("#facearea").hide();
-      }
-
       fileTag.insertAdjacentHTML(
         "afterend",
-        `<input id="ubb_unfold" type="submit" value="折叠UBB" style="float:right"/>`
+        `<input id="ubb_unfold" type="submit" value="${
+          isUnfoldUbb ? "折叠UBB" : "展开UBB"
+        }" style="float:right"/>`
       );
 
       // 处理点击添加表情包
       facearea.onclick = function (event) {
         if (event.target.tagName.toLowerCase() === "img") {
+          // 自定义图片
+          let diySrc = event.target.dataset.src;
+
+          if (diySrc) {
+            //把光标移到文本框最前面
+            textarea.focus();
+            textarea.setSelectionRange(0, 0);
+            insertText(textarea, `[img]${diySrc}[/img]`, 0);
+            return;
+          }
           // 处理图片的点击事件
           face.value = event.target.getAttribute("value");
         }
@@ -1636,6 +1764,18 @@
         <hr>
         `
       );
+      // 处理默认展开ubb和表情
+      if (isUnfoldFace) {
+        $("#facearea").show();
+      } else {
+        $("#facearea").hide();
+      }
+
+      if (isUnfoldUbb) {
+        $(".ubb_wrap").height("auto");
+      } else {
+        $(".ubb_wrap").height(32);
+      }
       // 处理折叠表情
       $("#unfold").click(function (event) {
         if (this.innerText == "表情展开") {
