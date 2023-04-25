@@ -1108,7 +1108,11 @@
             location.reload();
           }, timeInterval * 1000);
         }
-
+        // 指定时间不自动吃肉
+        if (new Date().getHours() < 8) {
+          console.log("当前小于8点，不吃肉");
+          return;
+        }
         let eatImgSrc = "/NetImages/li.gif";
 
         let eatList = document.querySelectorAll(`img[src='${eatImgSrc}']`);
