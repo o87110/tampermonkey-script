@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.3.2
+// @version      2.3.3
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *yaohuo.me/*
@@ -291,6 +291,18 @@
     {
       url: "https://i.ibb.co/7gNd669/cj.gif",
       name: "吃稽",
+    },
+    {
+      url: "https://i.ibb.co/7S2T2pF/fj.gif",
+      name: "犯贱",
+    },
+    {
+      url: "https://i.ibb.co/yFtQtLM/nb.gif",
+      name: "牛掰",
+    },
+    {
+      url: "https://i.ibb.co/FVnL0PB/yb.gif",
+      name: "拥抱",
     },
   ];
   // 批量添加事件数组

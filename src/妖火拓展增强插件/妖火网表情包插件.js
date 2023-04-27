@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         妖火网表情包插件
 // @namespace    https://yaohuo.me/
-// @version      1.8.7
+// @version      1.8.9
 // @description  二改添加修改发帖ubb、回帖表情等功能
 // @author       ID12167
 // @match        *yaohuo.me/*
@@ -153,6 +153,9 @@ if (
     <option id="ubb_cc" value="ubb_cc">冲刺</option>
     <option id="ubb_zq" value="ubb_zq">转圈</option>
     <option id="ubb_cj" value="ubb_cj">吃稽</option>
+    <option id="ubb_fj" value="ubb_fj">犯贱</option>
+    <option id="ubb_nb" value="ubb_nb">牛掰</option>
+    <option id="ubb_yb" value="ubb_yb">拥抱</option>
   </select>
 
         <br><center><span id='ubb_nzgsa' style="${a2style}">你真该死啊</span>
@@ -307,6 +310,12 @@ if (
         insertText(textarea, "[img]https://i.ibb.co/LDycW8K/zq.gif[/img]", 0);
       } else if (selectedValue === "ubb_cj") {
         insertText(textarea, "[img]https://i.ibb.co/7gNd669/cj.gif[/img]", 0);
+      } else if (selectedValue === "ubb_fj") {
+        insertText(textarea, "[img]https://i.ibb.co/7S2T2pF/fj.gif[/img]", 0);
+      } else if (selectedValue === "ubb_nb") {
+        insertText(textarea, "[img]https://i.ibb.co/yFtQtLM/nb.gif[/img]", 0);
+      } else if (selectedValue === "ubb_yb") {
+        insertText(textarea, "[img]https://i.ibb.co/FVnL0PB/yb.gif[/img]", 0);
       }
 
       // 插入智能回复的内容
@@ -461,6 +470,9 @@ if (
       insertText(bookContent, "[strike][/strike]", 9)
     );
 
+  document
+    .getElementById("ubb_img")
+    .addEventListener("click", () => insertText(bookContent, "[img][/img]", 6));
   document
     .getElementById("ubb_movie")
     .addEventListener("click", () =>
