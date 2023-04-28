@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.3.5
+// @version      2.3.6
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1240,6 +1240,7 @@
         let eatImgSrc = "/NetImages/li.gif";
 
         let eatList = document.querySelectorAll(`img[src='${eatImgSrc}']`);
+        let randomNum = getRandomNumber(8, 25);
 
         for (let index = 0; index < eatList.length; index++) {
           const element = eatList[index];
@@ -1267,8 +1268,9 @@
            */
           let autoEatList = getItem("autoEatList");
           // 回帖小于8个暂缓吃肉
-          if (replyNum <= 8) {
-            console.log("回帖小于8个暂缓吃肉:", id);
+
+          if (replyNum <= randomNum) {
+            console.log(`回帖小于${randomNum}个暂缓吃肉:${id}`);
             continue;
           }
           if (!autoEatList[id]) {
@@ -1297,6 +1299,15 @@
         }
       }
     }
+  }
+  /**
+   * 生成指定范围内的随机整数
+   * @param {number} min - 随机数范围的最小值
+   * @param {number} max - 随机数范围的最大值
+   * @returns {number} - 生成的随机整数
+   */
+  function getRandomNumber(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
   }
   // 浏览器scroll事件
   function handleWindowScroll() {
