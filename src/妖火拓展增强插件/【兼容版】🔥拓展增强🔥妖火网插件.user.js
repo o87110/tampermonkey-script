@@ -412,7 +412,7 @@ script.onload = function () {
     handleWindowResize();
     // 添加站内设置按钮
     addSettingBtn();
-    // 网站首页添加设置入口
+    // 如果关闭了悬浮图标，在网站首页右上角添加插件设置入口
     handleAddSettingText();
     // 加载更多按钮点击事件监听
     handleAddLoadMoreBtnClick();
@@ -543,7 +543,7 @@ script.onload = function () {
       }
       .add-position-static{
         position: static !important;
-      }   
+      }
     `);
 
     let innerH = `

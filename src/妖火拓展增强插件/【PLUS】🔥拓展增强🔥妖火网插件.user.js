@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.3.6
+// @version      2.3.7
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -445,6 +445,8 @@
     handleWindowResize();
     // 添加站内设置按钮
     addSettingBtn();
+    // 如果关闭了悬浮图标，在网站首页右上角添加插件设置入口
+    handleAddSettingText();
     // 点开脚本设置
     GM_registerMenuCommand("打开设置界面", setMenu);
     // 加载更多按钮点击事件监听
@@ -464,6 +466,17 @@
   })();
 
   // ==其他功能函数和方法==
+  function handleAddSettingText() {
+    if (!isShowSettingIcon && $(".top2").length) {
+      $(".top2").append(
+        `<a class="yaohuo-setting-text" style="float:right;cursor: pointer;">插件设置</a>`
+      );
+
+      $(".yaohuo-setting-text").click(() => {
+        setMenu();
+      });
+    }
+  }
   function isMobile() {
     return /Mobile/i.test(navigator.userAgent);
   }
