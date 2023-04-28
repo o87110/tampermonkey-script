@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name        【兼容版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      1.0.0
+// @version      1.0.1
 // @description  🔥拓展增强🔥妖火网插件兼容版本
 // @author       龙少c(id:20469)
-// @match        https://*.yaohuo.me/*
-// @match        https://yaohuo.me/*
+// @match        *://yaohuo.me/*
+// @match        *://*.yaohuo.me/*
 // @icon         https://yaohuo.me/css/favicon.ico
 // @license      MIT
 // ==/UserScript==
