@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.3.4
+// @version      2.3.5
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1244,7 +1244,11 @@
         for (let index = 0; index < eatList.length; index++) {
           const element = eatList[index];
           // 拿到肉帖dom
-          let bbs = element.parentElement.querySelector("a[href^='/bbs-']");
+          let parent = element.parentElement;
+          let bbs = parent.querySelector("a[href^='/bbs-']");
+          let replyNum = parent.querySelector(
+            "a[href^='/bbs/book_re.aspx']"
+          ).innerHTML;
           let href = bbs.getAttribute("href");
           // 肉帖标识
           let id = href.match(/bbs-(\d+)/)[1];
@@ -1262,7 +1266,11 @@
            * 2.新开窗口打开通过iframe
            */
           let autoEatList = getItem("autoEatList");
-
+          // 回帖小于8个暂缓吃肉
+          if (replyNum <= 8) {
+            console.log("回帖小于8个暂缓吃肉:", id);
+            continue;
+          }
           if (!autoEatList[id]) {
             if (isNewOpenIframe) {
               // 新窗口
@@ -1310,7 +1318,7 @@
             nextBtn = document.querySelector("span[id$=show_tip]");
 
             // 已经请求到数据
-            if (nextBtn.innerText.includes("加载更多")) {
+            if (nextBtn?.innerText.includes("加载更多")) {
               // 加载完成了
               isNewPage = true;
 
