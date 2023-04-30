@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.3.7
+// @version      2.3.8
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -45,6 +45,8 @@
     isFullAutoEat: false,
     // 全自动吃肉是否无跳转通过iframe吃肉，否则直接当前页面跳转打开肉帖吃肉。
     isNewOpenIframe: false,
+    // 是否立即吃肉：否则会有指定回复后才会吃
+    isImmediatelyEat: false,
     // 帖子里是否显示用户等级
     isShowLevel: true,
     // 是否自动增加时长
@@ -94,6 +96,7 @@
     isAutoEat,
     isFullAutoEat,
     isNewOpenIframe,
+    isImmediatelyEat,
     isShowLevel,
     isAddOnlineDuration,
     timeInterval,
@@ -999,6 +1002,13 @@
               </div>
             </li>
             <li>
+              <span>立刻吃肉</span>
+              <div class="switch">
+                <input type="checkbox" id="isImmediatelyEat" data-key="isImmediatelyEat" />
+                <label for="isImmediatelyEat"></label>
+              </div>
+            </li>
+            <li>
               <span>肉帖过期时间：<i class="range-num">${expiredDays}</i>天</span>
               <input
                 type="range"
@@ -1144,6 +1154,11 @@
               childId: ["isNewOpenIframe"],
               dataKey,
             });
+            autoShowElement({
+              fatherIdAry: ["isFullAutoEat"],
+              childId: ["isImmediatelyEat"],
+              dataKey,
+            });
           } else {
             setValue(dataKey, item.checked);
           }
@@ -1282,7 +1297,7 @@
           let autoEatList = getItem("autoEatList");
           // 回帖小于8个暂缓吃肉
 
-          if (replyNum <= randomNum) {
+          if (!isImmediatelyEat && replyNum <= randomNum) {
             console.log(`回帖小于${randomNum}个暂缓吃肉:${id}`);
             continue;
           }
@@ -1471,6 +1486,7 @@
         // }
 
         insertText(textarea, eatWordsArr[index], 0);
+        autoEatCallback();
         replyBtn.click();
       });
 
@@ -1507,9 +1523,8 @@
             eatMeat.click();
           } else {
             console.log("已经吃过了");
+            autoEatCallback();
           }
-
-          autoEatCallback();
         }
       }
       // 将吃肉插入到文件回帖后面

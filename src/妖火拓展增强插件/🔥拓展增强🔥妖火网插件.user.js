@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.3.5
+// @version      2.3.6
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1313,6 +1313,7 @@
         let index = Math.floor(Math.random() * eatWordsArr.length);
         console.log("吃肉回复：", eatWordsArr[index]);
         insertText(textarea, eatWordsArr[index], 0);
+        autoEatCallback();
         replyBtn.click();
       });
 
@@ -1349,9 +1350,8 @@
             eatMeat.click();
           } else {
             console.log("已经吃过了");
+            autoEatCallback();
           }
-
-          autoEatCallback();
         }
       }
       // 将吃肉插入到文件回帖后面

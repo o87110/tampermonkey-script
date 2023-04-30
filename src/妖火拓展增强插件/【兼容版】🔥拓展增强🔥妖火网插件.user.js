@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        【兼容版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      1.0.1
+// @version      1.0.2
 // @description  🔥拓展增强🔥妖火网插件兼容版本
 // @author       龙少c(id:20469)
 // @match        *://yaohuo.me/*
@@ -1294,6 +1294,7 @@ script.onload = function () {
         let index = Math.floor(Math.random() * eatWordsArr.length);
         console.log("吃肉回复：", eatWordsArr[index]);
         insertText(textarea, eatWordsArr[index], 0);
+        autoEatCallback();
         replyBtn.click();
       });
 
@@ -1330,9 +1331,8 @@ script.onload = function () {
             eatMeat.click();
           } else {
             console.log("已经吃过了");
+            autoEatCallback();
           }
-
-          autoEatCallback();
         }
       }
       // 将吃肉插入到文件回帖后面
