@@ -1486,8 +1486,8 @@
         // }
 
         insertText(textarea, eatWordsArr[index], 0);
-        autoEatCallback();
         replyBtn.click();
+        autoEatCallback();
       });
 
       // 添加事件监听，如果吃过肉则会提示

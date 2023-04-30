@@ -1313,8 +1313,8 @@
         let index = Math.floor(Math.random() * eatWordsArr.length);
         console.log("吃肉回复：", eatWordsArr[index]);
         insertText(textarea, eatWordsArr[index], 0);
-        autoEatCallback();
         replyBtn.click();
+        autoEatCallback();
       });
 
       // 添加事件监听，如果吃过肉则会提示
