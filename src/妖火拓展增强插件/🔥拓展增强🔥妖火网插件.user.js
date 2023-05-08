@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.3.6
+// @version      2.4.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -288,6 +288,30 @@
     {
       url: "https://i.ibb.co/FVnL0PB/yb.gif",
       name: "拥抱",
+    },
+    {
+      url: "https://i.ibb.co/Nj0V2gM/722ee7ce0b4fdecd.gif",
+      name: "拍头",
+    },
+    {
+      url: "https://i.ibb.co/64Gmn3C/25e66a6595b1dc82.gif",
+      name: "摇头",
+    },
+    {
+      url: "https://i.ibb.co/2jWY20p/rt.gif",
+      name: "挠头",
+    },
+    {
+      url: "https://i.ibb.co/SdD7Vct/sx.gif",
+      name: "上学",
+    },
+    {
+      url: "https://i.ibb.co/dmng48J/lh.gif",
+      name: "流汗",
+    },
+    {
+      url: "https://i.ibb.co/GH0Q94V/5614974ef677a274.gif",
+      name: "摩擦",
     },
   ];
   // 批量添加事件数组

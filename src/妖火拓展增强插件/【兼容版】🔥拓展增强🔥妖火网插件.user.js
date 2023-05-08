@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        【兼容版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      1.0.2
+// @version      1.1.0
 // @description  🔥拓展增强🔥妖火网插件兼容版本
 // @author       龙少c(id:20469)
 // @match        *://yaohuo.me/*
@@ -270,6 +270,30 @@ script.onload = function () {
     {
       url: "https://i.ibb.co/FVnL0PB/yb.gif",
       name: "拥抱",
+    },
+    {
+      url: "https://i.ibb.co/Nj0V2gM/722ee7ce0b4fdecd.gif",
+      name: "拍头",
+    },
+    {
+      url: "https://i.ibb.co/64Gmn3C/25e66a6595b1dc82.gif",
+      name: "摇头",
+    },
+    {
+      url: "https://i.ibb.co/2jWY20p/rt.gif",
+      name: "挠头",
+    },
+    {
+      url: "https://i.ibb.co/SdD7Vct/sx.gif",
+      name: "上学",
+    },
+    {
+      url: "https://i.ibb.co/dmng48J/lh.gif",
+      name: "流汗",
+    },
+    {
+      url: "https://i.ibb.co/GH0Q94V/5614974ef677a274.gif",
+      name: "摩擦",
     },
   ];
   // 批量添加事件数组
