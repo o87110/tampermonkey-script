@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.4.0
+// @version      2.4.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1285,14 +1285,14 @@
           }, timeInterval * 1000);
         }
         // 指定时间不自动吃肉
-        if (new Date().getHours() < 8) {
+        if (new Date().getHours() < 7) {
           console.log("当前小于8点，不吃肉");
           return;
         }
         let eatImgSrc = "/NetImages/li.gif";
 
         let eatList = document.querySelectorAll(`img[src='${eatImgSrc}']`);
-        let randomNum = getRandomNumber(8, 20);
+        let randomNum = getRandomNumber(0, 20);
 
         for (let index = 0; index < eatList.length; index++) {
           const element = eatList[index];
@@ -1617,7 +1617,7 @@
 
   function timeLeft(time, days = 1) {
     const target = new Date(time + (days - 1) * 24 * 60 * 60 * 1000);
-    target.setHours(24, 00, 00, 000);
+    target.setHours(24, 0, 0, 0);
     return target.getTime();
   }
   // 获取值

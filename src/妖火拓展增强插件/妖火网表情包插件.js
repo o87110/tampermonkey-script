@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         妖火网表情包插件
 // @namespace    https://yaohuo.me/
-// @version      1.8.9
+// @version      1.9.0
 // @description  二改添加修改发帖ubb、回帖表情等功能
 // @author       ID12167
 // @match        *yaohuo.me/*
@@ -63,6 +63,87 @@ const faceList = [
   "被揍.gif",
   "抱走.gif",
 ];
+// 颜色数组
+const colors = [
+  "#FFFFFF",
+  "#FF0000",
+  "#00FF00",
+  "#0000FF",
+  "#FF00FF",
+  "#00FFFF",
+  "#FFFF00",
+  "#000000",
+  "#70DB93",
+  "#5C3317",
+  "#9F5F9F",
+  "#B5A642",
+  "#D9D919",
+  "#A67D3D",
+  "#8C7853",
+  "#5F9F9F",
+  "#D98719",
+  "#B87333",
+  "#FF7F00",
+  "#42426F",
+  "#5C4033",
+  "#2F4F2F",
+  "#4A766E",
+  "#9932CD",
+  "#871F78",
+  "#6B238E",
+  "#2F4F4F",
+  "#97694F",
+  "#32CD32",
+  "#E47833",
+  "#8E236B",
+  "#32CD99",
+  "#3232CD",
+  "#6B8E23",
+  "#EAEAAE",
+  "#9370DB",
+  "#426F42",
+  "#7F00FF",
+  "#7FFF00",
+  "#70DBDB",
+  "#DB7093",
+  "#A68064",
+  "#23238E",
+  "#4D4DFF",
+  "#FF6EC7",
+  "#00009C",
+  "#EBC79E",
+  "#CFB53B",
+  "#FF7F00",
+  "#FF2400",
+  "#DB70DB",
+  "#8FBC8F",
+  "#BC8F8F",
+  "#EAADEA",
+  "#D9D9F3",
+  "#5959AB",
+  "#6F4242",
+  "#BC1717",
+  "#238E68",
+  "#6B4226",
+  "#8E6B23",
+  "#E6E8FA",
+  "#3299CC",
+  "#007FFF",
+  "#FF1CAE",
+  "#00FF7F",
+  "#236B8E",
+  "#38B0DE",
+  "#DB9370",
+  "#D8BFD8",
+  "#ADEAEA",
+  "#CDCDCD",
+  "#4F2F4F",
+  "#CC3299",
+  "#D8D8BF",
+  "#99CC32",
+];
+// 随机获取颜色值
+const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
 const spanstyle =
   "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #ccc; display:none;border-radius: 10%;";
@@ -205,6 +286,14 @@ if (
     e.preventDefault();
 
     const textarea = document.querySelector("textarea[name='content']");
+
+    //插入评论颜色加粗代码
+    textarea.focus();
+    textarea.setSelectionRange(0, 0);
+    insertText(textarea, `[forecolor=${randomColor}][b]`);
+    textarea.focus();
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    insertText(textarea, `[/b][/forecolor]`);
 
     //返回值匹配表情包ID
     if (textarea.value !== "") {
@@ -453,17 +542,98 @@ if (
   document
     .getElementById("ubb_right")
     .addEventListener("click", () => insertText(bookContent, "[right]", 0));
+
   document
     .getElementById("ubb_a")
     .addEventListener("click", () => insertText(bookContent, "[url][/url]", 6));
-  document
-    .getElementById("ubb_f")
-    .addEventListener("click", () =>
-      insertText(bookContent, "[forecolor=#FF0000][/forecolor]", 12)
-    );
+
+  document.getElementById("ubb_f").addEventListener("click", () => {
+    const colors = [
+      "#FFFFFF",
+      "#FF0000",
+      "#00FF00",
+      "#0000FF",
+      "#FF00FF",
+      "#00FFFF",
+      "#FFFF00",
+      "#000000",
+      "#70DB93",
+      "#5C3317",
+      "#9F5F9F",
+      "#B5A642",
+      "#D9D919",
+      "#A67D3D",
+      "#8C7853",
+      "#5F9F9F",
+      "#D98719",
+      "#B87333",
+      "#FF7F00",
+      "#42426F",
+      "#5C4033",
+      "#2F4F2F",
+      "#4A766E",
+      "#9932CD",
+      "#871F78",
+      "#6B238E",
+      "#2F4F4F",
+      "#97694F",
+      "#32CD32",
+      "#E47833",
+      "#8E236B",
+      "#32CD99",
+      "#3232CD",
+      "#6B8E23",
+      "#EAEAAE",
+      "#9370DB",
+      "#426F42",
+      "#7F00FF",
+      "#7FFF00",
+      "#70DBDB",
+      "#DB7093",
+      "#A68064",
+      "#23238E",
+      "#4D4DFF",
+      "#FF6EC7",
+      "#00009C",
+      "#EBC79E",
+      "#CFB53B",
+      "#FF7F00",
+      "#FF2400",
+      "#DB70DB",
+      "#8FBC8F",
+      "#BC8F8F",
+      "#EAADEA",
+      "#D9D9F3",
+      "#5959AB",
+      "#6F4242",
+      "#BC1717",
+      "#238E68",
+      "#6B4226",
+      "#8E6B23",
+      "#E6E8FA",
+      "#3299CC",
+      "#007FFF",
+      "#FF1CAE",
+      "#00FF7F",
+      "#236B8E",
+      "#38B0DE",
+      "#DB9370",
+      "#D8BFD8",
+      "#ADEAEA",
+      "#CDCDCD",
+      "#4F2F4F",
+      "#CC3299",
+      "#D8D8BF",
+      "#99CC32",
+    ]; // 颜色数组
+    const randomColor = colors[Math.floor(Math.random() * colors.length)]; // 随机获取颜色值
+    insertText(bookContent, `[forecolor=${randomColor}][/forecolor]`, 12); // 插入文本
+  });
+
   document
     .getElementById("ubb_b")
     .addEventListener("click", () => insertText(bookContent, "[b][/b]", 4));
+
   document
     .getElementById("ubb_s")
     .addEventListener("click", () =>

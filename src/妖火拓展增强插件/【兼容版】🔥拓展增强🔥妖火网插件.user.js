@@ -1,22 +1,23 @@
 // ==UserScript==
 // @name        【兼容版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      1.1.0
+// @version      2.0.0
 // @description  🔥拓展增强🔥妖火网插件兼容版本
 // @author       龙少c(id:20469)
 // @match        *://yaohuo.me/*
 // @match        *://*.yaohuo.me/*
 // @icon         https://yaohuo.me/css/favicon.ico
+// @run-at       document-end
 // @license      MIT
 // ==/UserScript==
 
-// 引入jQuery
-let script = document.createElement("script");
-script.src = "https://code.jquery.com/jquery-2.1.4.min.js";
-document.getElementsByTagName("head")[0].appendChild(script);
+(function () {
+  "use strict";
 
-// jQuery 加载后再执行
-script.onload = function () {
+  // 实现简易版替换用到的jquery，全部换成原生js太麻烦
+  let $, jQuery;
+  $ = jQuery = myJquery();
+
   let settingData = {
     // 是否显示站内图标
     isShowSettingIcon: true,
@@ -1406,7 +1407,7 @@ script.onload = function () {
 
   function timeLeft(time, days = 1) {
     const target = new Date(time + (days - 1) * 24 * 60 * 60 * 1000);
-    target.setHours(24, 00, 00, 000);
+    target.setHours(24, 0, 0, 0);
     return target.getTime();
   }
   // 获取值
@@ -1423,11 +1424,11 @@ script.onload = function () {
   }
   function MY_addStyle(innerHTML) {
     // 创建 style 元素
-    var style = document.createElement("style");
+    let style = document.createElement("style");
     style.type = "text/css";
 
     // 设置样式内容
-    var css = innerHTML;
+    let css = innerHTML;
     style.innerHTML = css;
 
     // 将 style 元素添加到 head 元素中
@@ -1736,7 +1737,8 @@ script.onload = function () {
 
     function success(rp) {
       let lv_zz = /<b>等级:<\/b>(\S*)级/;
-      let lv_text = rp.match(lv_zz)[1];
+      console.log(rp.match(lv_zz));
+      let lv_text = rp.match(lv_zz)?.[1] || "0";
       // console.log(lv_text);
       addLvTip(lv_text);
     }
@@ -1918,4 +1920,274 @@ script.onload = function () {
       }
     });
   }
-};
+  function myJquery() {
+    let jQuery = function (selector) {
+      return new jQuery.fn.init(selector);
+    };
+
+    jQuery.fn = jQuery.prototype = {
+      constructor: jQuery,
+
+      init: function (selector) {
+        if (!selector) {
+          return this;
+        }
+
+        if (typeof selector === "string") {
+          let elements = document.querySelectorAll(selector);
+          this.length = elements.length;
+          for (let i = 0; i < elements.length; i++) {
+            this[i] = elements[i];
+          }
+        } else if (selector.nodeType) {
+          this[0] = selector;
+          this.length = 1;
+        } else if (selector instanceof jQuery) {
+          return selector;
+        } else if (Array.isArray(selector)) {
+          for (var i = 0; i < selector.length; i++) {
+            this[i] = selector[i];
+          }
+          this.length = selector.length;
+          return this;
+        }
+
+        return this;
+      },
+
+      length: 0,
+
+      each: function (callback) {
+        for (let i = 0; i < this.length; i++) {
+          callback.call(this[i], i, this[i]);
+        }
+
+        return this;
+      },
+
+      css: function (prop, value) {
+        if (typeof prop === "string") {
+          if (value !== undefined) {
+            this.each(function () {
+              this.style[prop] = value;
+            });
+            return this;
+          } else {
+            return this[0].style[prop];
+          }
+        } else {
+          for (let key in prop) {
+            this.each(function () {
+              this.style[key] = prop[key];
+            });
+          }
+          return this;
+        }
+      },
+
+      text: function (text) {
+        if (text !== undefined) {
+          this.each(function () {
+            this.textContent = text;
+          });
+          return this;
+        } else {
+          let result = "";
+          this.each(function () {
+            result += this.textContent;
+          });
+          return result;
+        }
+      },
+
+      html: function (html) {
+        if (html !== undefined) {
+          this.each(function () {
+            this.innerHTML = html;
+          });
+          return this;
+        } else {
+          return this[0].innerHTML;
+        }
+      },
+
+      append: function (content) {
+        if (typeof content === "string") {
+          this.each(function () {
+            this.insertAdjacentHTML("beforeend", content);
+          });
+        } else if (content.nodeType) {
+          this.each(function () {
+            this.appendChild(content);
+          });
+        } else if (content instanceof jQuery) {
+          this.each(function () {
+            let self = this;
+            content.each(function () {
+              self.appendChild(this);
+            });
+          });
+        }
+
+        return this;
+      },
+
+      addClass: function (className) {
+        let classNames = className.split(" ");
+        this.each(function () {
+          for (let i = 0; i < classNames.length; i++) {
+            if (this.classList) {
+              this.classList.add(classNames[i]);
+            } else {
+              let currentClasses = this.className.split(" ");
+              if (currentClasses.indexOf(classNames[i]) === -1) {
+                this.className += " " + classNames[i];
+              }
+            }
+          }
+        });
+
+        return this;
+      },
+
+      removeClass: function (className) {
+        let classNames = className.split(" ");
+        this.each(function () {
+          for (let i = 0; i < classNames.length; i++) {
+            if (this.classList) {
+              this.classList.remove(classNames[i]);
+            } else {
+              let currentClasses = this.className.split(" ");
+              let index = currentClasses.indexOf(classNames[i]);
+              if (index !== -1) {
+                currentClasses.splice(index, 1);
+                this.className = currentClasses.join(" ");
+              }
+            }
+          }
+        });
+
+        return this;
+      },
+
+      show: function () {
+        this.each(function () {
+          this.style.display = "block";
+        });
+
+        return this;
+      },
+
+      hide: function () {
+        this.each(function () {
+          this.style.display = "none";
+        });
+
+        return this;
+      },
+
+      click: function (callback) {
+        this.each(function () {
+          this.addEventListener("click", callback);
+        });
+
+        return this;
+      },
+
+      on: function (eventType, selector, callback) {
+        if (!callback) {
+          callback = selector;
+          selector = null;
+        }
+
+        this.each(function () {
+          if (selector) {
+            this.addEventListener(eventType, function (event) {
+              if (event.target.matches(selector)) {
+                callback.call(event.target, event);
+              }
+            });
+          } else {
+            this.addEventListener(eventType, callback);
+          }
+        });
+
+        return this;
+      },
+
+      prev: function () {
+        let prevElement = null;
+        this.each(function () {
+          prevElement = this.previousElementSibling;
+        });
+
+        return jQuery(prevElement);
+      },
+
+      children: function (selector) {
+        let childElements = [];
+        this.each(function () {
+          let children = this.children;
+          for (let i = 0; i < children.length; i++) {
+            if (!selector || children[i].matches(selector)) {
+              childElements.push(children[i]);
+            }
+          }
+        });
+
+        return jQuery(parentElements);
+      },
+
+      parent: function (selector) {
+        let parentElements = [];
+        this.each(function () {
+          let parent = this.parentElement;
+          if (!selector || parent.matches(selector)) {
+            parentElements.push(parent);
+          }
+        });
+        return jQuery(parentElements);
+      },
+
+      prop: function (name, value) {
+        if (value === undefined) {
+          let element = this[0];
+          return element[name];
+        } else {
+          this.each(function () {
+            this[name] = value;
+          });
+
+          return this;
+        }
+      },
+
+      remove: function () {
+        this.each(function () {
+          this.parentElement.removeChild(this);
+        });
+
+        return this;
+      },
+
+      height: function (value) {
+        if (value === undefined) {
+          if (this[0]) {
+            return this[0].clientHeight;
+          } else {
+            return null;
+          }
+        } else {
+          this.each(function () {
+            this.style.height = isNaN(value) ? value : value + "px";
+          });
+          return this;
+        }
+      },
+    };
+
+    jQuery.fn.init.prototype = jQuery.fn;
+
+    return jQuery;
+  }
+})();
