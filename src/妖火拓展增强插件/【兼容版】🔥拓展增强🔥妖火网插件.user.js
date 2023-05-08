@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        【兼容版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.0.0
+// @version      2.0.1
 // @description  🔥拓展增强🔥妖火网插件兼容版本
 // @author       龙少c(id:20469)
 // @match        *://yaohuo.me/*
@@ -1920,6 +1920,10 @@
       }
     });
   }
+  /**
+   * 简易版jquery实现，用于替换之前写的部分语法，不引用cdn库
+   * @returns
+   */
   function myJquery() {
     let jQuery = function (selector) {
       return new jQuery.fn.init(selector);
@@ -2072,7 +2076,12 @@
 
       show: function () {
         this.each(function () {
-          this.style.display = "block";
+          // 恢复元素之前的display属性
+          let classDisplay = getComputedStyle(this).getPropertyValue("display");
+          let display =
+            this.getAttribute("data-display") ||
+            (classDisplay === "none" ? "block" : classDisplay);
+          this.style.display = display ? display : "";
         });
 
         return this;
@@ -2080,6 +2089,13 @@
 
       hide: function () {
         this.each(function () {
+          // 记住元素之前的display属性
+          let display =
+            this.style.display ||
+            getComputedStyle(this).getPropertyValue("display");
+          if (display !== "none") {
+            this.setAttribute("data-display", display);
+          }
           this.style.display = "none";
         });
 
@@ -2151,7 +2167,7 @@
 
       prop: function (name, value) {
         if (value === undefined) {
-          let element = this[0];
+          let element = this[0] || {};
           return element[name];
         } else {
           this.each(function () {
