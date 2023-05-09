@@ -972,13 +972,13 @@
       }
 
       .yaohuo-wrap .password-container{
-        width: 65%;
+        width: 60%;
         position: relative;
       }
 
       .password-container .toggle-password {
         position: absolute;
-        top: 57%;
+        top: 52%;
         right: 6px;
         transform: translateY(-50%);
         cursor: pointer;
@@ -987,7 +987,7 @@
       .yaohuo-wrap li .password-container input {
         width: 100%;
         box-sizing: border-box;
-        height: 28px;
+        height: 32px;
         padding-right: 26px;
       }
 
@@ -1106,6 +1106,38 @@
               />
             </li>
             <li>
+              <span>自动上传图床</span>
+              <div class="switch">
+                <input type="checkbox" id="isUploadImage" data-key="isUploadImage" />
+                <label for="isUploadImage"></label>
+              </div>
+            </li>
+            <li>
+              <span>图床token</span>
+              <div class="password-container">
+                <input 
+                  type="password" 
+                  id="token" 
+                  data-key="token"
+                  value="${token}"
+                />
+                <svg
+                  viewBox="64 64 896 896"
+                  focusable="false"
+                  data-icon="eye"
+                  width="1em"
+                  height="1em"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  class="toggle-password"
+                >
+                  <path
+                    d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 0 0 0 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
+                  ></path>
+                </svg>
+              </div>
+            </li>
+            <li>
               <span>自动加载下一页</span>
               <div class="switch">
                 <input type="checkbox" id="isLoadNextPage" data-key="isLoadNextPage" />
@@ -1153,39 +1185,6 @@
               <div class="switch">
                 <input type="checkbox" id="isAddReplyUBB" data-key="isAddReplyUBB" />
                 <label for="isAddReplyUBB"></label>
-              </div>
-            </li>
-            <li>
-              <span>自动上传图床</span>
-              <div class="switch">
-                <input type="checkbox" id="isUploadImage" data-key="isUploadImage" />
-                <label for="isUploadImage"></label>
-              </div>
-            </li>
-            <li>
-              <span>图床token</span>
-              <div class="password-container">
-                <input 
-                  type="password" 
-                  id="token" 
-                  data-key="token"
-                  value="${token}"
-                />
-
-                <svg
-                  viewBox="64 64 896 896"
-                  focusable="false"
-                  data-icon="eye"
-                  width="1em"
-                  height="1em"
-                  fill="currentColor"
-                  aria-hidden="true"
-                  class="toggle-password"
-                >
-                  <path
-                    d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 0 0 0 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
-                  ></path>
-                </svg>
               </div>
             </li>
           </ul>
