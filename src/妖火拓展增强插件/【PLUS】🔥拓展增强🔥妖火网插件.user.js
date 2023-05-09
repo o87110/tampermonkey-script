@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.5.0
+// @version      2.5.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -485,9 +485,11 @@
     handleAutoEat();
     // 全自动吃肉：自动进入肉帖自动吃
     handleFullAutoEat();
-    // 增加回帖ubb
+    // 回帖增强，增加回帖ubb等
     handleAddReplyUBB();
-    // 增加发帖ubb
+    // 自动上传图床功能
+    handleUploadImage();
+    // 发帖增强，增加发帖ubb
     handleAddNewPostUBB();
     // 显示用户等级
     handleShowUserLevel();
@@ -1892,6 +1894,63 @@
       });
     }
   }
+  function handleUploadImage() {
+    console.log("粘贴板事件");
+    if (
+      /^\/bbs-.*\.html$/.test(window.location.pathname) ||
+      viewPage.includes(window.location.pathname) ||
+      postPage.includes(window.location.pathname)
+    ) {
+      let textArea = document.getElementsByTagName("textarea")[0];
+      textArea.addEventListener("paste", function (e) {
+        let clipboardData = e.clipboardData || window.clipboardData;
+        let items = (e.clipboardData || e.originalEvent.clipboardData).items;
+
+        let types = clipboardData.types;
+        console.log(types);
+
+        // for (let i = 0; i < types.length; i++) {
+        //   let type = types[i];
+        //   let data = clipboardData.getData(type);
+        //   console.log("Type:", type, "Data:", data);
+
+        //   if (items[i].type.indexOf("image") !== -1) {
+        //     let file = items[i].getAsFile();
+
+        //     // 构建 FormData 对象
+        //     let formData = new FormData();
+        //     formData.append("image", file);
+
+        //     // 发送 formData 到服务器上的 API 接口进行上传操作
+        //     // 例如：使用 XMLHttpRequest 进行上传
+        //     let xhr = new XMLHttpRequest();
+        //     xhr.open("POST", "/upload", true);
+        //     xhr.send(formData);
+        //   }
+        // }
+
+        // 遍历所有粘贴板数据项
+        for (let i = 0; i < items.length; i++) {
+          let type = items[i].type;
+          let data = clipboardData.getData(type);
+          console.log("Type:", type, "Data:", data);
+          if (items[i].type.indexOf("image") !== -1) {
+            let file = items[i].getAsFile();
+
+            // 构建 FormData 对象
+            let formData = new FormData();
+            formData.append("image", file);
+            console.log(formData);
+            // 发送 formData 到服务器上的 API 接口进行上传操作
+            // 例如：使用 XMLHttpRequest 进行上传
+            // let xhr = new XMLHttpRequest();
+            // xhr.open("POST", "/upload", true);
+            // xhr.send(formData);
+          }
+        }
+      });
+    }
+  }
   // 处理404页面跳回新帖页面
   function handleNotFoundPage() {
     if (notFoundPage.includes(window.location.pathname)) {
@@ -2147,7 +2206,7 @@
         } else if (selector instanceof jQuery) {
           return selector;
         } else if (Array.isArray(selector)) {
-          for (var i = 0; i < selector.length; i++) {
+          for (let i = 0; i < selector.length; i++) {
             this[i] = selector[i];
           }
           this.length = selector.length;
@@ -2308,22 +2367,32 @@
         return this;
       },
 
-      on: function (eventType, selector, callback) {
-        if (!callback) {
-          callback = selector;
-          selector = null;
+      on: function (event, childSelector, data, handler) {
+        if (typeof childSelector === "function") {
+          handler = childSelector;
+          childSelector = null;
+          data = null;
+        } else if (typeof data === "function") {
+          handler = data;
+          data = null;
         }
 
         this.each(function () {
-          if (selector) {
-            this.addEventListener(eventType, function (event) {
-              if (event.target.matches(selector)) {
-                callback.call(event.target, event);
-              }
-            });
-          } else {
-            this.addEventListener(eventType, callback);
-          }
+          let element = this;
+
+          let listener = function (e) {
+            let target = e.target;
+            if (
+              !childSelector ||
+              element.querySelector(childSelector) === target
+            ) {
+              handler.call(target, e, data);
+            }
+          };
+
+          event.split(" ").forEach(function (type) {
+            element.addEventListener(type, listener);
+          });
         });
 
         return this;
@@ -2349,7 +2418,7 @@
           }
         });
 
-        return jQuery(parentElements);
+        return jQuery(childElements);
       },
 
       parent: function (selector) {

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        【兼容版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.0.1
+// @version      2.0.2
 // @description  🔥拓展增强🔥妖火网插件兼容版本
 // @author       龙少c(id:20469)
 // @match        *://yaohuo.me/*
@@ -1949,7 +1949,7 @@
         } else if (selector instanceof jQuery) {
           return selector;
         } else if (Array.isArray(selector)) {
-          for (var i = 0; i < selector.length; i++) {
+          for (let i = 0; i < selector.length; i++) {
             this[i] = selector[i];
           }
           this.length = selector.length;
@@ -2110,22 +2110,32 @@
         return this;
       },
 
-      on: function (eventType, selector, callback) {
-        if (!callback) {
-          callback = selector;
-          selector = null;
+      on: function (event, childSelector, data, handler) {
+        if (typeof childSelector === "function") {
+          handler = childSelector;
+          childSelector = null;
+          data = null;
+        } else if (typeof data === "function") {
+          handler = data;
+          data = null;
         }
 
         this.each(function () {
-          if (selector) {
-            this.addEventListener(eventType, function (event) {
-              if (event.target.matches(selector)) {
-                callback.call(event.target, event);
-              }
-            });
-          } else {
-            this.addEventListener(eventType, callback);
-          }
+          let element = this;
+
+          let listener = function (e) {
+            let target = e.target;
+            if (
+              !childSelector ||
+              element.querySelector(childSelector) === target
+            ) {
+              handler.call(target, e, data);
+            }
+          };
+
+          event.split(" ").forEach(function (type) {
+            element.addEventListener(type, listener);
+          });
         });
 
         return this;
@@ -2151,7 +2161,7 @@
           }
         });
 
-        return jQuery(parentElements);
+        return jQuery(childElements);
       },
 
       parent: function (selector) {
