@@ -988,7 +988,7 @@
         width: 100%;
         box-sizing: border-box;
         height: 32px;
-        padding-right: 26px;
+        padding-right: 28px;
       }
 
       .yaohuo-wrap .switch label {
@@ -1125,8 +1125,8 @@
                   viewBox="64 64 896 896"
                   focusable="false"
                   data-icon="eye"
-                  width="1em"
-                  height="1em"
+                  width="20px"
+                  height="20px"
                   fill="currentColor"
                   aria-hidden="true"
                   class="toggle-password"
