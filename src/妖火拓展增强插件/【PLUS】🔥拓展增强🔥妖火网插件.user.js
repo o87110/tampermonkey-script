@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.5.1
+// @version      3.0.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -93,7 +93,7 @@
     // 是否自动上传到图床
     isUploadImage: false,
     // 上传图床token
-    token: "20fdad150877be56faa1f61fd67342cc",
+    token: "",
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -971,17 +971,24 @@
         height: 0;
       }
 
-      .yaohuo-wrap li input[type="text"] {
-        
-        width: 60%;
-        box-sizing: border-box;
-        height: 28px
+      .yaohuo-wrap .password-container{
+        width: 65%;
+        position: relative;
       }
-      .yaohuo-wrap li input[type="password"] {
-        
-        width: 60%;
+
+      .password-container .toggle-password {
+        position: absolute;
+        top: 57%;
+        right: 6px;
+        transform: translateY(-50%);
+        cursor: pointer;
+      }
+
+      .yaohuo-wrap li .password-container input {
+        width: 100%;
         box-sizing: border-box;
-        height: 28px
+        height: 28px;
+        padding-right: 26px;
       }
 
       .yaohuo-wrap .switch label {
@@ -1151,18 +1158,35 @@
             <li>
               <span>自动上传图床</span>
               <div class="switch">
-                <input type="checkbox" id="isUploadImage" data-key="isUploadImage" />
+                <input type="checkbox" id="isUploadImage" data-key="is|UploadImage" />
                 <label for="isUploadImage"></label>
               </div>
             </li>
             <li>
               <span>图床token</span>
-              <input
-                type="password"
-                id="token"
-                data-key="token"
-                value="${token}"
-              />
+              <div class="password-container">
+                <input 
+                  type="password" 
+                  id="token" 
+                  data-key="token"
+                  value="${token}"
+                />
+
+                <svg
+                  viewBox="64 64 896 896"
+                  focusable="false"
+                  data-icon="eye"
+                  width="1em"
+                  height="1em"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  class="toggle-password"
+                >
+                  <path
+                    d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 0 0 0 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
+                  ></path>
+                </svg>
+              </div>
             </li>
           </ul>
           <footer>
@@ -1253,6 +1277,19 @@
         case "number":
           if (status === "edit") {
             item.value = getValue(dataKey);
+          } else {
+            setValue(dataKey, item.value);
+          }
+          break;
+
+        case "password":
+          if (status === "edit") {
+            item.value = getValue(dataKey);
+            $(item)
+              .next()
+              .on("click", function (event) {
+                item.type = item.type === "password" ? "text" : "password";
+              });
           } else {
             setValue(dataKey, item.value);
           }
@@ -1931,29 +1968,13 @@
     }
   }
   function handleUploadImage() {
-    console.log("粘贴板事件");
     if (
-      /^\/bbs-.*\.html$/.test(window.location.pathname) ||
-      viewPage.includes(window.location.pathname) ||
-      postPage.includes(window.location.pathname)
+      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
+        viewPage.includes(window.location.pathname) ||
+        postPage.includes(window.location.pathname)) &&
+      isUploadImage
     ) {
       let textArea = document.getElementsByTagName("textarea")[0];
-
-      const token = "20fdad150877be56faa1f61fd67342cc";
-
-      textArea.insertAdjacentHTML(
-        "afterend",
-        `<label for="upload-input" class="upload-wrap">
-            <span class="upload-input-label">选择或拖拽上传图床</span>
-            <input
-              type="file"
-              multiple
-              id="upload-input"
-              accept="image/*"
-              style="display: none"
-            />
-        </label>`
-      );
 
       GM_addStyle(`
         .upload-wrap {
@@ -1964,12 +1985,15 @@
           height: 50px;
           border: 2px dashed #ccc;
           border-radius: 5px;
-          padding: 10px;
           font-size: 16px;
           color: #555;
           text-align: center;
           cursor: pointer;
           transition: all 0.3s;
+        }
+        .upload-wrap-disabled{
+          background: #ddd;
+          cursor: not-allowed;
         }
         .upload-wrap:hover {
           border-color: #aaa;
@@ -1978,38 +2002,90 @@
           outline: none;
         }
         .upload-input-label {
+          width: 100%;
+          height: 100%;
+          font-weight: bold;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .upload-loading {
+          box-sizing: border-box;
+          border: 6px solid #f3f3f3;
+          border-top: 6px solid #3498db;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          animation: spin 2s linear infinite;
+          margin: auto;
           position: absolute;
-          top: 50%;
+          z-index: 10;
           left: 50%;
-          transform: translate(-50%, -50%);
+          top: 50%;
+          margin-top: -20px;
+          margin-left: -20px;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
       `);
+      textArea.insertAdjacentHTML(
+        "afterend",
+        `<label for="upload-input" class="upload-wrap">
+            <div class="upload-loading" style="display: none"></div>
+            <span class="upload-input-label">
+              <svg t="1683636826356" style="margin-right: 10px" class="icon" fill="#16baaa" viewBox="0 0 1264 1024" version="1.1" 
+                xmlns="http://www.w3.org/2000/svg" p-id="9231" width="38" height="38">
+                <path d="M992.171444 312.62966C975.189616 137.155482 827.415189 0 647.529412 0 469.849434 0 323.616239 133.860922 303.679205 306.210218 131.598564 333.839271 0 482.688318 0 662.588235c0 199.596576 161.815189 361.411765 361.411765 361.411765h184.014581V692.705882H294.530793l337.939795-361.411764 337.939796 361.411764H726.132229v331.294118H933.647059v-1.555371c185.470975-15.299199 331.294118-170.426291 331.294117-359.856394 0-168.969898-116.101408-310.367302-272.769732-349.958575z" p-id="9232"></path>
+              </svg>
+              选择或拖拽图片上传到图床
+            </span>
+            <input
+              type="file"
+              multiple
+              id="upload-input"
+              accept="image/*"
+              style="display: none"
+            />
+        </label>`
+      );
 
       // 获取上传图标的 input 元素
       const uploadInput = document.querySelector("#upload-input");
       const uploadWrap = document.querySelector(".upload-wrap");
+      const uploadLoading = document.querySelector(".upload-loading");
 
       uploadInput.addEventListener("change", handleFileSelect);
       uploadWrap.addEventListener("dragover", handleDragOver);
       uploadWrap.addEventListener("drop", handleDrop);
       textArea.addEventListener("paste", handlePaste);
 
-      function handlePaste(event) {
+      async function handlePaste(event) {
         const clipboardData =
           event.clipboardData || event.originalEvent.clipboardData;
         const items = clipboardData.items;
 
+        handleUploadStatus("start");
+        const files = [];
+
         for (const item of items) {
           if (item.type.indexOf("image") !== -1) {
             const blob = item.getAsFile();
-            uploadFile(blob);
+            // paste 事件的处理程序是异步的，所以不能在这里直接上传，否则有多个只会读取第一个
+            // await uploadFile(blob);
+            files.push(blob);
           }
         }
+
+        // 此处处理上传
+        for (const item of files) {
+          await uploadFile(item);
+        }
+        handleUploadStatus("end");
       }
 
       async function uploadFile(file) {
-        console.log(file);
-
         const formData = new FormData();
         formData.append("image", file);
 
@@ -2023,25 +2099,35 @@
           });
 
           const res = await response.json();
-          let { url } = res.data;
-          if (url) {
-            //把光标移到文本框最前面
-            textArea.focus();
-            textArea.setSelectionRange(0, 0);
-            insertText(textArea, `[img]${url}[/img]`, 0);
+          let { code, data, msg } = res;
+          console.log(res);
+          if (code === 200) {
+            let { url } = data;
+
+            if (url) {
+              //把光标移到文本框最前面
+              // textArea.focus();
+              // textArea.setSelectionRange(0, 0);
+              insertText(textArea, `[img]${url}[/img]`, 0);
+            }
+          } else {
+            alert(msg);
           }
+
           console.log("上传成功:", res.data);
         } catch (error) {
+          alert(error);
           console.error("上传失败:", error);
         }
       }
 
-      function handleFileSelect(event) {
+      async function handleFileSelect(event) {
         const files = event.target.files;
-
+        handleUploadStatus("start");
         for (const file of files) {
-          uploadFile(file);
+          await uploadFile(file);
         }
+        handleUploadStatus("end");
       }
 
       function handleDragOver(event) {
@@ -2050,16 +2136,34 @@
         event.dataTransfer.dropEffect = "copy";
       }
 
-      function handleDrop(event) {
+      async function handleDrop(event) {
         event.stopPropagation();
         event.preventDefault();
 
         const files = event.dataTransfer.files;
-
+        handleUploadStatus("start");
         for (const file of files) {
           if (file.type.indexOf("image") !== -1) {
-            uploadFile(file);
+            await uploadFile(file);
           }
+        }
+        handleUploadStatus("end");
+      }
+      /**
+       * 处理上传状态
+       * @param {'start' | 'end'} type 处理的状态
+       */
+      function handleUploadStatus(type) {
+        if (type === "start") {
+          uploadWrap.classList.toggle("upload-wrap-disabled");
+          uploadInput.disabled = true;
+          uploadLoading.style.display = "block";
+        }
+        if (type === "end") {
+          uploadWrap.classList.toggle("upload-wrap-disabled");
+          uploadInput.disabled = false;
+          uploadLoading.style.display = "none";
+          uploadInput.value = "";
         }
       }
     }
@@ -2518,6 +2622,15 @@
         });
 
         return jQuery(prevElement);
+      },
+
+      next: function () {
+        let nextElement = null;
+        this.each(function () {
+          nextElement = this.nextElementSibling;
+        });
+
+        return new jQuery(nextElement);
       },
 
       children: function (selector) {
