@@ -90,6 +90,10 @@
     isUnfoldFace: true,
     // 是否默认展开表情
     isUnfoldUbb: false,
+    // 是否自动上传到图床
+    isUploadImage: false,
+    // 上传图床token
+    token: "20fdad150877be56faa1f61fd67342cc",
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -130,6 +134,9 @@
     isUnfoldUbb,
 
     loadNextPageType,
+
+    isUploadImage,
+    token,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -964,6 +971,19 @@
         height: 0;
       }
 
+      .yaohuo-wrap li input[type="text"] {
+        
+        width: 60%;
+        box-sizing: border-box;
+        height: 28px
+      }
+      .yaohuo-wrap li input[type="password"] {
+        
+        width: 60%;
+        box-sizing: border-box;
+        height: 28px
+      }
+
       .yaohuo-wrap .switch label {
         position: absolute;
         cursor: pointer;
@@ -1127,6 +1147,22 @@
                 <input type="checkbox" id="isAddReplyUBB" data-key="isAddReplyUBB" />
                 <label for="isAddReplyUBB"></label>
               </div>
+            </li>
+            <li>
+              <span>自动上传图床</span>
+              <div class="switch">
+                <input type="checkbox" id="isUploadImage" data-key="isUploadImage" />
+                <label for="isUploadImage"></label>
+              </div>
+            </li>
+            <li>
+              <span>图床token</span>
+              <input
+                type="password"
+                id="token"
+                data-key="token"
+                value="${token}"
+              />
             </li>
           </ul>
           <footer>
@@ -1902,53 +1938,130 @@
       postPage.includes(window.location.pathname)
     ) {
       let textArea = document.getElementsByTagName("textarea")[0];
-      textArea.addEventListener("paste", function (e) {
-        let clipboardData = e.clipboardData || window.clipboardData;
-        let items = (e.clipboardData || e.originalEvent.clipboardData).items;
 
-        let types = clipboardData.types;
-        console.log(types);
+      const token = "20fdad150877be56faa1f61fd67342cc";
 
-        // for (let i = 0; i < types.length; i++) {
-        //   let type = types[i];
-        //   let data = clipboardData.getData(type);
-        //   console.log("Type:", type, "Data:", data);
+      textArea.insertAdjacentHTML(
+        "afterend",
+        `<label for="upload-input" class="upload-wrap">
+            <span class="upload-input-label">选择或拖拽上传图床</span>
+            <input
+              type="file"
+              multiple
+              id="upload-input"
+              accept="image/*"
+              style="display: none"
+            />
+        </label>`
+      );
 
-        //   if (items[i].type.indexOf("image") !== -1) {
-        //     let file = items[i].getAsFile();
+      GM_addStyle(`
+        .upload-wrap {
+          position: relative;
+          display: inline-block;
+          width: 100%;
+          box-sizing: border-box;
+          height: 50px;
+          border: 2px dashed #ccc;
+          border-radius: 5px;
+          padding: 10px;
+          font-size: 16px;
+          color: #555;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+        .upload-wrap:hover {
+          border-color: #aaa;
+        }
+        .upload-wrap:focus {
+          outline: none;
+        }
+        .upload-input-label {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+      `);
 
-        //     // 构建 FormData 对象
-        //     let formData = new FormData();
-        //     formData.append("image", file);
+      // 获取上传图标的 input 元素
+      const uploadInput = document.querySelector("#upload-input");
+      const uploadWrap = document.querySelector(".upload-wrap");
 
-        //     // 发送 formData 到服务器上的 API 接口进行上传操作
-        //     // 例如：使用 XMLHttpRequest 进行上传
-        //     let xhr = new XMLHttpRequest();
-        //     xhr.open("POST", "/upload", true);
-        //     xhr.send(formData);
-        //   }
-        // }
+      uploadInput.addEventListener("change", handleFileSelect);
+      uploadWrap.addEventListener("dragover", handleDragOver);
+      uploadWrap.addEventListener("drop", handleDrop);
+      textArea.addEventListener("paste", handlePaste);
 
-        // 遍历所有粘贴板数据项
-        for (let i = 0; i < items.length; i++) {
-          let type = items[i].type;
-          let data = clipboardData.getData(type);
-          console.log("Type:", type, "Data:", data);
-          if (items[i].type.indexOf("image") !== -1) {
-            let file = items[i].getAsFile();
+      function handlePaste(event) {
+        const clipboardData =
+          event.clipboardData || event.originalEvent.clipboardData;
+        const items = clipboardData.items;
 
-            // 构建 FormData 对象
-            let formData = new FormData();
-            formData.append("image", file);
-            console.log(formData);
-            // 发送 formData 到服务器上的 API 接口进行上传操作
-            // 例如：使用 XMLHttpRequest 进行上传
-            // let xhr = new XMLHttpRequest();
-            // xhr.open("POST", "/upload", true);
-            // xhr.send(formData);
+        for (const item of items) {
+          if (item.type.indexOf("image") !== -1) {
+            const blob = item.getAsFile();
+            uploadFile(blob);
           }
         }
-      });
+      }
+
+      async function uploadFile(file) {
+        console.log(file);
+
+        const formData = new FormData();
+        formData.append("image", file);
+
+        try {
+          const response = await fetch("https://img.ink/api/upload", {
+            method: "POST",
+            headers: {
+              token: token || "",
+            },
+            body: formData,
+          });
+
+          const res = await response.json();
+          let { url } = res.data;
+          if (url) {
+            //把光标移到文本框最前面
+            textArea.focus();
+            textArea.setSelectionRange(0, 0);
+            insertText(textArea, `[img]${url}[/img]`, 0);
+          }
+          console.log("上传成功:", res.data);
+        } catch (error) {
+          console.error("上传失败:", error);
+        }
+      }
+
+      function handleFileSelect(event) {
+        const files = event.target.files;
+
+        for (const file of files) {
+          uploadFile(file);
+        }
+      }
+
+      function handleDragOver(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "copy";
+      }
+
+      function handleDrop(event) {
+        event.stopPropagation();
+        event.preventDefault();
+
+        const files = event.dataTransfer.files;
+
+        for (const file of files) {
+          if (file.type.indexOf("image") !== -1) {
+            uploadFile(file);
+          }
+        }
+      }
     }
   }
   // 处理404页面跳回新帖页面
