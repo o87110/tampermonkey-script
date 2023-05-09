@@ -1158,7 +1158,7 @@
             <li>
               <span>自动上传图床</span>
               <div class="switch">
-                <input type="checkbox" id="isUploadImage" data-key="is|UploadImage" />
+                <input type="checkbox" id="isUploadImage" data-key="isUploadImage" />
                 <label for="isUploadImage"></label>
               </div>
             </li>
@@ -1248,6 +1248,11 @@
               childId: ["isImmediatelyEat"],
               dataKey,
             });
+            autoShowElement({
+              fatherIdAry: ["isUploadImage"],
+              childId: ["token"],
+              dataKey,
+            });
           } else {
             setValue(dataKey, item.checked);
           }
@@ -1284,7 +1289,7 @@
 
         case "password":
           if (status === "edit") {
-            item.value = getValue(dataKey);
+            item.value = getValue(dataKey, "");
             $(item)
               .next()
               .on("click", function (event) {
@@ -1297,7 +1302,7 @@
 
         default:
           if (status === "edit") {
-            item.value = getValue(dataKey);
+            item.value = getValue(dataKey, "");
           } else {
             setValue(dataKey, item.value);
           }
