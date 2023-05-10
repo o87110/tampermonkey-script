@@ -41,7 +41,7 @@
 
   let settingData = {
     // 是否显示站内图标
-    isShowSettingIcon: false,
+    isShowSettingIcon: true,
     // 是否开启自动吃肉，手动进去肉帖自动吃肉
     isAutoEat: false,
     // 帖子里是否显示用户等级
@@ -602,7 +602,7 @@
       }
       .add-position-static{
         position: static !important;
-      }   
+      }
     `);
 
     let innerH = `
@@ -2040,15 +2040,6 @@
       location.href = `/bbs/book_list.aspx?gettotal=${year}&action=new`;
     }
   }
-  // 自动增加时长
-  function handleAutoAddOnlineDuration() {
-    // 是否自动增加时长
-    if (!timer) {
-      timer = setInterval(function () {
-        location.reload();
-      }, timeInterval * 1000);
-    }
-  }
   /**
    * 删除过期的帖子
    * @param {number|string} value 存储肉帖的对象
@@ -2074,7 +2065,7 @@
 
     function success(rp) {
       let lv_zz = /<b>等级:<\/b>(\S*)级/;
-      let lv_text = rp.match(lv_zz)[1];
+      let lv_text = rp.match(lv_zz)?.[1] || "0";
       // console.log(lv_text);
       addLvTip(lv_text);
     }

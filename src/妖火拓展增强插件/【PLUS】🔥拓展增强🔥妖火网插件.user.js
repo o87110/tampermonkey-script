@@ -27,7 +27,7 @@
 
   let settingData = {
     // 是否显示站内图标
-    isShowSettingIcon: false,
+    isShowSettingIcon: true,
     // 是否开启自动吃肉，手动进去肉帖自动吃肉
     isAutoEat: false,
     // 是否开启全自动吃肉，会自动进入肉帖自动吃肉
@@ -2250,7 +2250,7 @@
 
     function success(rp) {
       let lv_zz = /<b>等级:<\/b>(\S*)级/;
-      let lv_text = rp.match(lv_zz)[1];
+      let lv_text = rp.match(lv_zz)?.[1] || "0";
       // console.log(lv_text);
       addLvTip(lv_text);
     }

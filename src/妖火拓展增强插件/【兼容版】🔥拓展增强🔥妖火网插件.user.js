@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        【兼容版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      2.0.2
+// @version      3.0.0
 // @description  🔥拓展增强🔥妖火网插件兼容版本
 // @author       龙少c(id:20469)
 // @match        *://yaohuo.me/*
@@ -23,8 +23,6 @@
     isShowSettingIcon: true,
     // 是否开启自动吃肉，手动进去肉帖自动吃肉
     isAutoEat: false,
-    // 全自动吃肉是否无跳转通过iframe吃肉，否则直接当前页面跳转打开肉帖吃肉。
-    isNewOpenIframe: false,
     // 帖子里是否显示用户等级
     isShowLevel: true,
     // 刷新时间间隔
@@ -56,10 +54,16 @@
     isAddNewPostUBB: true,
     // 是否增加回帖ubb
     isAddReplyUBB: true,
+    // 是否增加回帖表情
+    isAddReplyFace: true,
     // 是否默认展开表情
     isUnfoldFace: true,
     // 是否默认展开表情
     isUnfoldUbb: false,
+    // 是否自动上传到图床
+    isUploadImage: false,
+    // 上传图床token
+    token: "",
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -88,10 +92,14 @@
 
     isAddNewPostUBB,
     isAddReplyUBB,
+    isAddReplyFace,
     isUnfoldFace,
     isUnfoldUbb,
 
     loadNextPageType,
+
+    isUploadImage,
+    token,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -445,6 +453,10 @@
     handleAutoEat();
     // 增加回帖ubb
     handleAddReplyUBB();
+    // 增加回帖表情
+    handleAddReplyFace();
+    // 自动上传图床功能
+    handleUploadImage();
     // 增加发帖ubb
     handleAddNewPostUBB();
     // 显示用户等级
@@ -454,7 +466,6 @@
   })();
 
   // ==其他功能函数和方法==
-
   function handleAddSettingText() {
     if (!isShowSettingIcon && $(".top2").length) {
       $(".top2").append(
@@ -921,6 +932,26 @@
         height: 0;
       }
 
+      .yaohuo-wrap .password-container{
+        width: 60%;
+        position: relative;
+      }
+
+      .password-container .toggle-password {
+        position: absolute;
+        top: 52%;
+        right: 6px;
+        transform: translateY(-50%);
+        cursor: pointer;
+      }
+
+      .yaohuo-wrap li .password-container input {
+        width: 100%;
+        box-sizing: border-box;
+        height: 32px;
+        padding-right: 28px;
+      }
+
       .yaohuo-wrap .switch label {
         position: absolute;
         cursor: pointer;
@@ -953,6 +984,10 @@
       .yaohuo-wrap .switch input:checked + label::before {
         transform: translateX(26px);
       }
+      .yaohuo-wrap hr{
+        margin-bottom: 5px;
+        margin-top: 5px;
+      }
     `);
     let innerH = `
       <div class="yaohuo-modal-mask">
@@ -966,6 +1001,41 @@
                 <label for="isShowSettingIcon"></label>
               </div>
             </li>
+            <hr>
+            <li>
+              <span>自动上传图床</span>
+              <div class="switch">
+                <input type="checkbox" id="isUploadImage" data-key="isUploadImage" />
+                <label for="isUploadImage"></label>
+              </div>
+            </li>
+            <li>
+              <span>图床token</span>
+              <div class="password-container">
+                <input 
+                  type="password" 
+                  placeholder="为空则为游客上传"
+                  id="token" 
+                  data-key="token"
+                  value="${token}"
+                />
+                <svg
+                  viewBox="64 64 896 896"
+                  focusable="false"
+                  data-icon="eye"
+                  width="20px"
+                  height="20px"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  class="toggle-password"
+                >
+                  <path
+                    d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 0 0 0 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
+                  ></path>
+                </svg>
+              </div>
+            </li>
+            <hr>
             <li>
               <span>手动进贴吃肉</span>
               <div class="switch">
@@ -985,11 +1055,27 @@
                 step="${1}"
               />
             </li>
+            <hr>
+            <li>
+              <span>回帖表情增强</span>
+              <div class="switch">
+                <input type="checkbox" id="isAddReplyFace" data-key="isAddReplyFace" />
+                <label for="isAddReplyFace"></label>
+              </div>
+            </li>
             <li>
               <span>回帖表情默认展开</span>
               <div class="switch">
                 <input type="checkbox" id="isUnfoldFace" data-key="isUnfoldFace" />
                 <label for="isUnfoldFace"></label>
+              </div>
+            </li>
+            <hr>
+            <li>
+              <span>回帖UBB增强</span>
+              <div class="switch">
+                <input type="checkbox" id="isAddReplyUBB" data-key="isAddReplyUBB" />
+                <label for="isAddReplyUBB"></label>
               </div>
             </li>
             <li>
@@ -999,6 +1085,15 @@
                 <label for="isUnfoldUbb"></label>
               </div>
             </li>
+            <hr>
+            <li>
+              <span>发帖UBB增强</span>
+              <div class="switch">
+                <input type="checkbox" id="isAddNewPostUBB" data-key="isAddNewPostUBB" />
+                <label for="isAddNewPostUBB"></label>
+              </div>
+            </li>
+            <hr>
             <li>
               <span>自动加载下一页</span>
               <div class="switch">
@@ -1028,25 +1123,12 @@
                 step="${numStep}"
               />
             </li>
+            <hr>
             <li>
               <span>贴子显示等级</span>
               <div class="switch">
                 <input type="checkbox" id="isShowLevel" data-key="isShowLevel" />
                 <label for="isShowLevel"></label>
-              </div>
-            </li>
-            <li>
-              <span>发帖增强</span>
-              <div class="switch">
-                <input type="checkbox" id="isAddNewPostUBB" data-key="isAddNewPostUBB" />
-                <label for="isAddNewPostUBB"></label>
-              </div>
-            </li>
-            <li>
-              <span>回帖增强</span>
-              <div class="switch">
-                <input type="checkbox" id="isAddReplyUBB" data-key="isAddReplyUBB" />
-                <label for="isAddReplyUBB"></label>
               </div>
             </li>
           </ul>
@@ -1081,17 +1163,27 @@
             // 根据当前的按钮选中状态处理子项的联动显示或隐藏
             autoShowElement({
               fatherIdAry: ["isLoadNextPage"],
-              childId: ["loadNextPageType"],
-              dataKey,
-            });
-            autoShowElement({
-              fatherIdAry: ["isLoadNextPage"],
-              childId: ["maxLoadNum"],
+              childIdAry: ["loadNextPageType", "maxLoadNum"],
               dataKey,
             });
             autoShowElement({
               fatherIdAry: ["isAutoEat"],
-              childId: ["expiredDays"],
+              childIdAry: ["expiredDays"],
+              dataKey,
+            });
+            autoShowElement({
+              fatherIdAry: ["isUploadImage"],
+              childIdAry: ["token"],
+              dataKey,
+            });
+            autoShowElement({
+              fatherIdAry: ["isAddReplyUBB"],
+              childIdAry: ["isUnfoldUbb"],
+              dataKey,
+            });
+            autoShowElement({
+              fatherIdAry: ["isAddReplyFace"],
+              childIdAry: ["isUnfoldFace"],
               dataKey,
             });
           } else {
@@ -1128,9 +1220,22 @@
           }
           break;
 
+        case "password":
+          if (status === "edit") {
+            item.value = getValue(dataKey, "");
+            $(item)
+              .next()
+              .on("click", function (event) {
+                item.type = item.type === "password" ? "text" : "password";
+              });
+          } else {
+            setValue(dataKey, item.value);
+          }
+          break;
+
         default:
           if (status === "edit") {
-            item.value = getValue(dataKey);
+            item.value = getValue(dataKey, "");
           } else {
             setValue(dataKey, item.value);
           }
@@ -1145,7 +1250,7 @@
      * @param {Array<string>} options.childId - 子元素的ID
      * @param {string} options.dataKey - 存储在父元素上的数据键名
      */
-    function autoShowElement({ fatherIdAry, childId, dataKey }) {
+    function autoShowElement({ fatherIdAry, childIdAry, dataKey }) {
       execFn();
       fatherIdAry.forEach((item) => {
         $(`#${item}`).on("change", function (event) {
@@ -1154,13 +1259,15 @@
       });
       function execFn() {
         if (fatherIdAry.includes(dataKey)) {
-          let parent = $(`#${childId}`).parent();
-          parent = parent.prop("tagName") === "LI" ? parent : parent.parent();
+          childIdAry.forEach((childId) => {
+            let parent = $(`#${childId}`).parent();
+            parent = parent.prop("tagName") === "LI" ? parent : parent.parent();
 
-          let isShow = fatherIdAry.some((item) =>
-            $(`#${item}`).prop("checked")
-          );
-          isShow ? parent.show() : parent.hide();
+            let isShow = fatherIdAry.some((item) =>
+              $(`#${item}`).prop("checked")
+            );
+            isShow ? parent.show() : parent.hide();
+          });
         }
       }
     }
@@ -1237,7 +1344,7 @@
   }
   // 自动吃肉：手动进入肉帖自动吃
   function handleAutoEat() {
-    if (/^\/bbs-.*\.html$/.test(window.location.pathname)) {
+    if (/^\/bbs-.*\.html$/.test(window.location.pathname) && isAutoEat) {
       const form = document.getElementsByName("f")[0];
       if (!form) {
         let isAutoEatBbs = window.location.search.includes("open=new");
@@ -1554,75 +1661,17 @@
       if (!form) {
         return;
       }
-      const face = form.getElementsByTagName("select")[0];
-      const sendmsg = form.getElementsByTagName("select")[1];
-      const content = form.getElementsByTagName("textarea")[0];
-      const replyBtn = document.getElementsByName("g")[0];
       const fileTag = document.querySelector(
         "a[href^='/bbs/book_re_addfile.aspx']"
       );
-      // 显示表情
-      content.insertAdjacentHTML("beforebegin", '<div id="facearea"></div>');
-      const facearea = document.getElementById("facearea");
 
-      let allFaceHtml = "";
-
-      faceList.forEach((faceStr, i) => {
-        let name = faceStr.split(".")[0];
-        allFaceHtml += `
-        <img
-          id="setFace${i}"
-          style="width: 32px;height: 32px"
-          src="face/${faceStr}"
-          value="${name}.gif"
-        />`;
-      });
-      diyFaceList.forEach((item, i) => {
-        allFaceHtml += `
-        <img
-          id="diyFace${i}"
-          data-src="${item.url}"
-          style="width: 32px;height: 32px"
-          src="${item.url}"
-          value="${item.name}.gif"
-        />`;
-      });
-      facearea.innerHTML = allFaceHtml;
-
-      // 添加表情展开按钮
-      sendmsg.insertAdjacentHTML(
-        "afterend",
-        `<span 
-          style="${a3style}display:${
-          isUnfoldFace ? "display: block" : "display: none"
-        }" id="unfold"
-          >表情${isUnfoldFace ? "折叠" : "展开"}</span>`
-      );
-
+      // 添加ubb展开按钮
       fileTag.insertAdjacentHTML(
         "afterend",
         `<input id="ubb_unfold" type="submit" value="${
           isUnfoldUbb ? "折叠UBB" : "展开UBB"
         }" style="float:right"/>`
       );
-
-      // 处理点击添加表情包
-      facearea.onclick = function (event) {
-        if (event.target.tagName.toLowerCase() === "img") {
-          // 自定义图片
-          let diySrc = event.target.dataset.src;
-
-          if (diySrc) {
-            //把光标移到文本框最前面
-            textarea.focus();
-            textarea.setSelectionRange(0, 0);
-            insertText(textarea, `[img]${diySrc}[/img]`, 0);
-            return;
-          }
-          // 处理图片的点击事件
-          face.value = event.target.getAttribute("value");
-        }
-      };
 
       // 妖火图床、超链接、图片
       form.insertAdjacentHTML(
@@ -1663,28 +1712,14 @@
         <hr>
         `
       );
-      // 处理默认展开ubb和表情
-      if (isUnfoldFace) {
-        $("#facearea").show();
-      } else {
-        $("#facearea").hide();
-      }
 
+      // 处理默认展开ubb
       if (isUnfoldUbb) {
         $(".ubb_wrap").height("auto");
       } else {
         $(".ubb_wrap").height(32);
       }
-      // 处理折叠表情
-      $("#unfold").click(function (event) {
-        if (this.innerText == "表情展开") {
-          $("#facearea").show();
-          this.innerText = "表情折叠";
-        } else {
-          $("#facearea").hide();
-          this.innerText = "表情展开";
-        }
-      });
+
       // 处理折叠ubb
       $("#ubb_unfold").click(function (event) {
         if (this.value == "折叠UBB") {
@@ -1703,6 +1738,302 @@
       addEventAry.forEach((item) => {
         handleEventListener(item.id, textarea, item.ubb, item.offset);
       });
+    }
+  }
+  // 增加回帖表情
+  function handleAddReplyFace() {
+    if (
+      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
+        viewPage.includes(window.location.pathname)) &&
+      isAddReplyFace
+    ) {
+      const form = document.getElementsByName("f")[0];
+      if (!form) {
+        return;
+      }
+      const face = form.getElementsByTagName("select")[0];
+      const sendmsg = form.getElementsByTagName("select")[1];
+      const content = form.getElementsByTagName("textarea")[0];
+      // 显示表情
+      content.insertAdjacentHTML("beforebegin", '<div id="facearea"></div>');
+      const facearea = document.getElementById("facearea");
+
+      let allFaceHtml = "";
+      faceList.forEach((faceStr, i) => {
+        let name = faceStr.split(".")[0];
+        allFaceHtml += `
+        <img
+          id="setFace${i}"
+          style="width: 32px;height: 32px"
+          src="face/${faceStr}"
+          value="${name}.gif"
+        />`;
+      });
+      diyFaceList.forEach((item, i) => {
+        allFaceHtml += `
+        <img
+          id="diyFace${i}"
+          data-src="${item.url}"
+          style="width: 32px;height: 32px"
+          src="${item.url}"
+          value="${item.name}.gif"
+        />`;
+      });
+      facearea.innerHTML = allFaceHtml;
+
+      // 添加表情展开按钮
+      sendmsg.insertAdjacentHTML(
+        "afterend",
+        `<span 
+          style="${a3style}display:${
+          isUnfoldFace ? "display: block" : "display: none"
+        }" id="unfold"
+          >表情${isUnfoldFace ? "折叠" : "展开"}</span>`
+      );
+
+      // 处理点击添加表情包
+      facearea.onclick = function (event) {
+        if (event.target.tagName.toLowerCase() === "img") {
+          // 自定义图片
+          let diySrc = event.target.dataset.src;
+
+          if (diySrc) {
+            //把光标移到文本框最前面
+            textarea.focus();
+            textarea.setSelectionRange(0, 0);
+            insertText(textarea, `[img]${diySrc}[/img]`, 0);
+            return;
+          }
+          // 处理图片的点击事件
+          face.value = event.target.getAttribute("value");
+        }
+      };
+      // 处理默认展开表情
+      if (isUnfoldFace) {
+        $("#facearea").show();
+      } else {
+        $("#facearea").hide();
+      }
+      // 处理折叠表情
+      $("#unfold").click(function (event) {
+        if (this.innerText == "表情展开") {
+          $("#facearea").show();
+          this.innerText = "表情折叠";
+        } else {
+          $("#facearea").hide();
+          this.innerText = "表情展开";
+        }
+      });
+    }
+  }
+  function handleUploadImage() {
+    if (
+      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
+        viewPage.includes(window.location.pathname) ||
+        postPage.includes(window.location.pathname)) &&
+      isUploadImage
+    ) {
+      let textArea = document.getElementsByTagName("textarea")[0];
+      let isReplyPage =
+        /^\/bbs-.*\.html$/.test(window.location.pathname) ||
+        viewPage.includes(window.location.pathname);
+      MY_addStyle(`
+        .upload-wrap {
+          position: relative;
+          display: inline-block;
+          width: 100%;
+          box-sizing: border-box;
+          height: 50px;
+          border: 2px dashed #ccc;
+          border-radius: 5px;
+          font-size: 16px;
+          color: #555;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+        .upload-wrap-disabled{
+          background: #ddd;
+          cursor: not-allowed;
+        }
+        .upload-wrap:hover {
+          border-color: #aaa;
+        }
+        .upload-wrap:focus {
+          outline: none;
+        }
+        .upload-input-label {
+          width: 100%;
+          height: 100%;
+          font-weight: bold;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .upload-loading {
+          box-sizing: border-box;
+          border: 6px solid #f3f3f3;
+          border-top: 6px solid #3498db;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          animation: spin 2s linear infinite;
+          margin: auto;
+          position: absolute;
+          z-index: 10;
+          left: 50%;
+          top: 50%;
+          margin-top: -20px;
+          margin-left: -20px;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `);
+      textArea.insertAdjacentHTML(
+        "afterend",
+        `<label for="upload-input" class="upload-wrap">
+            <div class="upload-loading" style="display: none"></div>
+            <span class="upload-input-label">
+              <svg t="1683636826356" style="margin-right: 10px" class="icon" fill="#16baaa" viewBox="0 0 1264 1024" version="1.1" 
+                xmlns="http://www.w3.org/2000/svg" p-id="9231" width="38" height="38">
+                <path d="M992.171444 312.62966C975.189616 137.155482 827.415189 0 647.529412 0 469.849434 0 323.616239 133.860922 303.679205 306.210218 131.598564 333.839271 0 482.688318 0 662.588235c0 199.596576 161.815189 361.411765 361.411765 361.411765h184.014581V692.705882H294.530793l337.939795-361.411764 337.939796 361.411764H726.132229v331.294118H933.647059v-1.555371c185.470975-15.299199 331.294118-170.426291 331.294117-359.856394 0-168.969898-116.101408-310.367302-272.769732-349.958575z" p-id="9232"></path>
+              </svg>
+              选择或拖拽图片上传到图床
+            </span>
+            <input
+              type="file"
+              multiple
+              id="upload-input"
+              accept="image/*"
+              style="display: none"
+            />
+        </label>`
+      );
+
+      // 获取上传图标的 input 元素
+      const uploadInput = document.querySelector("#upload-input");
+      const uploadWrap = document.querySelector(".upload-wrap");
+      const uploadLoading = document.querySelector(".upload-loading");
+
+      uploadInput.addEventListener("change", handleFileSelect);
+      uploadWrap.addEventListener("dragover", handleDragOver);
+      uploadWrap.addEventListener("drop", handleDrop);
+      textArea.addEventListener("paste", handlePaste);
+
+      // 剪贴板事件
+      async function handlePaste(event) {
+        const clipboardData =
+          event.clipboardData || event.originalEvent.clipboardData;
+        const items = clipboardData.items;
+
+        handleUploadStatus("start");
+        const files = [];
+
+        for (const item of items) {
+          if (item.type.indexOf("image") !== -1) {
+            const blob = item.getAsFile();
+            // paste 事件的处理程序是异步的，所以不能在这里直接上传，否则有多个只会读取第一个
+            // await uploadFile(blob);
+            files.push(blob);
+          }
+        }
+
+        // 此处处理上传
+        for (const item of files) {
+          await uploadFile(item);
+        }
+        handleUploadStatus("end");
+      }
+
+      // 上传事件
+      async function uploadFile(file) {
+        const formData = new FormData();
+        formData.append("image", file);
+
+        try {
+          const response = await fetch("https://img.ink/api/upload", {
+            method: "POST",
+            headers: {
+              token: token || "",
+            },
+            body: formData,
+          });
+
+          const res = await response.json();
+          let {
+            code,
+            data,
+            data: { url },
+            msg,
+          } = res;
+
+          if (code === 200) {
+            if (url) {
+              // 如果是回帖页面把光标移到文本框最前面
+              if (isReplyPage) {
+                textArea.focus();
+                textArea.setSelectionRange(0, 0);
+              }
+
+              insertText(textArea, `[img]${url}[/img]`, 0);
+            }
+          } else {
+            alert(msg);
+          }
+        } catch (error) {
+          alert(error);
+          console.error("上传失败:", error);
+        }
+      }
+
+      // 选择文件change事件
+      async function handleFileSelect(event) {
+        const files = event.target.files;
+        handleUploadStatus("start");
+        for (const file of files) {
+          await uploadFile(file);
+        }
+        handleUploadStatus("end");
+      }
+      // 拖拽事件
+      function handleDragOver(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "copy";
+      }
+
+      async function handleDrop(event) {
+        event.stopPropagation();
+        event.preventDefault();
+
+        const files = event.dataTransfer.files;
+        handleUploadStatus("start");
+        for (const file of files) {
+          if (file.type.indexOf("image") !== -1) {
+            await uploadFile(file);
+          }
+        }
+        handleUploadStatus("end");
+      }
+      /**
+       * 处理上传状态
+       * @param {'start' | 'end'} type 处理的状态
+       */
+      function handleUploadStatus(type) {
+        if (type === "start") {
+          uploadWrap.classList.toggle("upload-wrap-disabled");
+          uploadInput.disabled = true;
+          uploadLoading.style.display = "block";
+        }
+        if (type === "end") {
+          uploadWrap.classList.toggle("upload-wrap-disabled");
+          uploadInput.disabled = false;
+          uploadLoading.style.display = "none";
+          uploadInput.value = "";
+        }
+      }
     }
   }
   // 处理404页面跳回新帖页面
@@ -1737,7 +2068,6 @@
 
     function success(rp) {
       let lv_zz = /<b>等级:<\/b>(\S*)级/;
-      console.log(rp.match(lv_zz));
       let lv_text = rp.match(lv_zz)?.[1] || "0";
       // console.log(lv_text);
       addLvTip(lv_text);
@@ -2148,6 +2478,15 @@
         });
 
         return jQuery(prevElement);
+      },
+
+      next: function () {
+        let nextElement = null;
+        this.each(function () {
+          nextElement = this.nextElementSibling;
+        });
+
+        return new jQuery(nextElement);
       },
 
       children: function (selector) {
