@@ -9,13 +9,6 @@
 // @icon         https://yaohuo.me/css/favicon.ico
 // @run-at       document-end
 // @license      MIT
-// @grant        unsafeWindow
-// @grant        GM_setValue
-// @grant        GM_getValue
-// @grant        GM_registerMenuCommand
-// @grant        GM_unregisterMenuCommand
-// @grant        GM_notification
-// @grant        GM_addStyle
 // ==/UserScript==
 
 /* 
@@ -468,8 +461,6 @@
     addSettingBtn();
     // 如果关闭了悬浮图标，在网站首页右上角添加插件设置入口
     handleAddSettingText();
-    // 点开脚本设置
-    GM_registerMenuCommand("打开设置界面", setMenu);
     // 加载更多按钮点击事件监听
     handleAddLoadMoreBtnClick();
     // 手动吃肉：手动进入肉帖吃
@@ -513,19 +504,19 @@
     }
 
     // 获取用户历史数据
-    yaohuo_userData = GM_getValue("yaohuo_userData");
+    yaohuo_userData = MY_getValue("yaohuo_userData");
 
     // 查看本地是否存在旧数据
     if (!yaohuo_userData) {
       yaohuo_userData = settingData;
-      // GM_setValue("yaohuo_userData", yaohuo_userData);
+      // MY_setValue("yaohuo_userData", yaohuo_userData);
     }
 
     // 自动更新数据
     for (let value in settingData) {
       if (!yaohuo_userData.hasOwnProperty(value)) {
         yaohuo_userData[value] = settingData[value];
-        GM_setValue("yaohuo_userData", yaohuo_userData);
+        MY_setValue("yaohuo_userData", yaohuo_userData);
       }
     }
 
@@ -573,7 +564,7 @@
       return;
     }
 
-    GM_addStyle(`
+    MY_addStyle(`
       #floating-setting-btn {
         display: ${isShowSettingIcon ? "block" : "none"};
         max-width: ${settingIconMaxSize}px;
@@ -840,7 +831,7 @@
     if ($(".yaohuo-modal-mask").length) {
       return;
     }
-    GM_addStyle(`
+    MY_addStyle(`
       .yaohuo-modal-mask {
         display: none;
         position: fixed;
@@ -1303,7 +1294,7 @@
     setSettingInputEvent("save");
     $("body").removeClass("overflow-hidden-scroll");
     $(".yaohuo-modal-mask").hide();
-    GM_setValue("yaohuo_userData", yaohuo_userData);
+    MY_setValue("yaohuo_userData", yaohuo_userData);
     if (!yaohuo_userData.isShowSettingIcon) {
       $("#floating-setting-btn").hide();
     } else {
@@ -1543,21 +1534,47 @@
   // 获取值
   function getItem(key, defaultValue = {}) {
     if (key === "autoEatList") {
-      let autoEatList = GM_getValue(key, {});
+      let autoEatList = MY_getValue(key, {});
       // 删除过期的肉帖
       deleteExpiredID(autoEatList);
       // 更新肉帖数据
       setItem(key, autoEatList);
       return autoEatList;
     }
-    return GM_getValue(key, {});
+    return MY_getValue(key, {});
+  }
+  function MY_addStyle(innerHTML) {
+    // 创建 style 元素
+    let style = document.createElement("style");
+    style.type = "text/css";
+
+    // 设置样式内容
+    let css = innerHTML;
+    style.innerHTML = css;
+
+    // 将 style 元素添加到 head 元素中
+    document.head.appendChild(style);
+  }
+  function MY_setValue(key, value) {
+    if (typeof value === "object") {
+      value = JSON.stringify(value);
+    }
+    localStorage.setItem(key, value);
+  }
+  function MY_getValue(key, defaultValue = {}) {
+    const value = localStorage.getItem(key) || defaultValue;
+    try {
+      return JSON.parse(value);
+    } catch (e) {
+      return value;
+    }
   }
   // 设置值
   function setItem(key, value) {
     // if (key === "autoEatList") {
     //   deleteExpiredID(value); //删除过期的肉帖
     // }
-    GM_setValue(key, value);
+    MY_setValue(key, value);
   }
   /**
    * 返回yaohuo_userData里的数据
@@ -1834,7 +1851,7 @@
       let isReplyPage =
         /^\/bbs-.*\.html$/.test(window.location.pathname) ||
         viewPage.includes(window.location.pathname);
-      GM_addStyle(`
+      MY_addStyle(`
         .upload-wrap {
           position: relative;
           display: inline-block;
