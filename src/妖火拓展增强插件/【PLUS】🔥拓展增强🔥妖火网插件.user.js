@@ -86,6 +86,8 @@
     isAddNewPostUBB: true,
     // 是否增加回帖ubb
     isAddReplyUBB: true,
+    // 是否增加回帖表情
+    isAddReplyFace: true,
     // 是否默认展开表情
     isUnfoldFace: true,
     // 是否默认展开表情
@@ -130,6 +132,7 @@
 
     isAddNewPostUBB,
     isAddReplyUBB,
+    isAddReplyFace,
     isUnfoldFace,
     isUnfoldUbb,
 
@@ -492,11 +495,13 @@
     handleAutoEat();
     // 全自动吃肉：自动进入肉帖自动吃
     handleFullAutoEat();
-    // 回帖增强，增加回帖ubb等
+    // 增加回帖ubb等
     handleAddReplyUBB();
+    // 增加回帖表情等
+    handleAddReplyFace();
     // 自动上传图床功能
     handleUploadImage();
-    // 发帖增强，增加发帖ubb
+    // 增加发帖ubb
     handleAddNewPostUBB();
     // 显示用户等级
     handleShowUserLevel();
@@ -1023,6 +1028,10 @@
       .yaohuo-wrap .switch input:checked + label::before {
         transform: translateX(26px);
       }
+      .yaohuo-wrap hr{
+        margin-bottom: 5px;
+        margin-top: 5px;
+      }
     `);
     let innerH = `
       <div class="yaohuo-modal-mask">
@@ -1036,6 +1045,41 @@
                 <label for="isShowSettingIcon"></label>
               </div>
             </li>
+            <hr>
+            <li>
+              <span>自动上传图床</span>
+              <div class="switch">
+                <input type="checkbox" id="isUploadImage" data-key="isUploadImage" />
+                <label for="isUploadImage"></label>
+              </div>
+            </li>
+            <li>
+              <span>图床token</span>
+              <div class="password-container">
+                <input 
+                  type="password" 
+                  placeholder="为空则为游客上传"
+                  id="token" 
+                  data-key="token"
+                  value="${token}"
+                />
+                <svg
+                  viewBox="64 64 896 896"
+                  focusable="false"
+                  data-icon="eye"
+                  width="20px"
+                  height="20px"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  class="toggle-password"
+                >
+                  <path
+                    d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 0 0 0 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
+                  ></path>
+                </svg>
+              </div>
+            </li>
+            <hr>
             <li>
               <span>手动进贴半自动吃肉</span>
               <div class="switch">
@@ -1077,20 +1121,6 @@
               />
             </li>
             <li>
-              <span>回帖表情默认展开</span>
-              <div class="switch">
-                <input type="checkbox" id="isUnfoldFace" data-key="isUnfoldFace" />
-                <label for="isUnfoldFace"></label>
-              </div>
-            </li>
-            <li>
-              <span>回帖UBB默认展开</span>
-              <div class="switch">
-                <input type="checkbox" id="isUnfoldUbb" data-key="isUnfoldUbb" />
-                <label for="isUnfoldUbb"></label>
-              </div>
-            </li>
-            <li>
               <span>自动吃肉时间间隔：<i class="range-num">${getValue(
                 "timeInterval",
                 40
@@ -1105,38 +1135,45 @@
                 step="${timeStep}"
               />
             </li>
+            <hr>
             <li>
-              <span>自动上传图床</span>
+              <span>回帖表情增强</span>
               <div class="switch">
-                <input type="checkbox" id="isUploadImage" data-key="isUploadImage" />
-                <label for="isUploadImage"></label>
+                <input type="checkbox" id="isAddReplyFace" data-key="isAddReplyFace" />
+                <label for="isAddReplyFace"></label>
               </div>
             </li>
             <li>
-              <span>图床token</span>
-              <div class="password-container">
-                <input 
-                  type="password" 
-                  id="token" 
-                  data-key="token"
-                  value="${token}"
-                />
-                <svg
-                  viewBox="64 64 896 896"
-                  focusable="false"
-                  data-icon="eye"
-                  width="20px"
-                  height="20px"
-                  fill="currentColor"
-                  aria-hidden="true"
-                  class="toggle-password"
-                >
-                  <path
-                    d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 0 0 0 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
-                  ></path>
-                </svg>
+              <span>回帖表情默认展开</span>
+              <div class="switch">
+                <input type="checkbox" id="isUnfoldFace" data-key="isUnfoldFace" />
+                <label for="isUnfoldFace"></label>
               </div>
             </li>
+            <hr>
+            <li>
+              <span>回帖UBB增强</span>
+              <div class="switch">
+                <input type="checkbox" id="isAddReplyUBB" data-key="isAddReplyUBB" />
+                <label for="isAddReplyUBB"></label>
+              </div>
+            </li>
+            <li>
+              <span>回帖UBB默认展开</span>
+              <div class="switch">
+                <input type="checkbox" id="isUnfoldUbb" data-key="isUnfoldUbb" />
+                <label for="isUnfoldUbb"></label>
+              </div>
+            </li>
+            <hr>
+            <li>
+              <span>发帖UBB增强</span>
+              <div class="switch">
+                <input type="checkbox" id="isAddNewPostUBB" data-key="isAddNewPostUBB" />
+                <label for="isAddNewPostUBB"></label>
+              </div>
+            </li>
+            <hr>
             <li>
               <span>自动加载下一页</span>
               <div class="switch">
@@ -1166,25 +1203,12 @@
                 step="${numStep}"
               />
             </li>
+            <hr>
             <li>
               <span>贴子显示等级</span>
               <div class="switch">
                 <input type="checkbox" id="isShowLevel" data-key="isShowLevel" />
                 <label for="isShowLevel"></label>
-              </div>
-            </li>
-            <li>
-              <span>发帖增强</span>
-              <div class="switch">
-                <input type="checkbox" id="isAddNewPostUBB" data-key="isAddNewPostUBB" />
-                <label for="isAddNewPostUBB"></label>
-              </div>
-            </li>
-            <li>
-              <span>回帖增强</span>
-              <div class="switch">
-                <input type="checkbox" id="isAddReplyUBB" data-key="isAddReplyUBB" />
-                <label for="isAddReplyUBB"></label>
               </div>
             </li>
           </ul>
@@ -1219,37 +1243,36 @@
             // 根据当前的按钮选中状态处理子项的联动显示或隐藏
             autoShowElement({
               fatherIdAry: ["isLoadNextPage"],
-              childId: ["loadNextPageType"],
-              dataKey,
-            });
-            autoShowElement({
-              fatherIdAry: ["isLoadNextPage"],
-              childId: ["maxLoadNum"],
+              childIdAry: ["loadNextPageType", "maxLoadNum"],
               dataKey,
             });
             autoShowElement({
               fatherIdAry: ["isFullAutoEat"],
-              childId: ["timeInterval"],
+              childIdAry: [
+                "timeInterval",
+                "isNewOpenIframe",
+                "isImmediatelyEat",
+              ],
               dataKey,
             });
             autoShowElement({
               fatherIdAry: ["isAutoEat", "isFullAutoEat"],
-              childId: ["expiredDays"],
-              dataKey,
-            });
-            autoShowElement({
-              fatherIdAry: ["isFullAutoEat"],
-              childId: ["isNewOpenIframe"],
-              dataKey,
-            });
-            autoShowElement({
-              fatherIdAry: ["isFullAutoEat"],
-              childId: ["isImmediatelyEat"],
+              childIdAry: ["expiredDays"],
               dataKey,
             });
             autoShowElement({
               fatherIdAry: ["isUploadImage"],
-              childId: ["token"],
+              childIdAry: ["token"],
+              dataKey,
+            });
+            autoShowElement({
+              fatherIdAry: ["isAddReplyUBB"],
+              childIdAry: ["isUnfoldUbb"],
+              dataKey,
+            });
+            autoShowElement({
+              fatherIdAry: ["isAddReplyFace"],
+              childIdAry: ["isUnfoldFace"],
               dataKey,
             });
           } else {
@@ -1316,7 +1339,7 @@
      * @param {Array<string>} options.childId - 子元素的ID
      * @param {string} options.dataKey - 存储在父元素上的数据键名
      */
-    function autoShowElement({ fatherIdAry, childId, dataKey }) {
+    function autoShowElement({ fatherIdAry, childIdAry, dataKey }) {
       execFn();
       fatherIdAry.forEach((item) => {
         $(`#${item}`).on("change", function (event) {
@@ -1325,13 +1348,15 @@
       });
       function execFn() {
         if (fatherIdAry.includes(dataKey)) {
-          let parent = $(`#${childId}`).parent();
-          parent = parent.prop("tagName") === "LI" ? parent : parent.parent();
+          childIdAry.forEach((childId) => {
+            let parent = $(`#${childId}`).parent();
+            parent = parent.prop("tagName") === "LI" ? parent : parent.parent();
 
-          let isShow = fatherIdAry.some((item) =>
-            $(`#${item}`).prop("checked")
-          );
-          isShow ? parent.show() : parent.hide();
+            let isShow = fatherIdAry.some((item) =>
+              $(`#${item}`).prop("checked")
+            );
+            isShow ? parent.show() : parent.hide();
+          });
         }
       }
     }
@@ -1502,7 +1527,10 @@
   }
   // 自动吃肉：手动进入肉帖自动吃
   function handleAutoEat() {
-    if (/^\/bbs-.*\.html$/.test(window.location.pathname)) {
+    if (
+      /^\/bbs-.*\.html$/.test(window.location.pathname) &&
+      (isAutoEat || isFullAutoEat)
+    ) {
       const form = document.getElementsByName("f")[0];
       if (!form) {
         let isAutoEatBbs = window.location.search.includes("open=new");
@@ -1820,75 +1848,17 @@
       if (!form) {
         return;
       }
-      const face = form.getElementsByTagName("select")[0];
-      const sendmsg = form.getElementsByTagName("select")[1];
-      const content = form.getElementsByTagName("textarea")[0];
-      const replyBtn = document.getElementsByName("g")[0];
       const fileTag = document.querySelector(
         "a[href^='/bbs/book_re_addfile.aspx']"
       );
-      // 显示表情
-      content.insertAdjacentHTML("beforebegin", '<div id="facearea"></div>');
-      const facearea = document.getElementById("facearea");
 
-      let allFaceHtml = "";
-
-      faceList.forEach((faceStr, i) => {
-        let name = faceStr.split(".")[0];
-        allFaceHtml += `
-        <img
-          id="setFace${i}"
-          style="width: 32px;height: 32px"
-          src="face/${faceStr}"
-          value="${name}.gif"
-        />`;
-      });
-      diyFaceList.forEach((item, i) => {
-        allFaceHtml += `
-        <img
-          id="diyFace${i}"
-          data-src="${item.url}"
-          style="width: 32px;height: 32px"
-          src="${item.url}"
-          value="${item.name}.gif"
-        />`;
-      });
-      facearea.innerHTML = allFaceHtml;
-
-      // 添加表情展开按钮
-      sendmsg.insertAdjacentHTML(
-        "afterend",
-        `<span 
-          style="${a3style}display:${
-          isUnfoldFace ? "display: block" : "display: none"
-        }" id="unfold"
-          >表情${isUnfoldFace ? "折叠" : "展开"}</span>`
-      );
-
+      // 添加ubb展开按钮
       fileTag.insertAdjacentHTML(
         "afterend",
         `<input id="ubb_unfold" type="submit" value="${
           isUnfoldUbb ? "折叠UBB" : "展开UBB"
         }" style="float:right"/>`
       );
-
-      // 处理点击添加表情包
-      facearea.onclick = function (event) {
-        if (event.target.tagName.toLowerCase() === "img") {
-          // 自定义图片
-          let diySrc = event.target.dataset.src;
-
-          if (diySrc) {
-            //把光标移到文本框最前面
-            textarea.focus();
-            textarea.setSelectionRange(0, 0);
-            insertText(textarea, `[img]${diySrc}[/img]`, 0);
-            return;
-          }
-          // 处理图片的点击事件
-          face.value = event.target.getAttribute("value");
-        }
-      };
 
       // 妖火图床、超链接、图片
       form.insertAdjacentHTML(
@@ -1929,28 +1899,14 @@
         <hr>
         `
       );
-      // 处理默认展开ubb和表情
-      if (isUnfoldFace) {
-        $("#facearea").show();
-      } else {
-        $("#facearea").hide();
-      }
 
+      // 处理默认展开ubb
       if (isUnfoldUbb) {
         $(".ubb_wrap").height("auto");
       } else {
         $(".ubb_wrap").height(32);
       }
-      // 处理折叠表情
-      $("#unfold").click(function (event) {
-        if (this.innerText == "表情展开") {
-          $("#facearea").show();
-          this.innerText = "表情折叠";
-        } else {
-          $("#facearea").hide();
-          this.innerText = "表情展开";
-        }
-      });
+
       // 处理折叠ubb
       $("#ubb_unfold").click(function (event) {
         if (this.value == "折叠UBB") {
@@ -1971,6 +1927,92 @@
       });
     }
   }
+  // 增加回帖表情
+  function handleAddReplyFace() {
+    if (
+      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
+        viewPage.includes(window.location.pathname)) &&
+      isAddReplyFace
+    ) {
+      const form = document.getElementsByName("f")[0];
+      if (!form) {
+        return;
+      }
+      const face = form.getElementsByTagName("select")[0];
+      const sendmsg = form.getElementsByTagName("select")[1];
+      const content = form.getElementsByTagName("textarea")[0];
+      // 显示表情
+      content.insertAdjacentHTML("beforebegin", '<div id="facearea"></div>');
+      const facearea = document.getElementById("facearea");
+
+      let allFaceHtml = "";
+      faceList.forEach((faceStr, i) => {
+        let name = faceStr.split(".")[0];
+        allFaceHtml += `
+        <img
+          id="setFace${i}"
+          style="width: 32px;height: 32px"
+          src="face/${faceStr}"
+          value="${name}.gif"
+        />`;
+      });
+      diyFaceList.forEach((item, i) => {
+        allFaceHtml += `
+        <img
+          id="diyFace${i}"
+          data-src="${item.url}"
+          style="width: 32px;height: 32px"
+          src="${item.url}"
+          value="${item.name}.gif"
+        />`;
+      });
+      facearea.innerHTML = allFaceHtml;
+
+      // 添加表情展开按钮
+      sendmsg.insertAdjacentHTML(
+        "afterend",
+        `<span 
+          style="${a3style}display:${
+          isUnfoldFace ? "display: block" : "display: none"
+        }" id="unfold"
+          >表情${isUnfoldFace ? "折叠" : "展开"}</span>`
+      );
+
+      // 处理点击添加表情包
+      facearea.onclick = function (event) {
+        if (event.target.tagName.toLowerCase() === "img") {
+          // 自定义图片
+          let diySrc = event.target.dataset.src;
+
+          if (diySrc) {
+            //把光标移到文本框最前面
+            textarea.focus();
+            textarea.setSelectionRange(0, 0);
+            insertText(textarea, `[img]${diySrc}[/img]`, 0);
+            return;
+          }
+          // 处理图片的点击事件
+          face.value = event.target.getAttribute("value");
+        }
+      };
+      // 处理默认展开表情
+      if (isUnfoldFace) {
+        $("#facearea").show();
+      } else {
+        $("#facearea").hide();
+      }
+      // 处理折叠表情
+      $("#unfold").click(function (event) {
+        if (this.innerText == "表情展开") {
+          $("#facearea").show();
+          this.innerText = "表情折叠";
+        } else {
+          $("#facearea").hide();
+          this.innerText = "表情展开";
+        }
+      });
+    }
+  }
   function handleUploadImage() {
     if (
       (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
@@ -1979,7 +2021,9 @@
       isUploadImage
     ) {
       let textArea = document.getElementsByTagName("textarea")[0];
-
+      let isReplyPage =
+        /^\/bbs-.*\.html$/.test(window.location.pathname) ||
+        viewPage.includes(window.location.pathname);
       GM_addStyle(`
         .upload-wrap {
           position: relative;
@@ -2065,6 +2109,7 @@
       uploadWrap.addEventListener("drop", handleDrop);
       textArea.addEventListener("paste", handlePaste);
 
+      // 剪贴板事件
       async function handlePaste(event) {
         const clipboardData =
           event.clipboardData || event.originalEvent.clipboardData;
@@ -2089,6 +2134,7 @@
         handleUploadStatus("end");
       }
 
+      // 上传事件
       async function uploadFile(file) {
         const formData = new FormData();
         formData.append("image", file);
@@ -2103,28 +2149,33 @@
           });
 
           const res = await response.json();
-          let { code, data, msg } = res;
-          console.log(res);
-          if (code === 200) {
-            let { url } = data;
+          let {
+            code,
+            data,
+            data: { url },
+            msg,
+          } = res;
 
+          if (code === 200) {
             if (url) {
-              //把光标移到文本框最前面
-              // textArea.focus();
-              // textArea.setSelectionRange(0, 0);
+              // 如果是回帖页面把光标移到文本框最前面
+              if (isReplyPage) {
+                textArea.focus();
+                textArea.setSelectionRange(0, 0);
+              }
+
               insertText(textArea, `[img]${url}[/img]`, 0);
             }
           } else {
             alert(msg);
           }
-
-          console.log("上传成功:", res.data);
         } catch (error) {
           alert(error);
           console.error("上传失败:", error);
         }
       }
 
+      // 选择文件change事件
       async function handleFileSelect(event) {
         const files = event.target.files;
         handleUploadStatus("start");
@@ -2133,7 +2184,7 @@
         }
         handleUploadStatus("end");
       }
-
+      // 拖拽事件
       function handleDragOver(event) {
         event.stopPropagation();
         event.preventDefault();
