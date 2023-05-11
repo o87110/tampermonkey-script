@@ -1889,6 +1889,7 @@
   function handleUploadImage() {
     if (isUploadImage) {
       let textArea = document.getElementsByTagName("textarea")[0];
+      if (!textArea) return;
       let isReplyPage =
         /^\/bbs-.*\.html$/.test(window.location.pathname) ||
         viewPage.includes(window.location.pathname);
