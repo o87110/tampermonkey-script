@@ -1,21 +1,15 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.1.0
+// @version      3.1.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
 // @match        *://*.yaohuo.me/*
 // @icon         https://yaohuo.me/css/favicon.ico
 // @run-at       document-end
-// @license      MIT
-// @grant        unsafeWindow
-// @grant        GM_setValue
-// @grant        GM_getValue
 // @grant        GM_registerMenuCommand
-// @grant        GM_unregisterMenuCommand
-// @grant        GM_notification
-// @grant        GM_addStyle
+// @license      MIT
 // ==/UserScript==
 
 (function () {
@@ -473,8 +467,8 @@
     addSettingBtn();
     // 如果关闭了悬浮图标，在网站首页右上角添加插件设置入口
     handleAddSettingText();
-    // 点开脚本设置
-    GM_registerMenuCommand("打开设置界面", setMenu);
+    // 注册油猴脚本设置
+    handleRegisterMenu();
     // 加载更多按钮点击事件监听
     handleAddLoadMoreBtnClick();
     // 手动吃肉：手动进入肉帖吃
@@ -499,7 +493,7 @@
   function handleAddSettingText() {
     // 修改pc端滚动条样式
     if (!isMobile()) {
-      GM_addStyle(`
+      MY_addStyle(`
         /*滚动条整体样式*/
         /*高宽分别对应横竖滚动条的尺寸*/
         ::-webkit-scrollbar {
@@ -539,6 +533,13 @@
       });
     }
   }
+  function handleRegisterMenu() {
+    try {
+      if (!!GM_registerMenuCommand) {
+        GM_registerMenuCommand("打开设置界面", setMenu);
+      }
+    } catch (error) {}
+  }
   function isMobile() {
     return /Mobile/i.test(navigator.userAgent);
   }
@@ -552,19 +553,19 @@
     }
 
     // 获取用户历史数据
-    yaohuo_userData = GM_getValue("yaohuo_userData");
+    yaohuo_userData = MY_getValue("yaohuo_userData");
 
     // 查看本地是否存在旧数据
     if (!yaohuo_userData) {
       yaohuo_userData = settingData;
-      // GM_setValue("yaohuo_userData", yaohuo_userData);
+      // MY_setValue("yaohuo_userData", yaohuo_userData);
     }
 
     // 自动更新数据
     for (let value in settingData) {
       if (!yaohuo_userData.hasOwnProperty(value)) {
         yaohuo_userData[value] = settingData[value];
-        GM_setValue("yaohuo_userData", yaohuo_userData);
+        MY_setValue("yaohuo_userData", yaohuo_userData);
       }
     }
 
@@ -612,7 +613,7 @@
       return;
     }
 
-    GM_addStyle(`
+    MY_addStyle(`
       #floating-setting-btn {
         display: ${isShowSettingIcon ? "block" : "none"};
         max-width: ${settingIconMaxSize}px;
@@ -641,7 +642,7 @@
       }
       .add-position-static{
         position: static !important;
-      }   
+      }
     `);
 
     let innerH = `
@@ -879,7 +880,7 @@
     if ($(".yaohuo-modal-mask").length) {
       return;
     }
-    GM_addStyle(`
+    MY_addStyle(`
       .yaohuo-modal-mask {
         display: none;
         position: fixed;
@@ -1398,7 +1399,7 @@
     setSettingInputEvent("save");
     $("body").removeClass("overflow-hidden-scroll");
     $(".yaohuo-modal-mask").hide();
-    GM_setValue("yaohuo_userData", yaohuo_userData);
+    MY_setValue("yaohuo_userData", yaohuo_userData);
     if (!yaohuo_userData.isShowSettingIcon) {
       $("#floating-setting-btn").hide();
     } else {
@@ -1456,11 +1457,11 @@
            */
           let autoEatList = getItem("autoEatList");
           // 回帖小于8个暂缓吃肉
+          // if (!isImmediatelyEat && replyNum <= randomNum) {
+          //   console.log(`回帖小于${randomNum}个暂缓吃肉:${id}`);
+          //   continue;
+          // }
 
-          if (!isImmediatelyEat && replyNum <= randomNum) {
-            console.log(`回帖小于${randomNum}个暂缓吃肉:${id}`);
-            continue;
-          }
           if (!autoEatList[id]) {
             if (isNewOpenIframe) {
               // 新窗口
@@ -1473,7 +1474,6 @@
                 // 设置 iframe 的属性
                 iframe.src = newHref;
                 iframe.style.display = "none";
-
                 document.body.appendChild(iframe);
               }, (index + 1) * 1000);
             } else {
@@ -1561,8 +1561,8 @@
       (isAutoEat || isFullAutoEat)
     ) {
       const form = document.getElementsByName("f")[0];
+      let isAutoEatBbs = window.location.search.includes("open=new");
       if (!form) {
-        let isAutoEatBbs = window.location.search.includes("open=new");
         // 如果是自动吃肉的则直接返回，并记录不可吃肉
         if (isAutoEatBbs) {
           autoEatCallback();
@@ -1667,6 +1667,8 @@
       );
 
       const meatTag = document.querySelector("span.yushuzi");
+      const meiRenShuZi = document.querySelector("span.meirenshuzi").innerHTML;
+      const total = document.querySelector("span.lijinshuzi").innerHTML;
 
       if (!isAutoEat && !isFullAutoEat) {
         console.log("未开启自动吃肉，可在编辑脚本进行开启");
@@ -1679,11 +1681,33 @@
           // 把无肉帖添加进去
           autoEatCallback();
         } else {
+          // 总次数
+          let totalCounter = Math.ceil(parseInt(total) / parseInt(meiRenShuZi));
+          // 使用次数
+          let usageCounter =
+            (total - parseInt(meatTag.innerHTML)) / parseInt(meiRenShuZi);
+          // 剩余次数
+          let residueCounter = totalCounter - usageCounter;
+
           let autoEatList = getItem("autoEatList");
 
           if (!autoEatList[id]) {
-            console.log("有肉快7");
-            eatMeat.click();
+            // 使用次数>=20、剩余次数少于10、立即吃肉、不是自动吃肉的帖子满足这些条件才直接吃肉
+            if (
+              isImmediatelyEat ||
+              usageCounter > 20 ||
+              residueCounter <= 10 ||
+              !isAutoEatBbs
+            ) {
+              console.log("有肉快7");
+              eatMeat.click();
+            } else {
+              console.log(
+                `总次数：${totalCounter}，已吃次数：${usageCounter}，剩余次数${residueCounter}`,
+                "当前次数<=20或者剩余次数>10暂时不吃"
+              );
+              autoEatCallback(false);
+            }
           } else {
             console.log("已经吃过了");
             autoEatCallback();
@@ -1718,14 +1742,14 @@
     obj.focus();
   }
   // 吃完肉的回调
-  function autoEatCallback() {
+  function autoEatCallback(iSEaten = true) {
     let id = window.location.pathname.match(/\d+/)[0];
     let isAutoEatBbs = window.location.search.includes("open=new");
-    // let autoEatList = getItem("autoEatList");
-
-    autoEatList[id] = new Date().getTime();
-
-    setItem("autoEatList", autoEatList);
+    // 只有吃过肉才记录
+    if (iSEaten) {
+      autoEatList[id] = new Date().getTime();
+      setItem("autoEatList", autoEatList);
+    }
 
     if (isFullAutoEat && isAutoEatBbs) {
       setTimeout(() => {
@@ -1762,21 +1786,47 @@
   // 获取值
   function getItem(key, defaultValue = {}) {
     if (key === "autoEatList") {
-      let autoEatList = GM_getValue(key, {});
+      let autoEatList = MY_getValue(key, {});
       // 删除过期的肉帖
       deleteExpiredID(autoEatList);
       // 更新肉帖数据
       setItem(key, autoEatList);
       return autoEatList;
     }
-    return GM_getValue(key, {});
+    return MY_getValue(key, {});
+  }
+  function MY_addStyle(innerHTML) {
+    // 创建 style 元素
+    let style = document.createElement("style");
+    style.type = "text/css";
+
+    // 设置样式内容
+    let css = innerHTML;
+    style.innerHTML = css;
+
+    // 将 style 元素添加到 head 元素中
+    document.head.appendChild(style);
+  }
+  function MY_setValue(key, value) {
+    if (typeof value === "object") {
+      value = JSON.stringify(value);
+    }
+    localStorage.setItem(key, value);
+  }
+  function MY_getValue(key, defaultValue = {}) {
+    const value = localStorage.getItem(key) || defaultValue;
+    try {
+      return JSON.parse(value);
+    } catch (e) {
+      return value;
+    }
   }
   // 设置值
   function setItem(key, value) {
     // if (key === "autoEatList") {
     //   deleteExpiredID(value); //删除过期的肉帖
     // }
-    GM_setValue(key, value);
+    MY_setValue(key, value);
   }
   /**
    * 返回yaohuo_userData里的数据
@@ -2052,7 +2102,7 @@
       let isReplyPage =
         /^\/bbs-.*\.html$/.test(window.location.pathname) ||
         viewPage.includes(window.location.pathname);
-      GM_addStyle(`
+      MY_addStyle(`
         .upload-wrap {
           position: relative;
           display: inline-block;
