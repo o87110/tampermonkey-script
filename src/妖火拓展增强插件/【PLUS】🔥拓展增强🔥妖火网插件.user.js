@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.1.1
+// @version      3.1.2
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1667,8 +1667,6 @@
       );
 
       const meatTag = document.querySelector("span.yushuzi");
-      const meiRenShuZi = document.querySelector("span.meirenshuzi").innerHTML;
-      const total = document.querySelector("span.lijinshuzi").innerHTML;
 
       if (!isAutoEat && !isFullAutoEat) {
         console.log("未开启自动吃肉，可在编辑脚本进行开启");
@@ -1681,6 +1679,10 @@
           // 把无肉帖添加进去
           autoEatCallback();
         } else {
+          const meiRenShuZi =
+            document.querySelector("span.meirenshuzi").innerHTML;
+          const total = document.querySelector("span.lijinshuzi").innerHTML;
+
           // 总次数
           let totalCounter = Math.ceil(parseInt(total) / parseInt(meiRenShuZi));
           // 使用次数
