@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.0.1
+// @version      3.1.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -75,7 +75,7 @@
     // 是否增加回帖表情
     isAddReplyFace: true,
     // 是否默认展开表情
-    isUnfoldFace: true,
+    isUnfoldFace: false,
     // 是否默认展开表情
     isUnfoldUbb: false,
     // 是否自动上传到图床
@@ -497,6 +497,38 @@
 
   // ==其他功能函数和方法==
   function handleAddSettingText() {
+    // 修改pc端滚动条样式
+    if (!isMobile()) {
+      GM_addStyle(`
+        /*滚动条整体样式*/
+        /*高宽分别对应横竖滚动条的尺寸*/
+        ::-webkit-scrollbar {
+          width: 5px;
+          height: 5px;
+          background-color: #F5F5F5;
+        }
+        /*定义滚动条轨道 内阴影+圆角*/
+        ::-webkit-scrollbar-track
+        {
+          box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
+          border-radius: 3px;
+          background-color: #F5F5F5;
+        }
+        /*滚动条里面小方块*/
+        ::-webkit-scrollbar-thumb {
+          /* height: 50px; */
+          border-radius:3px;
+          box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+          background-color: #b8b8b8;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          /* height: 50px; */
+          background-color: #878987;
+          border-radius: 6px
+        }
+      `);
+    }
+
     if (!isShowSettingIcon && $(".top2").length) {
       $(".top2").append(
         `<a class="yaohuo-setting-text" style="float:right;cursor: pointer;">插件设置</a>`
@@ -1025,11 +1057,23 @@
           <header>🔥拓展增强🔥妖火插件设置</header>
           <ul>
             <li>
-              <span>显示站内设置按钮</span>
+              <span>显示站内设置图标</span>
               <div class="switch">
                 <input type="checkbox" id="isShowSettingIcon" data-key="isShowSettingIcon" />
                 <label for="isShowSettingIcon"></label>
               </div>
+            </li>
+            <li>
+              <span>设置图标大小：<i class="range-num">${settingIconMaxSize}</i>px</span>
+              <input
+                type="range"
+                id="settingIconMaxSize"
+                data-key="settingIconMaxSize"
+                min="${40}"
+                value="${settingIconMaxSize}"
+                max="${100}"
+                step="${5}"
+              />
             </li>
             <hr>
             <li>
@@ -1107,10 +1151,7 @@
               />
             </li>
             <li>
-              <span>自动吃肉时间间隔：<i class="range-num">${getValue(
-                "timeInterval",
-                40
-              )}</i>秒</span>
+              <span>自动吃肉时间间隔：<i class="range-num">${timeInterval}</i>秒</span>
               <input
                 type="range"
                 id="timeInterval"
@@ -1175,10 +1216,7 @@
               </select>
             </li>
             <li>
-              <span>自动加载最大数：<i class="range-num">${getValue(
-                "maxLoadNum",
-                40
-              )}</i>个</span>
+              <span>自动加载最大数：<i class="range-num">${maxLoadNum}</i>个</span>
               <input
                 id="maxLoadNum"
                 type="range"
@@ -1227,6 +1265,11 @@
           if (status === "edit") {
             item.checked = getValue(dataKey) ? true : false;
             // 根据当前的按钮选中状态处理子项的联动显示或隐藏
+            autoShowElement({
+              fatherIdAry: ["isShowSettingIcon"],
+              childIdAry: ["settingIconMaxSize"],
+              dataKey,
+            });
             autoShowElement({
               fatherIdAry: ["isLoadNextPage"],
               childIdAry: ["loadNextPageType", "maxLoadNum"],
@@ -1958,7 +2001,7 @@
       sendmsg.insertAdjacentHTML(
         "afterend",
         `<span 
-          style="${a3style}display:${
+          style="${spanstyle}display:${
           isUnfoldFace ? "display: block" : "display: none"
         }" id="unfold"
           >表情${isUnfoldFace ? "折叠" : "展开"}</span>`
@@ -2000,12 +2043,7 @@
     }
   }
   function handleUploadImage() {
-    if (
-      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
-        viewPage.includes(window.location.pathname) ||
-        postPage.includes(window.location.pathname)) &&
-      isUploadImage
-    ) {
+    if (isUploadImage) {
       let textArea = document.getElementsByTagName("textarea")[0];
       let isReplyPage =
         /^\/bbs-.*\.html$/.test(window.location.pathname) ||
