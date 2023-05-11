@@ -1890,6 +1890,9 @@
     if (isUploadImage) {
       let textArea = document.getElementsByTagName("textarea")[0];
       if (!textArea) return;
+      // 排除游戏大厅页面
+      if (/^\/games\/\w+\/index\.aspx$/.test(window.location.pathname)) return;
+
       let isReplyPage =
         /^\/bbs-.*\.html$/.test(window.location.pathname) ||
         viewPage.includes(window.location.pathname);
