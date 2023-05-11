@@ -1692,12 +1692,13 @@
           let autoEatList = getItem("autoEatList");
 
           if (!autoEatList[id]) {
-            // 使用次数>=20、剩余次数少于10、立即吃肉、不是自动吃肉的帖子满足这些条件才直接吃肉
+            // 使用次数>=20、剩余次数少于10、立即吃肉、不是自动吃肉的帖子、手机端（不支持iframe吃肉）满足这些条件才直接吃肉
             if (
               isImmediatelyEat ||
               usageCounter > 20 ||
               residueCounter <= 10 ||
-              !isAutoEatBbs
+              !isAutoEatBbs ||
+              isMobile()
             ) {
               console.log("有肉快7");
               eatMeat.click();
