@@ -487,8 +487,8 @@
         /*滚动条整体样式*/
         /*高宽分别对应横竖滚动条的尺寸*/
         ::-webkit-scrollbar {
-          width: 5px;
-          height: 5px;
+          width: 8px;
+          height: 8px;
           background-color: #F5F5F5;
         }
         /*定义滚动条轨道 内阴影+圆角*/
