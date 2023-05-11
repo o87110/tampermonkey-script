@@ -483,7 +483,7 @@
   function handleAddSettingText() {
     // 修改pc端滚动条样式
     if (!isMobile()) {
-      GM_addStyle(`
+      MY_addStyle(`
         /*滚动条整体样式*/
         /*高宽分别对应横竖滚动条的尺寸*/
         ::-webkit-scrollbar {
