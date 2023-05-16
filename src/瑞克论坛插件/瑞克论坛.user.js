@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         瑞克论坛插件
 // @namespace    https://www.ruike1.com/
-// @version      0.2
+// @version      1.0
 // @description  瑞克网站、教育盘、助学盘的复制脚本
 // @author       You
 // @match        *ruike1.com/*
@@ -13,22 +13,39 @@
 // ==/UserScript==
 
 (function () {
-  ("use strict");
+  "use strict";
 
   let signInBtn = document.querySelector("#fx_checkin_b");
   let thread_types = document.querySelector("#thread_types");
+  let newspecial = document.querySelector("#newspecial");
   // 自动签到
   if (signInBtn?.alt === "点击签到") {
     signInBtn.click();
   }
-  if (thread_types) {
-    thread_types.insertAdjacentHTML(
-      "beforeend",
-      `<li class='copy-wrap'><a style="background: #1890ff;color: #fff;cursor: pointer;">复制标题</a></li>`
-    );
+  // .tl table
+  if (thread_types || newspecial) {
+    let btn = newspecial || thread_types;
+    if (newspecial) {
+      MY_addStyle(`
+        .tl table {
+          table-layout: auto;
+        }
+      `);
+      btn.insertAdjacentHTML(
+        "afterend",
+        `<span class='copy-wrap' style="background: #1890ff;color: #fff; cursor: pointer; width: 70px; height: 33px; line-height: 33px;display: inline-block; text-align: center;margin-left: 5px;">复制标题</span>`
+      );
+    } else {
+      btn.insertAdjacentHTML(
+        "beforeend",
+        `<li class='copy-wrap'><a style="background: #1890ff;color: #fff;cursor: pointer;">复制标题</a></li>`
+      );
+    }
+
     let copyBtn = document.querySelector(".copy-wrap");
-    let row = document.querySelectorAll('[id^="normalthread"] > tr');
+    let row = document.querySelectorAll('[id^="normalthread"] > tr > .icn');
     row.forEach((item) => {
+      item.style.width = "55px";
       item.insertAdjacentHTML(
         "afterbegin",
         `<td class="checkbox-td" style="width:30px;text-align:center"><input type="checkbox" name="select-title" class="checkbox-select" style="width:20px;height:20px"></td>`
@@ -58,5 +75,18 @@
       let noCheckStr = noCheckAry.join("\n");
       GM_setClipboard(checkStr ? checkStr : noCheckStr);
     };
+  }
+
+  function MY_addStyle(innerHTML) {
+    // 创建 style 元素
+    let style = document.createElement("style");
+    style.type = "text/css";
+
+    // 设置样式内容
+    let css = innerHTML;
+    style.innerHTML = css;
+
+    // 将 style 元素添加到 head 元素中
+    document.head.appendChild(style);
   }
 })();
