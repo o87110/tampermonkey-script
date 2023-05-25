@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.1.0
+// @version      3.2.0
 // @description  发帖ubb增强、回帖ubb增强、回帖表情增强、查看贴子显示用户等级增强、手动吃肉增强、自动加载更多帖子、自动加载更多回复、一键自动上传图床、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -469,6 +469,8 @@
     handleAddReplyUBB();
     // 增加回帖表情
     handleAddReplyFace();
+    // 优化回帖
+    handleReply();
     // 自动上传图床功能
     handleUploadImage();
     // 增加发帖ubb
@@ -1406,8 +1408,8 @@
   function handleAutoEat() {
     if (/^\/bbs-.*\.html$/.test(window.location.pathname) && isAutoEat) {
       const form = document.getElementsByName("f")[0];
+      let isAutoEatBbs = window.location.search.includes("open=new");
       if (!form) {
-        let isAutoEatBbs = window.location.search.includes("open=new");
         // 如果是自动吃肉的则直接返回，并记录不可吃肉
         if (isAutoEatBbs) {
           autoEatCallback();
@@ -1791,8 +1793,7 @@
         }
         event.preventDefault();
       });
-      // 不让整个form粘性定位。
-      $(".sticky").addClass("add-position-static");
+
       // 超链接
       const textarea = document.querySelector("form > .retextarea");
       addEventAry.forEach((item) => {
@@ -1862,10 +1863,14 @@
             textarea.focus();
             textarea.setSelectionRange(0, 0);
             insertText(textarea, `[img]${diySrc}[/img]`, 0);
-            return;
+          } else {
+            // 处理图片的点击事件
+            face.value = event.target.getAttribute("value");
           }
-          // 处理图片的点击事件
-          face.value = event.target.getAttribute("value");
+
+          // 处理完折叠表情
+          $("#facearea").hide();
+          $("#unfold").text("表情展开");
         }
       };
       // 处理默认展开表情
@@ -1884,6 +1889,32 @@
           this.innerText = "表情展开";
         }
       });
+    }
+  }
+  function handleReply() {
+    if (
+      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
+        viewPage.includes(window.location.pathname)) &&
+      (isAddReplyUBB || isAddReplyFace)
+    ) {
+      // 取消回复文本框粘性定位。
+      $(".sticky").addClass("add-position-static");
+
+      // 回复页不处理
+      if (!window.location.pathname.includes("/bbs/book_re.aspx")) {
+        document
+          .querySelector(".recontent")
+          .addEventListener("click", (event) => {
+            if (event.target.innerText === "回") {
+              // 如果是回复指定楼层就定位到回复输入框
+              if (
+                /回复\d+楼/.test(document.querySelector(".sticky b")?.innerText)
+              ) {
+                window.scrollTo(0, document.querySelector(".sticky").offsetTop);
+              }
+            }
+          });
+      }
     }
   }
   function handleUploadImage() {
@@ -2294,15 +2325,15 @@
   function handleEventListener(id, textarea, ubb, offset) {
     document.getElementById(id)?.addEventListener("click", (e) => {
       if (id === "ubb_nzgsa") {
-        if (textarea.value !== "") {
-          insertText(
-            textarea,
-            "[audio=X]https://file.uhsea.com/2304/3deb45e90564252bf281f47c7b47a153KJ.mp3[/audio]",
-            0
-          );
-        } else {
-          alert("不要无意义灌水啦！");
-        }
+        // if (textarea.value !== "") {
+        insertText(
+          textarea,
+          "[audio=X]https://file.uhsea.com/2304/3deb45e90564252bf281f47c7b47a153KJ.mp3[/audio]",
+          0
+        );
+        // } else {
+        //   alert("不要无意义灌水啦！");
+        // }
       } else {
         e.preventDefault();
         insertText(textarea, ubb, offset);
