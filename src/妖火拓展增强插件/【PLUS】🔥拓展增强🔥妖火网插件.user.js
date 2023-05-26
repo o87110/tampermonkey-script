@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.2.0
+// @version      3.2.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -345,7 +345,7 @@
     {
       id: "ubb_text",
       ubb: "[text]全角转半角：代码内容[/text]",
-      offset: 0,
+      offset: 7,
     },
     {
       id: "ubb_br",
@@ -374,7 +374,7 @@
     },
     {
       id: "ubb_font",
-      ubb: "[font=serif][/font]",
+      ubb: "[font=serif]输入文字[/font]",
       offset: 7,
     },
     {
@@ -390,11 +390,16 @@
     {
       id: "ubb_u",
       ubb: "[u]下划线文字[/u]",
-      offset: 0,
+      offset: 4,
     },
     {
       id: "ubb_color",
       ubb: "[forecolor=red]颜色文字，默认红[/forecolor]",
+      offset: 12,
+    },
+    {
+      id: "ubb_random_color",
+      ubb: "[forecolor=red]颜色文字，随机颜色[/forecolor]",
       offset: 12,
     },
     {
@@ -410,7 +415,7 @@
     {
       id: "ubb_call",
       ubb: "[call]拨号手机号码[/call]",
-      offset: 0,
+      offset: 7,
     },
     {
       id: "ubb_sms",
@@ -425,7 +430,7 @@
     {
       id: "ubb_codo",
       ubb: "倒计天：[codo]2030-01-01[/codo]",
-      offset: 0,
+      offset: 7,
     },
     {
       id: "ubb_audio",
@@ -481,6 +486,8 @@
     handleAddReplyFace();
     // 优化回帖
     handleReply();
+    // 回帖增加随机颜色
+    handleAddReplyRandomColor();
     // 自动上传图床功能
     handleUploadImage();
     // 增加发帖ubb
@@ -1656,13 +1663,14 @@
       });
 
       // 添加事件监听，如果吃过肉则会提示
-      document.getElementsByName("g")[0].addEventListener(
+      replyBtn.addEventListener(
         "click",
         (e) => {
           if (autoEatList[id] && !confirm("当前已经吃过肉，是否继续回复")) {
             // 取消提交
             textarea.value = "";
             e.preventDefault();
+            e.stopPropagation();
           }
         },
         true
@@ -1870,7 +1878,7 @@
         <div class='more_ubb_tools' style='display: none'>
           <div class='btBox'>
             <div class='bt2'>
-                <a style='width:25%' id='ubb_color'>颜色</a>
+                <a style='width:25%' id='ubb_random_color'>随机颜色</a>
                 <a style='width:25%' id='ubb_b'">加粗</a>
                 <a style='width:25%' id='ubb_strike'>删除</a>
                 <a style='width:25%' id='ubb_font'>字体</a>
@@ -1925,16 +1933,20 @@
   function handleAddReplyUBB() {
     if (
       (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
-        viewPage.includes(window.location.pathname)) &&
+        viewPage.includes(window.location.pathname) ||
+        "/bbs/userguessbook.aspx".includes(window.location.pathname)) &&
       isAddReplyUBB
     ) {
       const form = document.getElementsByName("f")[0];
       if (!form) {
         return;
       }
-      const fileTag = document.querySelector(
+      let fileTag = document.querySelector(
         "a[href^='/bbs/book_re_addfile.aspx']"
       );
+      if (!fileTag) {
+        fileTag = document.querySelector("input[value='我要留言']");
+      }
 
       // 添加ubb展开按钮
       fileTag.insertAdjacentHTML(
@@ -1954,6 +1966,7 @@
           <span id='ubb_img' style="${spanstyle}">图片</span>
           <span id='ubb_audio' style="${spanstyle}">音频</span>
           <span id='ubb_movie' style="${spanstyle}">视频</span>
+          <span id='ubb_random_color' style="${spanstyle}">随机颜色字</span>
           <span id='ubb_nzgsa' style="${a2style}">你真该死啊</span>
 
           <br>
@@ -2004,7 +2017,7 @@
       });
 
       // 超链接
-      const textarea = document.querySelector("form > .retextarea");
+      const textarea = document.querySelector("textarea");
       addEventAry.forEach((item) => {
         handleEventListener(item.id, textarea, item.ubb, item.offset);
       });
@@ -2098,6 +2111,97 @@
           this.innerText = "表情展开";
         }
       });
+    }
+  }
+  function handleAddReplyRandomColor() {
+    if (
+      /^\/bbs-.*\.html$/.test(window.location.pathname) ||
+      viewPage.includes(window.location.pathname)
+    ) {
+      const form = document.getElementsByName("f")[0];
+      if (!form) {
+        return;
+      }
+      const replyBtn = document.getElementsByName("g")[0];
+      const textarea = document.querySelector(".retextarea");
+      let isAutoEatBbs = window.location.search.includes("open=new");
+
+      let randomColor = getColorWithinBrightnessRange(0, 200);
+      let random = Math.random();
+      // 整句随机颜色
+      let isAddColorByAll = random < 0.1;
+      // 每个字符随机颜色
+      let isAddColorByCharacter = random < 0.01;
+      let isAddColor = isAddColorByAll || isAddColorByCharacter;
+      let reg = /\[(\w+)=?([^\]]+)?\]([\s\S]*?)\[\/\1\]/;
+      replyBtn.addEventListener(
+        "click",
+        (e) => {
+          // 取消提交
+          if (!isAutoEatBbs && isAddColor) {
+            if (!reg.test(textarea.value) && isAddColorByCharacter) {
+              textarea.value = getColorText(textarea.value);
+            } else if (isAddColorByAll) {
+              textarea.value = `[forecolor=${randomColor}]${textarea.value}[/forecolor]`;
+            }
+          }
+        },
+        true
+      );
+    }
+  }
+  /**
+   * 返回指定亮度范围的颜色
+   * @param {number} minBrightness 最小的亮度
+   * @param {number} maxBrightness 最大的亮度
+   * @returns 范围指定亮度范围内的颜色
+   */
+  function getColorWithinBrightnessRange(
+    minBrightness = 0,
+    maxBrightness = 200
+  ) {
+    let color;
+    let brightness;
+    do {
+      color = getRandomHexColor(); // 调用生成随机十六进制颜色的函数
+      brightness = calculateBrightnessHex(color);
+    } while (brightness < minBrightness || brightness > maxBrightness);
+
+    return color;
+
+    // 生成随机十六进制颜色
+    function getRandomHexColor() {
+      let letters = "0123456789ABCDEF";
+      let color = "#";
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    }
+
+    /**
+     * 0: 完全黑色。
+     * 50: 比较暗的颜色。
+     * 100: 中等亮度。
+     * 150: 较明亮的颜色。
+     * 200: 较亮的颜色。
+     * 255: 完全白色。
+     * @param {string} color 十六进制颜色
+     * @returns 返回计算后的亮度
+     */
+    function calculateBrightnessHex(color) {
+      // 移除颜色值中的"#"
+      color = color.replace("#", "");
+
+      // 提取红、绿、蓝通道的值
+      let red = parseInt(color.substr(0, 2), 16);
+      let green = parseInt(color.substr(2, 2), 16);
+      let blue = parseInt(color.substr(4, 2), 16);
+
+      // 根据亮度计算公式计算颜色的亮度
+      let brightness = (red * 299 + green * 587 + blue * 114) / 1000;
+
+      return brightness;
     }
   }
   function handleReply() {
@@ -2338,8 +2442,9 @@
   // 处理404页面跳回新帖页面
   function handleNotFoundPage() {
     if (notFoundPage.includes(window.location.pathname)) {
-      let year = new Date().getFullYear();
-      location.href = `/bbs/book_list.aspx?gettotal=${year}&action=new`;
+      history.go(-2);
+      // let year = new Date().getFullYear();
+      // location.href = `/bbs/book_list.aspx?gettotal=${year}&action=new`;
     }
   }
   // 自动增加时长
@@ -2545,6 +2650,25 @@
    */
   function handleEventListener(id, textarea, ubb, offset) {
     document.getElementById(id)?.addEventListener("click", (e) => {
+      // 需要替换文字的ubb
+      let ary = [
+        "ubb_url",
+        "ubb_text",
+        "ubb_font",
+        "ubb_b",
+        "ubb_i",
+        "ubb_u",
+        "ubb_color",
+        "ubb_random_color",
+        "ubb_img",
+        "ubb_strike",
+        "ubb_call",
+        "ubb_codo",
+        "ubb_audio",
+        "ubb_movie",
+      ];
+      let reg = /\[(\w+)=?([^\]]+)?\]([\s\S]*?)\[\/\1\]/g;
+      // 处理你真的该死语音
       if (id === "ubb_nzgsa") {
         // if (textarea.value !== "") {
         insertText(
@@ -2555,11 +2679,73 @@
         // } else {
         //   alert("不要无意义灌水啦！");
         // }
+      } else if (id === "ubb_random_color") {
+        // 处理随机颜色
+
+        // 如果有选择文本，则每一个文本都替换
+        let selectText = getSelectText(textarea);
+        console.log(selectText);
+        let randomColor = getColorWithinBrightnessRange();
+        let ubb2 = `[forecolor=${randomColor}]${
+          selectText || "颜色文字，随机颜色"
+        }[/forecolor]`;
+        // if (
+        //   selectText &&
+        //   confirm(
+        //     "检测到当前选择了很多文字，是否给每个字符加随机颜色，否则只为整个字符加颜色"
+        //   )
+        // ) {
+        //   ubb2 = getColorText(selectText);
+        // }
+        e.preventDefault();
+        insertText(textarea, ubb2, 12);
+      } else if (ary.includes(id)) {
+        let ubb2 = ubb;
+        let match = reg.exec(ubb);
+        let selectText = getSelectText(textarea);
+        console.log({ match, ubb, selectText });
+        let urlAry = ["img", "url", "audio", "movie"];
+        let urlRegex = /^(https?|ftp):\/\/[^\s\/\$\.\?#].[^\s]*$/i;
+
+        if (id === "ubb_url") {
+          if (urlRegex.test(selectText)) {
+            ubb2 = ubb.replace(match[2], selectText || match[2]);
+          }
+        } else if (match[3]) {
+          if (urlAry.includes(match[1])) {
+            if (urlRegex.test(selectText)) {
+              ubb2 = ubb.replace(match[3], selectText || match[3]);
+            }
+          } else {
+            ubb2 = ubb.replace(match[3], selectText || match[3]);
+          }
+        }
+
+        e.preventDefault();
+        insertText(textarea, ubb2, offset);
       } else {
         e.preventDefault();
         insertText(textarea, ubb, offset);
       }
     });
+  }
+  function getColorText(text = "") {
+    let str = "";
+    for (let char of text) {
+      let randomColor = getColorWithinBrightnessRange();
+      if (!/\s/.test(char)) {
+        str += `[forecolor=${randomColor}]${char}[/forecolor]`;
+      } else {
+        str += char;
+      }
+    }
+    return str;
+  }
+  function getSelectText(textarea) {
+    let startPos = textarea.selectionStart;
+    let endPos = textarea.selectionEnd;
+    let selectedText = textarea.value.substring(startPos, endPos);
+    return selectedText;
   }
   /**
    * 简易版jquery实现，用于替换之前写的部分语法，不引用cdn库
