@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.2.4
+// @version      3.2.5
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -2795,8 +2795,10 @@
         let total = 0;
         let select1 = 0;
         let select2 = 0;
+        let isRight = 0;
         let select1Rate = 0;
         let select2Rate = 0;
+        let rightRate = 0;
 
         for (let index = 0; index < list.length; index++) {
           const item = list[index];
@@ -2827,7 +2829,10 @@
           )[1];
 
           total++;
-
+          if (battleStatus === "失败") {
+            isRight++;
+            rightRate = (isRight / total).toFixed(2);
+          }
           if (challengerAnswer == 1) {
             select1++;
             select1Rate = (select1 / total).toFixed(2);
@@ -2844,6 +2849,8 @@
           挑战者发布总次数：${total}\n
           挑战者选1的次数：${select1}\n
           挑战者选2的次数：${select2}\n
+          挑战者赢的次数：${isRight}\n
+          挑战者的胜率：${rightRate}\n
           应战着选1的胜率：${select1Rate}\n
           应战着选2的次数：${select2Rate}\n
           `
