@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.2.3
+// @version      3.2.4
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -587,6 +587,20 @@
           }
         });
       }
+    }
+  }
+  async function fetchData(url) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await response.text();
+      return data;
+    } catch (error) {
+      // 处理错误
+      console.error("Error:", error);
+      return error;
     }
   }
   // 获取url参数
@@ -2586,6 +2600,9 @@
     let minMoney = 690000;
     // 吹牛主页
     if ("/games/chuiniu/index.aspx".includes(location.pathname)) {
+      // 添加查询吹牛数据
+      handleAddSearch();
+
       let list = document.querySelectorAll(
         "a[href^='/games/chuiniu/doit.aspx']"
       );
@@ -2651,6 +2668,7 @@
       let password = document.querySelector("input[type=password]");
       let submit = document.querySelector("input[type=submit]");
       let select = document.querySelector("select");
+      let subTitle = document.querySelector(".subtitle");
       // 吃多吃2少吃1
       let randomNum = Math.random() < 0.55 ? 2 : 1;
       let isAutoEat = window.location.search.includes("open=new");
@@ -2668,6 +2686,21 @@
           return;
         }
         select.value = randomNum;
+        if (subTitle) {
+          subTitle.insertAdjacentHTML(
+            "beforeend",
+            `<input type="button" class="search-history-data" value='查询历史数据' style="color: #fff; font-size: 14px; background-color: #888888;border-radius: 10%;margin-left:10px">`
+          );
+
+          $(".search-history-data").click(async () => {
+            let spaceUrl = document.querySelector(
+              "a[href^='/bbs/userinfo.aspx']"
+            ).href;
+            let id = await getUserId(spaceUrl);
+            let url = `/games/chuiniu/book_list.aspx?type=0&touserid=${id}&siteid=1000&classid=0`;
+            location.href = url;
+          });
+        }
 
         let payMoney = document
           .querySelector("form")
@@ -2742,6 +2775,82 @@
 
     // 查看记录
     if ("/games/chuiniu/book_list.aspx".includes(location.pathname)) {
+      handleAddSearch();
+      handleStatistics();
+    }
+    function handleStatistics() {
+      let title = document.querySelector(".title");
+      title.insertAdjacentHTML(
+        "afterend",
+        `
+        <div class="line1">
+        <a class="statistics-btn">统计当页数据，点击后请等待弹窗返回数据</a>
+        </div>
+        `
+      );
+      $(".statistics-btn").click(async () => {
+        let list = document.querySelectorAll(
+          "a[href^='/games/chuiniu/book_view.aspx']"
+        );
+        let total = 0;
+        let select1 = 0;
+        let select2 = 0;
+        let select1Rate = 0;
+        let select2Rate = 0;
+
+        for (let index = 0; index < list.length; index++) {
+          const item = list[index];
+          if (item.parentElement.innerText.includes("进行中")) {
+            continue;
+          }
+
+          let url = item.href;
+          let res = await fetchData(url);
+          let regex = /<body>([\s\S]*?)<\/body>/;
+          let match = regex.exec(res);
+          let bodyString = match?.[0];
+          if (bodyString.includes("不存在此挑战！")) {
+            continue;
+          }
+
+          let money = bodyString.match(/赌注是:(\d+)妖晶/)[1];
+          // 获取挑战方出的答案：发吹牛的人
+          let challengerAnswer =
+            bodyString.match(/挑战方出的是\[答案(\d)\]/)[1];
+
+          // 获取应战方出的答案：接吹牛的人
+          let opponentAnswer = bodyString.match(/应战方出的是\[答案(\d)\]/)[1];
+
+          // 获取对应战方状态
+          let battleStatus = bodyString.match(
+            /对应战方状态:<b>(获胜|失败)!<\/b>/
+          )[1];
+
+          total++;
+
+          if (challengerAnswer == 1) {
+            select1++;
+            select1Rate = (select1 / total).toFixed(2);
+            select2Rate = (select2 / total).toFixed(2);
+          } else {
+            select2++;
+            select1Rate = (select1 / total).toFixed(2);
+            select2Rate = (select2 / total).toFixed(2);
+          }
+        }
+        alert(
+          `
+          当前页数据汇总：\n
+          挑战者发布总次数：${total}\n
+          挑战者选1的次数：${select1}\n
+          挑战者选2的次数：${select2}\n
+          应战着选1的胜率：${select1Rate}\n
+          应战着选2的次数：${select2Rate}\n
+          `
+        );
+      });
+    }
+    function handleAddSearch() {
       let title = document.querySelector(".title");
       title.insertAdjacentHTML(
         "beforeend",
@@ -2754,18 +2863,30 @@
       );
       // 查询大话
       $(".search-dahua").click(() => {
-        let res = prompt("请输入要查询指定用户的id，不填查询全部");
-        if (res === "" || /^\d+$/.test(res)) {
-          location.href = `/games/chuiniu/book_list.aspx?type=0&touserid=${res}&siteid=1000&classid=0`;
+        let res = prompt("请输入要查询大话的用户id，输入0查询全部");
+        if (res === null) return;
+        if (!res || /^\d+$/.test(res)) {
+          location.href = `/games/chuiniu/book_list.aspx?type=0&touserid=${
+            res <= 0 ? "" : res
+          }&siteid=1000&classid=0`;
         }
       });
       // 查询抢话
       $(".search-qianghua").click(() => {
-        let res = prompt("请输入要查询指定用户的id，不填查询全部");
-        if (res === "" || /^\d+$/.test(res)) {
-          location.href = `/games/chuiniu/book_list.aspx?type=1&touserid=${res}&siteid=1000&classid=0`;
+        let res = prompt("请输入要查询抢话的用户id，输入0查询全部");
+        if (res === null) return;
+        if (!res || /^\d+$/.test(res)) {
+          location.href = `/games/chuiniu/book_list.aspx?type=1&touserid=${
+            res <= 0 ? "" : res
+          }&siteid=1000&classid=0`;
         }
       });
+    }
+    //  获取用户id
+    async function getUserId(url) {
+      let res = await fetchData(url);
+      let id = res.match(/<b>ID号:<\/b>(\d+)/)?.[1];
+      return id;
     }
     // 监听iframe移除时刷新页面
     function handleIframeMutationObserver() {
