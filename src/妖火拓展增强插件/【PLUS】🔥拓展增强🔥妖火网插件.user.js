@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.2.2
+// @version      3.2.3
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -2625,20 +2625,20 @@
             let isfirst = true;
             while (i < res) {
               i++;
-              if (!isMobile()) {
-                setTimeout(() => {
-                  let iframe = document.createElement("iframe");
+              // if (!isMobile()) {
+              setTimeout(() => {
+                let iframe = document.createElement("iframe");
 
-                  // 设置 iframe 的属性
-                  iframe.src = publishBoastBtn.href;
-                  // iframe.style.display = "none";
-                  document.body.appendChild(iframe);
-                  if (isfirst) {
-                    isfirst = false;
-                    // handleIframeMutationObserver();
-                  }
-                }, (i + 1) * 100);
-              }
+                // 设置 iframe 的属性
+                iframe.src = publishBoastBtn.href;
+                // iframe.style.display = "none";
+                document.body.appendChild(iframe);
+                if (isfirst) {
+                  isfirst = false;
+                  // handleIframeMutationObserver();
+                }
+              }, (i + 1) * 100);
+              // }
             }
           }
           console.log(res);
@@ -2738,6 +2738,34 @@
         }
         console.log(`随机答案：${randomNum},是否发吹牛`);
       }
+    }
+
+    // 查看记录
+    if ("/games/chuiniu/book_list.aspx".includes(location.pathname)) {
+      let title = document.querySelector(".title");
+      title.insertAdjacentHTML(
+        "beforeend",
+        `
+        <span class="separate"> </span>
+        <a class="search-dahua">查询大话</a>
+        <span class="separate"> </span>
+        <a class="search-qianghua">查询抢话</a>
+        `
+      );
+      // 查询大话
+      $(".search-dahua").click(() => {
+        let res = prompt("请输入要查询指定用户的id，不填查询全部");
+        if (res === "" || /^\d+$/.test(res)) {
+          location.href = `/games/chuiniu/book_list.aspx?type=0&touserid=${res}&siteid=1000&classid=0`;
+        }
+      });
+      // 查询抢话
+      $(".search-qianghua").click(() => {
+        let res = prompt("请输入要查询指定用户的id，不填查询全部");
+        if (res === "" || /^\d+$/.test(res)) {
+          location.href = `/games/chuiniu/book_list.aspx?type=1&touserid=${res}&siteid=1000&classid=0`;
+        }
+      });
     }
     // 监听iframe移除时刷新页面
     function handleIframeMutationObserver() {
