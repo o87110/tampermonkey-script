@@ -9,4 +9,92 @@
   <body>
     1111
   </body>
+  <script>
+    fetch("./吹牛数据.json")
+      .then((response) => response.json())
+      .then((data) => {
+        // 在这里处理JSON数据
+        // console.log(data); // 输出到控制台
+        let moneyObj = {};
+        let total = 0;
+        let fabu2 = 0;
+        for (const key in data) {
+          if (Object.hasOwnProperty.call(data, key)) {
+            total++;
+            const item = data[key];
+            if (!moneyObj[item.money]) {
+              moneyObj[item.money] = {
+                fabu1: 0,
+                fabu2: 0,
+                tiaozhan1: 0,
+                tiaozhan2: 0,
+                shenglv1: 0,
+                shenglv2: 0,
+                rate1: 0,
+                rate2: 0,
+                fabuselect2: 0,
+                tiaozhanselect1: 0,
+                total: 0,
+              };
+            }
+            moneyObj[item.money].total++;
+
+            if (item.battleStatus === "获胜") {
+              // 胜利
+              if (item.opponentAnswer == 1) {
+                // 挑战选1
+                moneyObj[item.money].tiaozhan1++;
+                moneyObj[item.money].fabu1++;
+
+                moneyObj[item.money].shenglv1++;
+              } else {
+                // 挑战选2
+                moneyObj[item.money].tiaozhan2++;
+                moneyObj[item.money].fabu2++;
+                fabu2++;
+                moneyObj[item.money].shenglv2++;
+              }
+            } else {
+              // 失败
+              if (item.opponentAnswer == 1) {
+                // 挑战选1
+                moneyObj[item.money].tiaozhan1++;
+                moneyObj[item.money].fabu2++;
+                fabu2++;
+                moneyObj[item.money].shenglv2++;
+              } else {
+                // 挑战选2
+                moneyObj[item.money].tiaozhan2++;
+                moneyObj[item.money].fabu1++;
+                moneyObj[item.money].shenglv1++;
+              }
+            }
+            moneyObj[item.money].rate1 =
+              moneyObj[item.money].shenglv1 / moneyObj[item.money].total;
+            moneyObj[item.money].rate2 =
+              moneyObj[item.money].shenglv2 / moneyObj[item.money].total;
+            moneyObj[item.money].fabuselect2 =
+              moneyObj[item.money].fabu2 / moneyObj[item.money].total;
+            moneyObj[item.money].tiaozhanselect1 =
+              moneyObj[item.money].tiaozhan1 / moneyObj[item.money].total;
+          }
+        }
+        moneyObj.total = total;
+        console.log(moneyObj);
+
+        let newObj = Object.keys(moneyObj).reduce((prev, key) => {
+          if (moneyObj[key].total >= 100) {
+            prev[key] = moneyObj[key];
+          }
+          return prev;
+        }, {});
+        newObj.total = total;
+        console.log(newObj);
+        console.log(fabu2, total, fabu2 / total);
+        // document.getElementById('result').innerText = JSON.stringify(data); // 将数据显示在页面上
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  </script>
 </html>

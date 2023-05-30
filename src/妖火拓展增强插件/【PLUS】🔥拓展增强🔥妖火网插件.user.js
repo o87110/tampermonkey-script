@@ -496,9 +496,119 @@
     handleShowUserLevel();
     // 处理404页面跳回新帖页面
     handleNotFoundPage();
+    // 吹牛增强
+    handleBoast();
+    // handleStatisticalData();
   })();
 
   // ==其他功能函数和方法==
+  async function handleStatisticalData() {
+    // /games/chuiniu/book_list.aspx
+    // /games/chuiniu/book_view.aspx?siteid=1000&classid=0&type=0&touserid=&id=877578
+    if ("/games/chuiniu/book_view.aspx".includes(location.pathname)) {
+      let page = 1;
+      let initId = Number(getUrlParameters().id || 0);
+      let minId = initId - 500;
+      let obj = MY_getValue("boastObject");
+      let url;
+      let id;
+      for (id = initId; id > minId; id--) {
+        if ((initId - id) % 100 === 0) {
+          console.log(`第${initId - id}次循环`);
+        }
+        if (id < 877594 - 3000) {
+          break;
+        }
+
+        if (obj[id]) {
+          continue;
+        }
+        url = `https://yaohuo.me/games/chuiniu/book_view.aspx?siteid=1000&classid=0&type=0&touserid=&id=${id}`;
+        let res = await fetchData(url);
+
+        let regex = /<body>([\s\S]*?)<\/body>/;
+        let match = regex.exec(res);
+        let bodyString = match?.[0];
+        if (bodyString.includes("不存在此挑战！")) {
+          continue;
+        }
+        let money = bodyString.match(/赌注是:(\d+)妖晶/)[1];
+        // 获取挑战方出的答案：发吹牛的人
+        let challengerAnswer = bodyString.match(/挑战方出的是\[答案(\d)\]/)[1];
+
+        // 获取应战方出的答案：接吹牛的人
+        let opponentAnswer = bodyString.match(/应战方出的是\[答案(\d)\]/)[1];
+
+        // 获取对应战方状态
+        let battleStatus = bodyString.match(
+          /对应战方状态:<b>(获胜|失败)!<\/b>/
+        )[1];
+        obj[id] = {
+          id,
+          money,
+          challengerAnswer,
+          opponentAnswer,
+          battleStatus,
+        };
+        MY_setValue("boastObject", obj);
+        // console.log({
+        //   id,
+        //   money,
+        //   challengerAnswer,
+        //   opponentAnswer,
+        //   battleStatus,
+        // });
+        // break;
+      }
+      console.log("当前已结束，等待下次");
+      setTimeout(() => {
+        let newHref = `https://yaohuo.me/games/chuiniu/book_view.aspx?siteid=1000&classid=0&type=0&touserid=&id=${id}`;
+        window.location.href = newHref;
+      }, 120000);
+
+      async function fetchData(url, timeout = 100) {
+        return new Promise(async (resolve, reject) => {
+          try {
+            const response = await fetch(url);
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            const data = await response.text();
+            // 处理响应数据
+            setTimeout(() => {
+              resolve(data);
+            }, timeout);
+          } catch (error) {
+            // 处理错误
+            console.error("Error:", error);
+            setTimeout(() => {
+              reject(error);
+            }, timeout);
+          }
+        });
+      }
+    }
+  }
+  // 获取url参数
+  function getUrlParameters() {
+    var search = window.location.search.substring(1); // 去除 "?"
+    var parameters = {};
+
+    if (search) {
+      var paramsArray = search.split("&");
+
+      for (var i = 0; i < paramsArray.length; i++) {
+        var param = paramsArray[i].split("=");
+        var paramName = decodeURIComponent(param[0]);
+        var paramValue = decodeURIComponent(param[1]);
+
+        // 存储参数名和参数值到对象中
+        parameters[paramName] = paramValue;
+      }
+    }
+
+    return parameters;
+  }
   function handleAddSettingText() {
     // 修改pc端滚动条样式
     if (!isMobile()) {
@@ -2456,6 +2566,210 @@
       timer = setInterval(function () {
         location.reload();
       }, timeInterval * 1000);
+    }
+  }
+  // 处理吹牛
+  function handleBoast() {
+    /* 
+    location.pathname  
+    /games/chuiniu/index.aspx  吹牛页面
+    /games/chuiniu/add.aspx 输入密码 
+    /games/chuiniu/add.aspx 吹牛页
+      输入密码 type="password" 
+      提交按钮 type="submit" class（.btn）
+
+    /games/chuiniu/doit.aspx
+    */
+    let myPassword = "8353717975";
+    let eatBoastMaxNum = 550;
+    let isAutoEatBoast = false;
+    let minMoney = 690000;
+    // 吹牛主页
+    if ("/games/chuiniu/index.aspx".includes(location.pathname)) {
+      let list = document.querySelectorAll(
+        "a[href^='/games/chuiniu/doit.aspx']"
+      );
+      let money = document.querySelector(
+        ".subtitle a[href^='/bbs/banklist.aspx']"
+      );
+
+      for (const item of list) {
+        let match = item.innerHTML.match(/\((\d+)妖晶\)$/);
+        let number = parseInt(match[1]);
+        let href = item.getAttribute("href");
+
+        let newHref = href.includes("?")
+          ? `${href}&open=new`
+          : `${href}?open=new`;
+
+        if (number <= eatBoastMaxNum) {
+          console.log(`当前小于最大自动吃牛数：${eatBoastMaxNum}`);
+          if (isAutoEatBoast && money.innerText > minMoney + eatBoastMaxNum) {
+            // item.click();
+            location.href = newHref;
+          }
+        }
+      }
+      let publishBoastBtn = document.querySelector(
+        "a[href^='/games/chuiniu/add.aspx']"
+      );
+      if (publishBoastBtn.innerText === "我要公开挑战") {
+        publishBoastBtn.insertAdjacentHTML(
+          "afterend",
+          `<input type="button" class="batch-publish-btn" value='批量公开挑战' style="color: #fff; font-size: 14px; background-color: #888888;border-radius: 10%;margin-left:10px">`
+        );
+        $(".batch-publish-btn").click(() => {
+          let res = prompt("请输入批量公开挑战的数量如：10");
+          if (res && /^\d+$/.test(res)) {
+            let i = 0;
+            let isfirst = true;
+            while (i < res) {
+              i++;
+              if (!isMobile()) {
+                setTimeout(() => {
+                  let iframe = document.createElement("iframe");
+
+                  // 设置 iframe 的属性
+                  iframe.src = publishBoastBtn.href;
+                  // iframe.style.display = "none";
+                  document.body.appendChild(iframe);
+                  if (isfirst) {
+                    isfirst = false;
+                    // handleIframeMutationObserver();
+                  }
+                }, (i + 1) * 100);
+              }
+            }
+          }
+          console.log(res);
+        });
+      }
+    }
+
+    // 吃吹牛页面
+    if ("/games/chuiniu/doit.aspx".includes(location.pathname)) {
+      let password = document.querySelector("input[type=password]");
+      let submit = document.querySelector("input[type=submit]");
+      let select = document.querySelector("select");
+      // 吃多吃2少吃1
+      let randomNum = Math.random() < 0.55 ? 2 : 1;
+      let isAutoEat = window.location.search.includes("open=new");
+      if (document.title === "请输入密码") {
+        if (!password.value) {
+          password.value = myPassword;
+        }
+        if (password.value) {
+          submit.click();
+        }
+      } else if (document.title === "应战") {
+        // 应战结果就返回
+        if (!select) {
+          location.href = "/games/chuiniu/index.aspx";
+          return;
+        }
+        select.value = randomNum;
+
+        let payMoney = document
+          .querySelector("form")
+          ?.innerText.match(/赌注是 (\d+) 妖晶/)?.[1];
+        if (isAutoEat && payMoney && payMoney <= eatBoastMaxNum) {
+          submit.click();
+        }
+        select.insertAdjacentHTML(
+          "afterend",
+          `<input type="button" class="random-number-btn" value='随机生成答案' style="color: #fff; font-size: 14px; background-color: #888888;border-radius: 10%;">`
+        );
+        $(".random-number-btn").click((e) => {
+          let randomNum = Math.random() < 0.55 ? 2 : 1;
+          select.value = randomNum;
+        });
+
+        console.log(`随机答案：${randomNum},是否吃吹牛`);
+      } else {
+        // history.back();
+        location.href = "/games/chuiniu/index.aspx";
+      }
+    }
+
+    // 发布吹牛页面
+    if ("/games/chuiniu/add.aspx".includes(location.pathname)) {
+      let password = document.querySelector("input[type=password]");
+      let submit = document.querySelector("input[type=submit]");
+      let select = document.querySelector("select");
+      let randomNum = Math.random() < 0.58 ? 2 : 1;
+
+      if (document.title === "请输入密码") {
+        if (!password.value) {
+          password.value = myPassword;
+        }
+        if (password.value) {
+          submit.click();
+        }
+      } else if (document.title === "公开挑战") {
+        if (select) {
+          select.value = randomNum;
+
+          select.insertAdjacentHTML(
+            "afterend",
+            `<input type="button" class="random-number-btn" value='随机生成答案' style="color: #fff; font-size: 14px; background-color: #888888;border-radius: 10%;">`
+          );
+        }
+
+        $(".random-number-btn").click((e) => {
+          // 发布多发2少发1
+          let randomNum = Math.random() < 0.58 ? 2 : 1;
+          select.value = randomNum;
+        });
+        // iframe里
+        if (window.self !== window.top) {
+          let tip = document.querySelector(".tip");
+
+          console.log("这是iframe页面1", document.title);
+          submit?.click();
+          if (tip) {
+            setTimeout(() => {
+              console.log("这是iframe页面3");
+              let iframe = window.frameElement; // 获取当前 iframe 元素
+              let parent = iframe.parentElement; // 获取包含当前 iframe 的父窗口对象
+
+              parent.removeChild(iframe);
+            }, 2000);
+          }
+        }
+        console.log(`随机答案：${randomNum},是否发吹牛`);
+      }
+    }
+    // 监听iframe移除时刷新页面
+    function handleIframeMutationObserver() {
+      const observer = new MutationObserver(function (mutationsList, observer) {
+        for (let mutation of mutationsList) {
+          if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
+            for (let node of mutation.addedNodes) {
+              if (node.tagName === "IFRAME") {
+                return; // 存在 <iframe> 元素，不执行操作
+              }
+            }
+          }
+        }
+
+        // 当前页面没有 <iframe> 元素，执行操作
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+
+        // 停止观察
+        observer.disconnect();
+      });
+
+      // 配置观察选项
+      const observerConfig = {
+        childList: true, // 监听子节点的变化
+        subtree: true, // 监听后代节点的变化
+      };
+
+      const targetNode = document.body;
+
+      observer.observe(targetNode, observerConfig);
     }
   }
   /**
