@@ -2836,6 +2836,17 @@
       handleAddSearch();
       handleStatistics();
     }
+    // 查看状态
+    if ("/games/chuiniu/book_view.aspx".includes(location.pathname)) {
+      let content = document.querySelector(".content");
+      let id = getUrlParameters().id;
+      if (content.innerText.includes("状态:进行中")) {
+        content.insertAdjacentHTML(
+          "beforeend",
+          `<a href="/games/chuiniu/doit.aspx?siteid=1000&classid=0&id=${id}">一键跳转</a>`
+        );
+      }
+    }
     async function handleStatistics(isReturnResult = false) {
       let title = document.querySelector(".title");
       title.insertAdjacentHTML(
@@ -2846,8 +2857,13 @@
         </div>
         `
       );
-      $(".statistics-btn").click(() => {
-        handleData();
+      let isClick = false;
+      $(".statistics-btn").click(async () => {
+        if (!isClick) {
+          isClick = true;
+          await handleData();
+          isClick = false;
+        }
       });
     }
     async function handleData(dom = document, isReturnResult = false) {
