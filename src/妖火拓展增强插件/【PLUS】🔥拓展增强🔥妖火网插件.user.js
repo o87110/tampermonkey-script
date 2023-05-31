@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.2.6
+// @version      3.2.7
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -2727,9 +2727,11 @@
               yzSelect2,
               yzSelect1Win,
               yzSelect2Win,
+              tzSelectString,
+              yzSelectString,
             } = res;
             document.querySelector(".subTitleTips").innerHTML = `
-            <p>发牛者过去${total}条中，选择答案一：${tzSelect1}次，选择答案二：${tzSelect2}次</p>
+              <p>发牛者过去${total}条中，选择了：${tzSelectString}，答案一：${tzSelect1}次，选择答案二：${tzSelect2}次</p>
               <p>选择1胜率：
               <span style="color:${tzSelect1 > tzSelect2 ? "red" : "unset"}">
               ${(tzSelect1 / total).toFixed(2)}
@@ -2864,6 +2866,9 @@
       let tzWin = 0;
       let tzWinRate = 0;
 
+      let tzSelectString = "";
+      let yzSelectString = "";
+
       let boastData = getItem("boastData");
 
       for (let index = 0; index < list.length; index++) {
@@ -2897,6 +2902,7 @@
           let battleStatus = bodyString.match(
             /对应战方状态:<b>(获胜|失败)!<\/b>/
           )[1];
+
           curData = {
             id,
             money,
@@ -2908,7 +2914,8 @@
           boastData[id] = curData;
           setItem("boastData", boastData);
         }
-
+        tzSelectString += curData.challengerAnswer;
+        yzSelectString += curData.opponentAnswer;
         //  autoEatList[id]['lastTime'] = new Date().getTime();
         total++;
 
@@ -2957,10 +2964,14 @@
           yzSelect2,
           yzSelect1Win,
           yzSelect2Win,
+          tzSelectString,
+          yzSelectString,
         };
       } else {
         console.log({
           total,
+          tzSelectString,
+          yzSelectString,
           tzSelect1,
           tzSelect2,
           tzSelect1Win,
@@ -2971,30 +2982,32 @@
           yzSelect2,
           yzSelect1Win,
           yzSelect2Win,
+          yzSelectString,
         });
         alert(
           `
-          ==========当前页发吹牛总条数：${total}==========
+          =====当前页发吹牛总条数：${total}====
+          发吹牛选择：${tzSelectString}\n
           发吹牛选1的次数：${tzSelect1}，选2的次数：${tzSelect2}\n
-          发吹牛选1赢的概率：${(tzSelect1Win / total).toFixed(
+          实际发吹牛选1赢的概率：${(tzSelect1Win / total).toFixed(
             2
           )}，选2赢的概率：${(tzSelect2Win / total).toFixed(2)}\n
-          吃吹牛选1赢的概率：${(tzSelect1 / total).toFixed(2)}，选2赢的概率：${(
-            tzSelect2 / total
-          ).toFixed(2)}\n
+          如果吃吹牛选1赢的概率：${(tzSelect1 / total).toFixed(
+            2
+          )}，选2赢的概率：${(tzSelect2 / total).toFixed(2)}\n
           发吹牛赢的次数：${tzWin}，胜率：${tzWinRate}\n
-          ==========当前页吃吹牛总条数：${total}==========
+          =====当前页吃吹牛总条数：${total}=====
+          吃吹牛选择：${yzSelectString}\n
           吃吹牛选1的次数：${yzSelect1}，选2的次数：${yzSelect2}\n
-          吃吹牛选1赢的概率：${(yzSelect1Win / total).toFixed(
+          实际吃吹牛实际选1赢的概率：${(yzSelect1Win / total).toFixed(
             2
           )}，选2赢的概率：${(yzSelect2Win / total).toFixed(2)}\n
-          发吹牛选1赢的概率：${(yzSelect1 / total).toFixed(2)}，选2赢的概率：${(
-            yzSelect2 / total
-          ).toFixed(2)}\n
+          如果发吹牛选1赢的概率：${((total - yzSelect1) / total).toFixed(
+            2
+          )}，选2赢的概率：${((total - yzSelect2) / total).toFixed(2)}\n
           吃吹牛赢的次数：${total - tzWin}，吃吹牛的胜率：${(
             1 - tzWinRate
           ).toFixed(2)}\n
-          
           `
         );
       }
