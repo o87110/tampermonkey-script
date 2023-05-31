@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.2.5
+// @version      3.2.6
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1191,14 +1191,14 @@
           <header>🔥拓展增强🔥妖火插件设置</header>
           <ul>
             <li>
-              <span>显示站内设置图标</span>
+              <span>显示站内设置图标
               <div class="switch">
                 <input type="checkbox" id="isShowSettingIcon" data-key="isShowSettingIcon" />
                 <label for="isShowSettingIcon"></label>
               </div>
             </li>
             <li>
-              <span>设置图标大小：<i class="range-num">${settingIconMaxSize}</i>px</span>
+              <span>设置图标大小：<i class="range-num">${settingIconMaxSize}</i>px
               <input
                 type="range"
                 id="settingIconMaxSize"
@@ -1211,14 +1211,14 @@
             </li>
             <hr>
             <li>
-              <span>自动上传图床</span>
+              <span>自动上传图床
               <div class="switch">
                 <input type="checkbox" id="isUploadImage" data-key="isUploadImage" />
                 <label for="isUploadImage"></label>
               </div>
             </li>
             <li>
-              <span>图床token</span>
+              <span>图床token
               <div class="password-container">
                 <input 
                   type="password" 
@@ -1245,35 +1245,35 @@
             </li>
             <hr>
             <li>
-              <span>手动进贴吃肉</span>
+              <span>手动进贴吃肉
               <div class="switch">
                 <input type="checkbox" id="isAutoEat" data-key="isAutoEat" />
                 <label for="isAutoEat"></label>
               </div>
             </li>
             <li>
-              <span>自动进贴全自动吃肉</span>
+              <span>自动进贴全自动吃肉
               <div class="switch">
                 <input type="checkbox" id="isFullAutoEat" data-key="isFullAutoEat" />
                 <label for="isFullAutoEat"></label>
               </div>
             </li>
             <li>
-              <span>全自动吃肉是否无跳转</span>
+              <span>全自动吃肉是否无跳转
               <div class="switch">
                 <input type="checkbox" id="isNewOpenIframe" data-key="isNewOpenIframe" />
                 <label for="isNewOpenIframe"></label>
               </div>
             </li>
             <li>
-              <span>立刻吃肉</span>
+              <span>立刻吃肉
               <div class="switch">
                 <input type="checkbox" id="isImmediatelyEat" data-key="isImmediatelyEat" />
                 <label for="isImmediatelyEat"></label>
               </div>
             </li>
             <li>
-              <span>肉帖过期时间：<i class="range-num">${expiredDays}</i>天</span>
+              <span>肉帖过期时间：<i class="range-num">${expiredDays}</i>天
               <input
                 type="range"
                 id="expiredDays"
@@ -1285,7 +1285,7 @@
               />
             </li>
             <li>
-              <span>自动吃肉时间间隔：<i class="range-num">${timeInterval}</i>秒</span>
+              <span>自动吃肉时间间隔：<i class="range-num">${timeInterval}</i>秒
               <input
                 type="range"
                 id="timeInterval"
@@ -1298,14 +1298,14 @@
             </li>
             <hr>
             <li>
-              <span>回帖表情增强</span>
+              <span>回帖表情增强
               <div class="switch">
                 <input type="checkbox" id="isAddReplyFace" data-key="isAddReplyFace" />
                 <label for="isAddReplyFace"></label>
               </div>
             </li>
             <li>
-              <span>回帖表情默认展开</span>
+              <span>回帖表情默认展开
               <div class="switch">
                 <input type="checkbox" id="isUnfoldFace" data-key="isUnfoldFace" />
                 <label for="isUnfoldFace"></label>
@@ -1313,14 +1313,14 @@
             </li>
             <hr>
             <li>
-              <span>回帖UBB增强</span>
+              <span>回帖UBB增强
               <div class="switch">
                 <input type="checkbox" id="isAddReplyUBB" data-key="isAddReplyUBB" />
                 <label for="isAddReplyUBB"></label>
               </div>
             </li>
             <li>
-              <span>回帖UBB默认展开</span>
+              <span>回帖UBB默认展开
               <div class="switch">
                 <input type="checkbox" id="isUnfoldUbb" data-key="isUnfoldUbb" />
                 <label for="isUnfoldUbb"></label>
@@ -1328,7 +1328,7 @@
             </li>
             <hr>
             <li>
-              <span>发帖UBB增强</span>
+              <span>发帖UBB增强
               <div class="switch">
                 <input type="checkbox" id="isAddNewPostUBB" data-key="isAddNewPostUBB" />
                 <label for="isAddNewPostUBB"></label>
@@ -1336,21 +1336,21 @@
             </li>
             <hr>
             <li>
-              <span>自动加载下一页</span>
+              <span>自动加载下一页
               <div class="switch">
                 <input type="checkbox" id="isLoadNextPage" data-key="isLoadNextPage" />
                 <label for="isLoadNextPage"></label>
               </div>
             </li>
             <li>
-              <span>自动加载下一页方式</span>
+              <span>自动加载下一页方式
               <select data-key="loadNextPageType" id="loadNextPageType">
                 <option value="more">加载更多按钮</option>
                 <option value="nextPage">下一页按钮</option>
               </select>
             </li>
             <li>
-              <span>自动加载最大数：<i class="range-num">${maxLoadNum}</i>个</span>
+              <span>自动加载最大数：<i class="range-num">${maxLoadNum}</i>个
               <input
                 id="maxLoadNum"
                 type="range"
@@ -1363,7 +1363,7 @@
             </li>
             <hr>
             <li>
-              <span>贴子显示等级</span>
+              <span>贴子显示等级
               <div class="switch">
                 <input type="checkbox" id="isShowLevel" data-key="isShowLevel" />
                 <label for="isShowLevel"></label>
@@ -1922,13 +1922,13 @@
   }
   // 获取值
   function getItem(key, defaultValue = {}) {
-    if (key === "autoEatList") {
-      let autoEatList = MY_getValue(key, {});
+    if (["boastData", "autoEatList".includes(key)]) {
+      let list = MY_getValue(key, {});
       // 删除过期的肉帖
-      deleteExpiredID(autoEatList);
+      deleteExpiredID(list, key);
       // 更新肉帖数据
-      setItem(key, autoEatList);
-      return autoEatList;
+      setItem(key, list);
+      return list;
     }
     return MY_getValue(key, {});
   }
@@ -2086,28 +2086,28 @@
         `
         <hr>
         <div class="ubb_wrap" style="text-align: center;overflow: hidden;">
-          <span id='ubb_url' style="${spanstyle}">链接</span>
-          <span id='ubb_img' style="${spanstyle}">图片</span>
-          <span id='ubb_audio' style="${spanstyle}">音频</span>
-          <span id='ubb_movie' style="${spanstyle}">视频</span>
-          <span id='ubb_random_color' style="${spanstyle}">随机颜色字</span>
-          <span id='ubb_nzgsa' style="${a2style}">你真该死啊</span>
+          <span id='ubb_url' style="${spanstyle}">链接
+          <span id='ubb_img' style="${spanstyle}">图片
+          <span id='ubb_audio' style="${spanstyle}">音频
+          <span id='ubb_movie' style="${spanstyle}">视频
+          <span id='ubb_random_color' style="${spanstyle}">随机颜色字
+          <span id='ubb_nzgsa' style="${a2style}">你真该死啊
 
           <br>
-          <span id='ubb_text' style="${spanstyle}">半角</span>
-          <span id='ubb_br' style="${spanstyle}">换行</span>
-          <span id='ubb_b' style="${spanstyle}">加粗</span>
-          <span id='ubb_i' style="${spanstyle}">斜体</span>
+          <span id='ubb_text' style="${spanstyle}">半角
+          <span id='ubb_br' style="${spanstyle}">换行
+          <span id='ubb_b' style="${spanstyle}">加粗
+          <span id='ubb_i' style="${spanstyle}">斜体
 
-          <span id='ubb_color' style="${spanstyle}">颜色字</span>
-          <span id='ubb_u' style="${spanstyle}">下划线</span>
-          <span id='ubb_strike' style="${spanstyle}">删除线</span>
-          <span id='ubb_hr' style="${spanstyle}">分割线</span>
+          <span id='ubb_color' style="${spanstyle}">颜色字
+          <span id='ubb_u' style="${spanstyle}">下划线
+          <span id='ubb_strike' style="${spanstyle}">删除线
+          <span id='ubb_hr' style="${spanstyle}">分割线
           <br>
-          <span id='ubb_sms' style="${spanstyle}">短信</span>
-          <span id='ubb_call' style="${spanstyle}">拨号</span>
-          <span id='ubb_now' style="${spanstyle}">时间</span>
-          <span id='ubb_codo' style="${spanstyle}">倒计天</span>
+          <span id='ubb_sms' style="${spanstyle}">短信
+          <span id='ubb_call' style="${spanstyle}">拨号
+          <span id='ubb_now' style="${spanstyle}">时间
+          <span id='ubb_codo' style="${spanstyle}">倒计天
           <br>
           <a href='https://yaohuo.me/tuchuang/' target="_blank" style="${spanstyle}">图床</a>
           <a href='https://aapi.eu.org/ppx' target="_blank" style="${spanstyle}">皮皮</a>
@@ -2195,7 +2195,7 @@
           style="${spanstyle}display:${
           isUnfoldFace ? "display: block" : "display: none"
         }" id="unfold"
-          >表情${isUnfoldFace ? "折叠" : "展开"}</span>`
+          >表情${isUnfoldFace ? "折叠" : "展开"}`
       );
 
       // 处理点击添加表情包
@@ -2430,7 +2430,7 @@
                 <path d="M992.171444 312.62966C975.189616 137.155482 827.415189 0 647.529412 0 469.849434 0 323.616239 133.860922 303.679205 306.210218 131.598564 333.839271 0 482.688318 0 662.588235c0 199.596576 161.815189 361.411765 361.411765 361.411765h184.014581V692.705882H294.530793l337.939795-361.411764 337.939796 361.411764H726.132229v331.294118H933.647059v-1.555371c185.470975-15.299199 331.294118-170.426291 331.294117-359.856394 0-168.969898-116.101408-310.367302-272.769732-349.958575z" p-id="9232"></path>
               </svg>
               选择或拖拽图片上传到图床
-            </span>
+            
             <input
               type="file"
               multiple
@@ -2583,7 +2583,7 @@
     }
   }
   // 处理吹牛
-  function handleBoast() {
+  async function handleBoast() {
     /* 
     location.pathname  
     /games/chuiniu/index.aspx  吹牛页面
@@ -2631,12 +2631,13 @@
         "a[href^='/games/chuiniu/add.aspx']"
       );
       if (publishBoastBtn.innerText === "我要公开挑战") {
+        // 添加批量按钮
         publishBoastBtn.insertAdjacentHTML(
           "afterend",
           `<input type="button" class="batch-publish-btn" value='批量公开挑战' style="color: #fff; font-size: 14px; background-color: #888888;border-radius: 10%;margin-left:10px">`
         );
         $(".batch-publish-btn").click(() => {
-          let res = prompt("请输入批量公开挑战的数量如：10");
+          let res = prompt("请输入批量公开挑战的数量：", 10);
           if (res && /^\d+$/.test(res)) {
             let i = 0;
             let isfirst = true;
@@ -2652,11 +2653,13 @@
                 document.body.appendChild(iframe);
                 if (isfirst) {
                   isfirst = false;
-                  // handleIframeMutationObserver();
+                  handleIframeMutationObserver();
                 }
               }, (i + 1) * 100);
               // }
             }
+          } else {
+            alert("输入的格式不对，只能是大于0的数字");
           }
           console.log(res);
         });
@@ -2670,7 +2673,8 @@
       let select = document.querySelector("select");
       let subTitle = document.querySelector(".subtitle");
       // 吃多吃2少吃1
-      let randomNum = Math.random() < 0.55 ? 2 : 1;
+      let answer1Rate = 0.45;
+      let randomNum = Math.random() < answer1Rate ? 1 : 2;
       let isAutoEat = window.location.search.includes("open=new");
       if (document.title === "请输入密码") {
         if (!password.value) {
@@ -2691,13 +2695,60 @@
             "beforeend",
             `<input type="button" class="search-history-data" value='查询历史数据' style="color: #fff; font-size: 14px; background-color: #888888;border-radius: 10%;margin-left:10px">`
           );
+          subTitle.insertAdjacentHTML(
+            "afterend",
+            `<div class='subTitleTips' style="padding:5px">
+            <span style="color:red">正在分析发牛者历史数据，请等待，数据生成后会根据概率重新生成答案</span>
+            </div>`
+          );
+          let spaceUrl = document.querySelector(
+            "a[href^='/bbs/userinfo.aspx']"
+          ).href;
+          let userId = await getUserId(spaceUrl);
+          let url = `/games/chuiniu/book_list.aspx?type=0&touserid=${userId}&siteid=1000&classid=0`;
+          let res = await fetchData(url);
+          let match = /<body>([\s\S]*?)<\/body>/.exec(res);
+          let bodyString = match?.[0];
+          if (bodyString) {
+            let tempDiv = document.createElement("div");
+            tempDiv.innerHTML = bodyString;
+            let res = await handleData(tempDiv, true);
+            tempDiv = null;
+            console.log(res);
+            let {
+              total,
+              tzSelect1,
+              tzSelect2,
+              tzSelect1Win,
+              tzSelect2Win,
+              tzWin,
+              tzWinRate,
+              yzSelect1,
+              yzSelect2,
+              yzSelect1Win,
+              yzSelect2Win,
+            } = res;
+            document.querySelector(".subTitleTips").innerHTML = `
+            <p>发牛者过去${total}条中，选择答案一：${tzSelect1}次，选择答案二：${tzSelect2}次</p>
+              <p>选择1胜率：
+              <span style="color:${tzSelect1 > tzSelect2 ? "red" : "unset"}">
+              ${(tzSelect1 / total).toFixed(2)}
+              </span>
+              ，选择2胜率：
+              <span style="color:${tzSelect1 < tzSelect2 ? "red" : "unset"}">${(
+              tzSelect2 / total
+            ).toFixed(2)}</span></p>
+            `;
 
+            answer1Rate = tzSelect1 / total;
+
+            randomNum = Math.random() < answer1Rate ? 1 : 2;
+            select.value = randomNum;
+            console.log("生成答案1的概率：", answer1Rate);
+          }
           $(".search-history-data").click(async () => {
-            let spaceUrl = document.querySelector(
-              "a[href^='/bbs/userinfo.aspx']"
-            ).href;
-            let id = await getUserId(spaceUrl);
-            let url = `/games/chuiniu/book_list.aspx?type=0&touserid=${id}&siteid=1000&classid=0`;
+            // let userId = await getUserId(spaceUrl);
+            // let url = `/games/chuiniu/book_list.aspx?type=0&touserid=${userId}&siteid=1000&classid=0`;
             location.href = url;
           });
         }
@@ -2713,7 +2764,7 @@
           `<input type="button" class="random-number-btn" value='随机生成答案' style="color: #fff; font-size: 14px; background-color: #888888;border-radius: 10%;">`
         );
         $(".random-number-btn").click((e) => {
-          let randomNum = Math.random() < 0.55 ? 2 : 1;
+          randomNum = Math.random() < answer1Rate ? 1 : 2;
           select.value = randomNum;
         });
 
@@ -2729,7 +2780,8 @@
       let password = document.querySelector("input[type=password]");
       let submit = document.querySelector("input[type=submit]");
       let select = document.querySelector("select");
-      let randomNum = Math.random() < 0.58 ? 2 : 1;
+      let answer1Rate = 0.42;
+      let randomNum = Math.random() < answer1Rate ? 2 : 1;
 
       if (document.title === "请输入密码") {
         if (!password.value) {
@@ -2746,30 +2798,33 @@
             "afterend",
             `<input type="button" class="random-number-btn" value='随机生成答案' style="color: #fff; font-size: 14px; background-color: #888888;border-radius: 10%;">`
           );
-        }
 
-        $(".random-number-btn").click((e) => {
-          // 发布多发2少发1
-          let randomNum = Math.random() < 0.58 ? 2 : 1;
-          select.value = randomNum;
-        });
-        // iframe里
-        if (window.self !== window.top) {
+          $(".random-number-btn").click((e) => {
+            // 发布多发2少发1
+            let randomNum = Math.random() < answer1Rate ? 2 : 1;
+            select.value = randomNum;
+          });
+        } else {
           let tip = document.querySelector(".tip");
-
-          console.log("这是iframe页面1", document.title);
-          submit?.click();
           if (tip) {
-            setTimeout(() => {
-              console.log("这是iframe页面3");
-              let iframe = window.frameElement; // 获取当前 iframe 元素
-              let parent = iframe.parentElement; // 获取包含当前 iframe 的父窗口对象
+            // iframe里
+            if (window.self !== window.top) {
+              let tip = document.querySelector(".tip");
+              submit?.click();
+              if (tip) {
+                setTimeout(() => {
+                  console.log("这是iframe页面3");
+                  let iframe = window.frameElement; // 获取当前 iframe 元素
+                  let parent = iframe.parentElement; // 获取包含当前 iframe 的父窗口对象
 
-              parent.removeChild(iframe);
-            }, 2000);
+                  parent.removeChild(iframe);
+                }, 2000);
+              }
+            } else {
+              location.href = "/games/chuiniu/index.aspx";
+            }
           }
         }
-        console.log(`随机答案：${randomNum},是否发吹牛`);
       }
     }
 
@@ -2778,7 +2833,7 @@
       handleAddSearch();
       handleStatistics();
     }
-    function handleStatistics() {
+    async function handleStatistics(isReturnResult = false) {
       let title = document.querySelector(".title");
       title.insertAdjacentHTML(
         "afterend",
@@ -2788,24 +2843,40 @@
         </div>
         `
       );
-      $(".statistics-btn").click(async () => {
-        let list = document.querySelectorAll(
-          "a[href^='/games/chuiniu/book_view.aspx']"
-        );
-        let total = 0;
-        let select1 = 0;
-        let select2 = 0;
-        let isRight = 0;
-        let select1Rate = 0;
-        let select2Rate = 0;
-        let rightRate = 0;
+      $(".statistics-btn").click(() => {
+        handleData();
+      });
+    }
+    async function handleData(dom = document, isReturnResult = false) {
+      let list = dom.querySelectorAll(
+        "a[href^='/games/chuiniu/book_view.aspx']"
+      );
+      let total = 0;
+      let tzSelect1 = 0;
+      let tzSelect2 = 0;
+      let tzSelect1Win = 0;
+      let tzSelect2Win = 0;
+      let yzSelect1 = 0;
+      let yzSelect2 = 0;
+      let yzSelect1Win = 0;
+      let yzSelect2Win = 0;
 
-        for (let index = 0; index < list.length; index++) {
-          const item = list[index];
-          if (item.parentElement.innerText.includes("进行中")) {
-            continue;
-          }
+      let tzWin = 0;
+      let tzWinRate = 0;
 
+      let boastData = getItem("boastData");
+
+      for (let index = 0; index < list.length; index++) {
+        const item = list[index];
+        let id = item.innerText;
+        if (item.parentElement.innerText.includes("进行中")) {
+          continue;
+        }
+
+        let curData;
+        if (boastData[id]) {
+          curData = boastData[id];
+        } else {
           let url = item.href;
           let res = await fetchData(url);
           let regex = /<body>([\s\S]*?)<\/body>/;
@@ -2814,7 +2885,6 @@
           if (bodyString.includes("不存在此挑战！")) {
             continue;
           }
-
           let money = bodyString.match(/赌注是:(\d+)妖晶/)[1];
           // 获取挑战方出的答案：发吹牛的人
           let challengerAnswer =
@@ -2827,50 +2897,126 @@
           let battleStatus = bodyString.match(
             /对应战方状态:<b>(获胜|失败)!<\/b>/
           )[1];
+          curData = {
+            id,
+            money,
+            challengerAnswer,
+            opponentAnswer,
+            battleStatus,
+            lastTime: new Date().getTime(),
+          };
+          boastData[id] = curData;
+          setItem("boastData", boastData);
+        }
 
-          total++;
-          if (battleStatus === "失败") {
-            isRight++;
-            rightRate = (isRight / total).toFixed(2);
-          }
-          if (challengerAnswer == 1) {
-            select1++;
-            select1Rate = (select1 / total).toFixed(2);
-            select2Rate = (select2 / total).toFixed(2);
+        //  autoEatList[id]['lastTime'] = new Date().getTime();
+        total++;
+
+        if (curData.battleStatus === "获胜") {
+          // 吃吹牛获胜、发吹牛失败
+          if (curData.opponentAnswer == 1) {
+            // 吃吹牛的人选1
+            yzSelect1++;
+            tzSelect1++;
+            yzSelect1Win++;
           } else {
-            select2++;
-            select1Rate = (select1 / total).toFixed(2);
-            select2Rate = (select2 / total).toFixed(2);
+            // 吃吹牛的人选2
+            yzSelect2++;
+            tzSelect2++;
+            yzSelect2Win++;
+          }
+        } else {
+          // 吃吹牛失败、发吹牛获胜
+          tzWin++;
+          tzWinRate = (tzWin / total).toFixed(2);
+
+          // 失败
+          if (curData.opponentAnswer == 1) {
+            // 吃吹牛的人选1
+            yzSelect1++;
+            tzSelect2++;
+            tzSelect2Win++;
+          } else {
+            // 吃吹牛的人选2
+            yzSelect2++;
+            tzSelect1++;
+            tzSelect1Win++;
           }
         }
+      }
+      if (isReturnResult) {
+        return {
+          total,
+          tzSelect1,
+          tzSelect2,
+          tzSelect1Win,
+          tzSelect2Win,
+          tzWin,
+          tzWinRate,
+          yzSelect1,
+          yzSelect2,
+          yzSelect1Win,
+          yzSelect2Win,
+        };
+      } else {
+        console.log({
+          total,
+          tzSelect1,
+          tzSelect2,
+          tzSelect1Win,
+          tzSelect2Win,
+          tzWin,
+          tzWinRate,
+          yzSelect1,
+          yzSelect2,
+          yzSelect1Win,
+          yzSelect2Win,
+        });
         alert(
           `
-          当前页数据汇总：\n
-          挑战者发布总次数：${total}\n
-          挑战者选1的次数：${select1}\n
-          挑战者选2的次数：${select2}\n
-          挑战者赢的次数：${isRight}\n
-          挑战者的胜率：${rightRate}\n
-          应战着选1的胜率：${select1Rate}\n
-          应战着选2的次数：${select2Rate}\n
+          ==========当前页发吹牛总条数：${total}==========
+          发吹牛选1的次数：${tzSelect1}，选2的次数：${tzSelect2}\n
+          发吹牛选1赢的概率：${(tzSelect1Win / total).toFixed(
+            2
+          )}，选2赢的概率：${(tzSelect2Win / total).toFixed(2)}\n
+          吃吹牛选1赢的概率：${(tzSelect1 / total).toFixed(2)}，选2赢的概率：${(
+            tzSelect2 / total
+          ).toFixed(2)}\n
+          发吹牛赢的次数：${tzWin}，胜率：${tzWinRate}\n
+          ==========当前页吃吹牛总条数：${total}==========
+          吃吹牛选1的次数：${yzSelect1}，选2的次数：${yzSelect2}\n
+          吃吹牛选1赢的概率：${(yzSelect1Win / total).toFixed(
+            2
+          )}，选2赢的概率：${(yzSelect2Win / total).toFixed(2)}\n
+          发吹牛选1赢的概率：${(yzSelect1 / total).toFixed(2)}，选2赢的概率：${(
+            yzSelect2 / total
+          ).toFixed(2)}\n
+          吃吹牛赢的次数：${total - tzWin}，吃吹牛的胜率：${(
+            1 - tzWinRate
+          ).toFixed(2)}\n
+          
           `
         );
-      });
+      }
     }
     function handleAddSearch() {
       let title = document.querySelector(".title");
       title.insertAdjacentHTML(
         "beforeend",
         `
-        <span class="separate"> </span>
+        <span class="separate"> 
         <a class="search-dahua">查询大话</a>
-        <span class="separate"> </span>
+        <span class="separate"> 
         <a class="search-qianghua">查询抢话</a>
         `
       );
       // 查询大话
       $(".search-dahua").click(() => {
-        let res = prompt("请输入要查询大话的用户id，输入0查询全部");
+        let defaultValue = isMobile() ? "0" : "";
+        let res = prompt(
+          "请输入要查询大话的用户id，输入0查询全部",
+          defaultValue
+        );
         if (res === null) return;
         if (!res || /^\d+$/.test(res)) {
           location.href = `/games/chuiniu/book_list.aspx?type=0&touserid=${
@@ -2880,7 +3026,11 @@
       });
       // 查询抢话
       $(".search-qianghua").click(() => {
-        let res = prompt("请输入要查询抢话的用户id，输入0查询全部");
+        let defaultValue = isMobile() ? "0" : "";
+        let res = prompt(
+          "请输入要查询抢话的用户id，输入0查询全部",
+          defaultValue
+        );
         if (res === null) return;
         if (!res || /^\d+$/.test(res)) {
           location.href = `/games/chuiniu/book_list.aspx?type=1&touserid=${
@@ -2932,12 +3082,18 @@
    * 删除过期的帖子
    * @param {number|string} value 存储肉帖的对象
    */
-  function deleteExpiredID(value) {
+  function deleteExpiredID(value, key) {
     let nowTime = new Date().getTime();
-
+    // 吹牛数据默认存储7天
+    let expire = key === "boastData" ? 7 : expiredDays;
+    let lastTime;
     Object.keys(value).forEach((key) => {
-      let lastTime = value[key];
-      if (nowTime > timeLeft(lastTime, expiredDays)) {
+      if (key === "boastData") {
+        lastTime = value[key]["lastTime"];
+      } else {
+        lastTime = value[key];
+      }
+      if (nowTime > timeLeft(lastTime, expire)) {
         delete value[key];
       }
     });
