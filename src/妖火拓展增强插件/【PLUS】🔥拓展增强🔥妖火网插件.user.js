@@ -1191,14 +1191,14 @@
           <header>🔥拓展增强🔥妖火插件设置</header>
           <ul>
             <li>
-              <span>显示站内设置图标
+              <span>显示站内设置图标</span>
               <div class="switch">
                 <input type="checkbox" id="isShowSettingIcon" data-key="isShowSettingIcon" />
                 <label for="isShowSettingIcon"></label>
               </div>
             </li>
             <li>
-              <span>设置图标大小：<i class="range-num">${settingIconMaxSize}</i>px
+              <span>设置图标大小：<i class="range-num">${settingIconMaxSize}</i>px</span>
               <input
                 type="range"
                 id="settingIconMaxSize"
@@ -1211,14 +1211,14 @@
             </li>
             <hr>
             <li>
-              <span>自动上传图床
+              <span>自动上传图床</span>
               <div class="switch">
                 <input type="checkbox" id="isUploadImage" data-key="isUploadImage" />
                 <label for="isUploadImage"></label>
               </div>
             </li>
             <li>
-              <span>图床token
+              <span>图床token</span>
               <div class="password-container">
                 <input 
                   type="password" 
@@ -1245,35 +1245,35 @@
             </li>
             <hr>
             <li>
-              <span>手动进贴吃肉
+              <span>手动进贴吃肉</span>
               <div class="switch">
                 <input type="checkbox" id="isAutoEat" data-key="isAutoEat" />
                 <label for="isAutoEat"></label>
               </div>
             </li>
             <li>
-              <span>自动进贴全自动吃肉
+              <span>自动进贴全自动吃肉</span>
               <div class="switch">
                 <input type="checkbox" id="isFullAutoEat" data-key="isFullAutoEat" />
                 <label for="isFullAutoEat"></label>
               </div>
             </li>
             <li>
-              <span>全自动吃肉是否无跳转
+              <span>全自动吃肉是否无跳转</span>
               <div class="switch">
                 <input type="checkbox" id="isNewOpenIframe" data-key="isNewOpenIframe" />
                 <label for="isNewOpenIframe"></label>
               </div>
             </li>
             <li>
-              <span>立刻吃肉
+              <span>立刻吃肉</span>
               <div class="switch">
                 <input type="checkbox" id="isImmediatelyEat" data-key="isImmediatelyEat" />
                 <label for="isImmediatelyEat"></label>
               </div>
             </li>
             <li>
-              <span>肉帖过期时间：<i class="range-num">${expiredDays}</i>天
+              <span>肉帖过期时间：<i class="range-num">${expiredDays}</i>天</span>
               <input
                 type="range"
                 id="expiredDays"
@@ -1285,7 +1285,7 @@
               />
             </li>
             <li>
-              <span>自动吃肉时间间隔：<i class="range-num">${timeInterval}</i>秒
+              <span>自动吃肉时间间隔：<i class="range-num">${timeInterval}</i>秒</span>
               <input
                 type="range"
                 id="timeInterval"
@@ -1298,14 +1298,14 @@
             </li>
             <hr>
             <li>
-              <span>回帖表情增强
+              <span>回帖表情增强</span>
               <div class="switch">
                 <input type="checkbox" id="isAddReplyFace" data-key="isAddReplyFace" />
                 <label for="isAddReplyFace"></label>
               </div>
             </li>
             <li>
-              <span>回帖表情默认展开
+              <span>回帖表情默认展开</span>
               <div class="switch">
                 <input type="checkbox" id="isUnfoldFace" data-key="isUnfoldFace" />
                 <label for="isUnfoldFace"></label>
@@ -1313,14 +1313,14 @@
             </li>
             <hr>
             <li>
-              <span>回帖UBB增强
+              <span>回帖UBB增强</span>
               <div class="switch">
                 <input type="checkbox" id="isAddReplyUBB" data-key="isAddReplyUBB" />
                 <label for="isAddReplyUBB"></label>
               </div>
             </li>
             <li>
-              <span>回帖UBB默认展开
+              <span>回帖UBB默认展开</span>
               <div class="switch">
                 <input type="checkbox" id="isUnfoldUbb" data-key="isUnfoldUbb" />
                 <label for="isUnfoldUbb"></label>
@@ -1328,7 +1328,7 @@
             </li>
             <hr>
             <li>
-              <span>发帖UBB增强
+              <span>发帖UBB增强</span>
               <div class="switch">
                 <input type="checkbox" id="isAddNewPostUBB" data-key="isAddNewPostUBB" />
                 <label for="isAddNewPostUBB"></label>
@@ -1336,21 +1336,21 @@
             </li>
             <hr>
             <li>
-              <span>自动加载下一页
+              <span>自动加载下一页</span>
               <div class="switch">
                 <input type="checkbox" id="isLoadNextPage" data-key="isLoadNextPage" />
                 <label for="isLoadNextPage"></label>
               </div>
             </li>
             <li>
-              <span>自动加载下一页方式
+              <span>自动加载下一页方式</span>
               <select data-key="loadNextPageType" id="loadNextPageType">
                 <option value="more">加载更多按钮</option>
                 <option value="nextPage">下一页按钮</option>
               </select>
             </li>
             <li>
-              <span>自动加载最大数：<i class="range-num">${maxLoadNum}</i>个
+              <span>自动加载最大数：<i class="range-num">${maxLoadNum}</i>个</span>
               <input
                 id="maxLoadNum"
                 type="range"
@@ -1363,7 +1363,7 @@
             </li>
             <hr>
             <li>
-              <span>贴子显示等级
+              <span>贴子显示等级</span>
               <div class="switch">
                 <input type="checkbox" id="isShowLevel" data-key="isShowLevel" />
                 <label for="isShowLevel"></label>
@@ -2086,28 +2086,28 @@
         `
         <hr>
         <div class="ubb_wrap" style="text-align: center;overflow: hidden;">
-          <span id='ubb_url' style="${spanstyle}">链接
-          <span id='ubb_img' style="${spanstyle}">图片
-          <span id='ubb_audio' style="${spanstyle}">音频
-          <span id='ubb_movie' style="${spanstyle}">视频
-          <span id='ubb_random_color' style="${spanstyle}">随机颜色字
-          <span id='ubb_nzgsa' style="${a2style}">你真该死啊
+          <span id='ubb_url' style="${spanstyle}">链接</span>
+          <span id='ubb_img' style="${spanstyle}">图片</span>
+          <span id='ubb_audio' style="${spanstyle}">音频</span>
+          <span id='ubb_movie' style="${spanstyle}">视频</span>
+          <span id='ubb_random_color' style="${spanstyle}">随机颜色字</span>
+          <span id='ubb_nzgsa' style="${a2style}">你真该死啊</span>
 
           <br>
-          <span id='ubb_text' style="${spanstyle}">半角
-          <span id='ubb_br' style="${spanstyle}">换行
-          <span id='ubb_b' style="${spanstyle}">加粗
-          <span id='ubb_i' style="${spanstyle}">斜体
+          <span id='ubb_text' style="${spanstyle}">半角</span>
+          <span id='ubb_br' style="${spanstyle}">换行</span>
+          <span id='ubb_b' style="${spanstyle}">加粗</span>
+          <span id='ubb_i' style="${spanstyle}">斜体</span>
 
-          <span id='ubb_color' style="${spanstyle}">颜色字
-          <span id='ubb_u' style="${spanstyle}">下划线
-          <span id='ubb_strike' style="${spanstyle}">删除线
-          <span id='ubb_hr' style="${spanstyle}">分割线
+          <span id='ubb_color' style="${spanstyle}">颜色字</span>
+          <span id='ubb_u' style="${spanstyle}">下划线</span>
+          <span id='ubb_strike' style="${spanstyle}">删除线</span>
+          <span id='ubb_hr' style="${spanstyle}">分割线</span>
           <br>
-          <span id='ubb_sms' style="${spanstyle}">短信
-          <span id='ubb_call' style="${spanstyle}">拨号
-          <span id='ubb_now' style="${spanstyle}">时间
-          <span id='ubb_codo' style="${spanstyle}">倒计天
+          <span id='ubb_sms' style="${spanstyle}">短信</span>
+          <span id='ubb_call' style="${spanstyle}">拨号</span>
+          <span id='ubb_now' style="${spanstyle}">时间</span>
+          <span id='ubb_codo' style="${spanstyle}">倒计天</span>
           <br>
           <a href='https://yaohuo.me/tuchuang/' target="_blank" style="${spanstyle}">图床</a>
           <a href='https://aapi.eu.org/ppx' target="_blank" style="${spanstyle}">皮皮</a>
@@ -2195,7 +2195,7 @@
           style="${spanstyle}display:${
           isUnfoldFace ? "display: block" : "display: none"
         }" id="unfold"
-          >表情${isUnfoldFace ? "折叠" : "展开"}`
+          >表情${isUnfoldFace ? "折叠" : "展开"}</span>`
       );
 
       // 处理点击添加表情包
@@ -2430,7 +2430,7 @@
                 <path d="M992.171444 312.62966C975.189616 137.155482 827.415189 0 647.529412 0 469.849434 0 323.616239 133.860922 303.679205 306.210218 131.598564 333.839271 0 482.688318 0 662.588235c0 199.596576 161.815189 361.411765 361.411765 361.411765h184.014581V692.705882H294.530793l337.939795-361.411764 337.939796 361.411764H726.132229v331.294118H933.647059v-1.555371c185.470975-15.299199 331.294118-170.426291 331.294117-359.856394 0-168.969898-116.101408-310.367302-272.769732-349.958575z" p-id="9232"></path>
               </svg>
               选择或拖拽图片上传到图床
-            
+            </span>
             <input
               type="file"
               multiple
@@ -2729,9 +2729,10 @@
               yzSelect2Win,
               tzSelectString,
               yzSelectString,
+              tzSelectDomString,
             } = res;
             document.querySelector(".subTitleTips").innerHTML = `
-              <p>发牛者过去${total}条中，选择了：${tzSelectString}，答案一：${tzSelect1}次，选择答案二：${tzSelect2}次</p>
+              <p>发牛者过去${total}条中，选择了：${tzSelectDomString}，答案一：${tzSelect1}次，选择答案二：${tzSelect2}次</p>
               <p>选择1胜率：
               <span style="color:${tzSelect1 > tzSelect2 ? "red" : "unset"}">
               ${(tzSelect1 / total).toFixed(2)}
@@ -2868,6 +2869,7 @@
 
       let tzSelectString = "";
       let yzSelectString = "";
+      let tzSelectDomString = "";
 
       let boastData = getItem("boastData");
 
@@ -2916,6 +2918,9 @@
         }
         tzSelectString += curData.challengerAnswer;
         yzSelectString += curData.opponentAnswer;
+        tzSelectDomString += `<b style="color:${
+          curData.battleStatus === "失败" ? "red" : "green"
+        }">${curData.challengerAnswer}</b>`;
         //  autoEatList[id]['lastTime'] = new Date().getTime();
         total++;
 
@@ -2965,6 +2970,7 @@
           yzSelect1Win,
           yzSelect2Win,
           tzSelectString,
+          tzSelectDomString,
           yzSelectString,
         };
       } else {
@@ -3013,13 +3019,17 @@
       }
     }
     function handleAddSearch() {
+      let arr = ["/games/chuiniu/book_list.aspx", "/games/chuiniu/index.aspx"];
+      if (!arr.includes(location.pathname)) {
+        return;
+      }
       let title = document.querySelector(".title");
       title.insertAdjacentHTML(
         "beforeend",
         `
-        <span class="separate"> 
+        <span class="separate"> </span>
         <a class="search-dahua">查询大话</a>
-        <span class="separate"> 
+        <span class="separate"> </span>
         <a class="search-qianghua">查询抢话</a>
         `
       );
