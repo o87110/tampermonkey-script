@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.2.7
+// @version      3.2.8
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -76,6 +76,8 @@
     isUploadImage: false,
     // 上传图床token
     token: "",
+    // 站内密码
+    websitePassword: "",
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -120,6 +122,8 @@
 
     isUploadImage,
     token,
+
+    websitePassword,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -468,6 +472,8 @@
     handleWindowScroll();
     // 处理窗口改变事件
     handleWindowResize();
+    // 自动填充密码并确认
+    handlePassword();
     // 添加站内设置按钮
     addSettingBtn();
     // 如果关闭了悬浮图标，在网站首页右上角添加插件设置入口
@@ -502,6 +508,18 @@
   })();
 
   // ==其他功能函数和方法==
+  function handlePassword() {
+    let password = document.querySelector("input[type=password]");
+    let submit = document.querySelector("input[type=submit]");
+    if (document.title === "请输入密码") {
+      if (!password.value) {
+        password.value = websitePassword;
+      }
+      if (password.value) {
+        submit.click();
+      }
+    }
+  }
   async function handleStatisticalData() {
     // /games/chuiniu/book_list.aspx
     // /games/chuiniu/book_view.aspx?siteid=1000&classid=0&type=0&touserid=&id=877578
@@ -1141,6 +1159,16 @@
         cursor: pointer;
       }
 
+      .yaohuo-wrap-title{
+        /* height: 38px !important; */
+      }
+      .yaohuo-wrap-title .title-line {
+        margin: 0px;
+        border: none;
+        border-top: 2px solid #ddd;
+        width: 30%; /* 可根据需要调整宽度 */
+      }
+
       .yaohuo-wrap li .password-container input {
         width: 100%;
         box-sizing: border-box;
@@ -1180,9 +1208,8 @@
       .yaohuo-wrap .switch input:checked + label::before {
         transform: translateX(26px);
       }
-      .yaohuo-wrap hr{
-        margin-bottom: 5px;
-        margin-top: 5px;
+      .yaohuo-wrap hr {
+        margin:5px 0
       }
     `);
     let innerH = `
@@ -1190,6 +1217,11 @@
         <div class="yaohuo-wrap">
           <header>🔥拓展增强🔥妖火插件设置</header>
           <ul>
+            <li class="yaohuo-wrap-title">
+              <hr class="title-line title-line-left" />
+              <b>站内设置</b>
+              <hr class="title-line title-line-right" />
+            </li>
             <li>
               <span>显示站内设置图标</span>
               <div class="switch">
@@ -1209,7 +1241,38 @@
                 step="${5}"
               />
             </li>
-            <hr>
+            <li>
+              <span>站内密码设置</span>
+              <div class="password-container">
+                <input 
+                  type="password" 
+                  placeholder="自动填充密码并确认"
+                  id="websitePassword" 
+                  data-key="websitePassword"
+                  value="${websitePassword}"
+                />
+                <svg
+                  viewBox="64 64 896 896"
+                  focusable="false"
+                  data-icon="eye"
+                  width="20px"
+                  height="20px"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  class="toggle-password"
+                >
+                  <path
+                    d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 0 0 0 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
+                  ></path>
+                </svg>
+              </div>
+            </li>
+            <li class="yaohuo-wrap-title">
+              <hr class="title-line title-line-left" />
+              <b>图床设置</b>
+              <hr class="title-line title-line-right" />
+            </li>
+            
             <li>
               <span>自动上传图床</span>
               <div class="switch">
@@ -1243,7 +1306,23 @@
                 </svg>
               </div>
             </li>
-            <hr>
+            <li class="yaohuo-wrap-title">
+              <hr class="title-line title-line-left" />
+              <b>吹牛设置</b>
+              <hr class="title-line title-line-right" />
+            </li>
+            <li>
+              <span>批量发牛</span>
+              <div class="switch">
+                <input type="checkbox" id="isAutoEat" data-key="isAutoEat" />
+                <label for="isAutoEat"></label>
+              </div>
+            </li>
+            <li class="yaohuo-wrap-title">
+              <hr class="title-line title-line-left" />
+              <b>吃肉设置</b>
+              <hr class="title-line title-line-right" />
+            </li>
             <li>
               <span>手动进贴吃肉</span>
               <div class="switch">
@@ -1296,7 +1375,11 @@
                 step="${timeStep}"
               />
             </li>
-            <hr>
+            <li class="yaohuo-wrap-title">
+              <hr class="title-line title-line-left" />
+              <b>回帖设置</b>
+              <hr class="title-line title-line-right" />
+            </li>
             <li>
               <span>回帖表情增强</span>
               <div class="switch">
@@ -1326,7 +1409,11 @@
                 <label for="isUnfoldUbb"></label>
               </div>
             </li>
-            <hr>
+            <li class="yaohuo-wrap-title">
+              <hr class="title-line title-line-left" />
+              <b>发帖设置</b>
+              <hr class="title-line title-line-right" />
+            </li>
             <li>
               <span>发帖UBB增强</span>
               <div class="switch">
@@ -1334,7 +1421,11 @@
                 <label for="isAddNewPostUBB"></label>
               </div>
             </li>
-            <hr>
+            <li class="yaohuo-wrap-title">
+              <hr class="title-line title-line-left" />
+              <b>自动加载设置</b>
+              <hr class="title-line title-line-right" />
+            </li>
             <li>
               <span>自动加载下一页</span>
               <div class="switch">
@@ -1361,7 +1452,11 @@
                 step="${numStep}"
               />
             </li>
-            <hr>
+            <li class="yaohuo-wrap-title">
+              <hr class="title-line title-line-left" />
+              <b>显示帖子等级</b>
+              <hr class="title-line title-line-right" />
+            </li>
             <li>
               <span>贴子显示等级</span>
               <div class="switch">
@@ -2584,20 +2679,26 @@
   }
   // 处理吹牛
   async function handleBoast() {
-    /* 
-    location.pathname  
-    /games/chuiniu/index.aspx  吹牛页面
-    /games/chuiniu/add.aspx 输入密码 
-    /games/chuiniu/add.aspx 吹牛页
-      输入密码 type="password" 
-      提交按钮 type="submit" class（.btn）
-
-    /games/chuiniu/doit.aspx
-    */
-    let myPassword = "8353717975";
     let eatBoastMaxNum = 550;
     let isAutoEatBoast = false;
     let minMoney = 690000;
+    MY_addStyle(`
+      .boast-btn-style{
+        color: #fff; 
+        font-size: 14px; 
+        background-color: #888888;
+        border-radius: 5px;
+        margin-left: 6px;
+        padding: 5px 8px;
+        cursor: pointer;
+      }
+      .boast-card-style{
+        padding:5px; 
+        margin: 5px; 
+        background: #e5f3ee; 
+        border-radius: 6px;
+      }
+    `);
     // 吹牛主页
     if ("/games/chuiniu/index.aspx".includes(location.pathname)) {
       // 添加查询吹牛数据
@@ -2609,8 +2710,11 @@
       let money = document.querySelector(
         ".subtitle a[href^='/bbs/banklist.aspx']"
       );
+      let publishBoastBtn = document.querySelector(
+        "a[href^='/games/chuiniu/add.aspx']"
+      );
 
-      for (const item of list) {
+      /* for (const item of list) {
         let match = item.innerHTML.match(/\((\d+)妖晶\)$/);
         let number = parseInt(match[1]);
         let href = item.getAttribute("href");
@@ -2626,39 +2730,45 @@
             location.href = newHref;
           }
         }
-      }
-      let publishBoastBtn = document.querySelector(
-        "a[href^='/games/chuiniu/add.aspx']"
-      );
+      } */
+
       if (publishBoastBtn.innerText === "我要公开挑战") {
         // 添加批量按钮
         publishBoastBtn.insertAdjacentHTML(
           "afterend",
-          `<input type="button" class="batch-publish-btn" value='批量公开挑战' style="color: #fff; font-size: 14px; background-color: #888888;border-radius: 10%;margin-left:10px">`
+          `<input type="button" class="batch-publish-btn boast-btn-style" value='批量公开挑战'>`
         );
         $(".batch-publish-btn").click(() => {
-          let res = prompt("请输入批量公开挑战的数量：", 10);
-          if (res && /^\d+$/.test(res)) {
+          let number = prompt("请输入批量公开挑战的数量：");
+          if (number && /^\d+$/.test(number)) {
             let i = 0;
             let isfirst = true;
-            while (i < res) {
+            while (i < number) {
               i++;
-              // if (!isMobile()) {
-              setTimeout(() => {
-                let iframe = document.createElement("iframe");
+              if (!isMobile()) {
+                setTimeout(() => {
+                  let iframe = document.createElement("iframe");
 
-                // 设置 iframe 的属性
-                iframe.src = publishBoastBtn.href;
-                // iframe.style.display = "none";
-                document.body.appendChild(iframe);
-                if (isfirst) {
-                  isfirst = false;
-                  handleIframeMutationObserver();
-                }
-              }, (i + 1) * 100);
-              // }
+                  // 设置 iframe 的属性
+                  iframe.src = publishBoastBtn.href;
+                  iframe.style.display = "none";
+                  document.body.appendChild(iframe);
+                  if (isfirst) {
+                    isfirst = false;
+                    handleIframeMutationObserver();
+                  }
+                }, (i + 1) * 100);
+              } else {
+                setItem("publishNumber", number - 1);
+                let href = publishBoastBtn.href;
+                let newHref = href.includes("?")
+                  ? `${href}&open=new`
+                  : `${href}?open=new`;
+                location.href = newHref;
+                return;
+              }
             }
-          } else {
+          } else if (number) {
             alert("输入的格式不对，只能是大于0的数字");
           }
           console.log(res);
@@ -2673,17 +2783,10 @@
       let select = document.querySelector("select");
       let subTitle = document.querySelector(".subtitle");
       // 吃多吃2少吃1
-      let answer1Rate = 0.45;
+      let answer1Rate = 0.5;
       let randomNum = Math.random() < answer1Rate ? 1 : 2;
       let isAutoEat = window.location.search.includes("open=new");
-      if (document.title === "请输入密码") {
-        if (!password.value) {
-          password.value = myPassword;
-        }
-        if (password.value) {
-          submit.click();
-        }
-      } else if (document.title === "应战") {
+      if (document.title === "应战") {
         // 应战结果就返回
         if (!select) {
           location.href = "/games/chuiniu/index.aspx";
@@ -2693,12 +2796,12 @@
         if (subTitle) {
           subTitle.insertAdjacentHTML(
             "beforeend",
-            `<input type="button" class="search-history-data" value='查询历史数据' style="color: #fff; font-size: 14px; background-color: #888888;border-radius: 10%;margin-left:10px">`
+            `<input type="button" class="search-history-data boast-btn-style" value='查询历史数据'>`
           );
           subTitle.insertAdjacentHTML(
             "afterend",
-            `<div class='subTitleTips' style="padding:5px">
-            <span style="color:red">正在分析发牛者历史数据，请等待，数据生成后会根据概率重新生成答案</span>
+            `<div class="subTitleTips boast-card-style">
+            <span style="color:red">正在分析发牛者历史数据请等待，数据生成后会根据概率重新生成答案</span>
             </div>`
           );
           let spaceUrl = document.querySelector(
@@ -2714,7 +2817,6 @@
             tempDiv.innerHTML = bodyString;
             let res = await handleData(tempDiv, true);
             tempDiv = null;
-            console.log(res);
             let {
               total,
               tzSelect1,
@@ -2734,13 +2836,13 @@
             document.querySelector(".subTitleTips").innerHTML = `
               <p>发牛者过去${total}条中，选择了：${tzSelectDomString}，答案一：${tzSelect1}次，选择答案二：${tzSelect2}次</p>
               <p>选择1胜率：
-              <span style="color:${tzSelect1 > tzSelect2 ? "red" : "unset"}">
-              ${(tzSelect1 / total).toFixed(2)}
-              </span>
+              <b style="color:${tzSelect1 > tzSelect2 ? "red" : "unset"}">
+              ${(tzSelect1 / total || 0).toFixed(2)}
+              </b>
               ，选择2胜率：
-              <span style="color:${tzSelect1 < tzSelect2 ? "red" : "unset"}">${(
-              tzSelect2 / total
-            ).toFixed(2)}</span></p>
+              <b style="color:${tzSelect1 < tzSelect2 ? "red" : "unset"}">${(
+              tzSelect2 / total || 0
+            ).toFixed(2)}</b></p>
             `;
 
             answer1Rate = tzSelect1 / total;
@@ -2750,8 +2852,6 @@
             console.log("生成答案1的概率：", answer1Rate);
           }
           $(".search-history-data").click(async () => {
-            // let userId = await getUserId(spaceUrl);
-            // let url = `/games/chuiniu/book_list.aspx?type=0&touserid=${userId}&siteid=1000&classid=0`;
             location.href = url;
           });
         }
@@ -2764,42 +2864,32 @@
         }
         select.insertAdjacentHTML(
           "afterend",
-          `<input type="button" class="random-number-btn" value='随机生成答案' style="color: #fff; font-size: 14px; background-color: #888888;border-radius: 10%;">`
+          `<input type="button" class="random-number-btn boast-btn-style" value='随机生成答案'>`
         );
         $(".random-number-btn").click((e) => {
           randomNum = Math.random() < answer1Rate ? 1 : 2;
           select.value = randomNum;
         });
-
-        console.log(`随机答案：${randomNum},是否吃吹牛`);
-      } else {
-        // history.back();
+      } else if (document.title !== "请输入密码") {
         location.href = "/games/chuiniu/index.aspx";
       }
     }
 
     // 发布吹牛页面
     if ("/games/chuiniu/add.aspx".includes(location.pathname)) {
-      let password = document.querySelector("input[type=password]");
       let submit = document.querySelector("input[type=submit]");
       let select = document.querySelector("select");
-      let answer1Rate = 0.42;
+      let answer1Rate = 0.5;
       let randomNum = Math.random() < answer1Rate ? 2 : 1;
+      let isAutoEat = window.location.search.includes("open=new");
 
-      if (document.title === "请输入密码") {
-        if (!password.value) {
-          password.value = myPassword;
-        }
-        if (password.value) {
-          submit.click();
-        }
-      } else if (document.title === "公开挑战") {
+      if (document.title === "公开挑战") {
         if (select) {
           select.value = randomNum;
 
           select.insertAdjacentHTML(
             "afterend",
-            `<input type="button" class="random-number-btn" value='随机生成答案' style="color: #fff; font-size: 14px; background-color: #888888;border-radius: 10%;">`
+            `<input type="button" class="random-number-btn boast-btn-style" value='随机生成答案'>`
           );
 
           $(".random-number-btn").click((e) => {
@@ -2807,24 +2897,32 @@
             let randomNum = Math.random() < answer1Rate ? 2 : 1;
             select.value = randomNum;
           });
+          // iframe里或者自动发肉就提交
+          if (window.self !== window.top || isAutoEat) {
+            submit?.click();
+          }
         } else {
           let tip = document.querySelector(".tip");
           if (tip) {
             // iframe里
             if (window.self !== window.top) {
-              let tip = document.querySelector(".tip");
-              submit?.click();
-              if (tip) {
-                setTimeout(() => {
-                  console.log("这是iframe页面3");
-                  let iframe = window.frameElement; // 获取当前 iframe 元素
-                  let parent = iframe.parentElement; // 获取包含当前 iframe 的父窗口对象
+              setTimeout(() => {
+                let iframe = window.frameElement; // 获取当前 iframe 元素
+                let parent = iframe.parentElement; // 获取包含当前 iframe 的父窗口对象
 
-                  parent.removeChild(iframe);
-                }, 2000);
-              }
+                parent.removeChild(iframe);
+              }, 2000);
             } else {
-              location.href = "/games/chuiniu/index.aspx";
+              let publishNumber = getItem("publishNumber");
+
+              setTimeout(() => {
+                if (publishNumber <= 0) {
+                  location.href = "/games/chuiniu/index.aspx";
+                } else {
+                  setItem("publishNumber", publishNumber - 1);
+                  location.href = "/games/chuiniu/add.aspx?open=new";
+                }
+              }, 500);
             }
           }
         }
@@ -2857,6 +2955,18 @@
         </div>
         `
       );
+      MY_addStyle(`
+        .statistics-btn{
+          background: #888888;
+          border-radius: 5px;
+          width: 100%;
+          color: #fff;
+          box-sizing: border-box;
+          display: inline-block;
+          text-align: center;
+          cursor: pointer;
+        }
+      `);
       let isClick = false;
       $(".statistics-btn").click(async () => {
         if (!isClick) {
@@ -2894,6 +3004,9 @@
         let id = item.innerText;
         if (item.parentElement.innerText.includes("进行中")) {
           continue;
+        }
+        if (isReturnResult && total >= 10) {
+          break;
         }
 
         let curData;
@@ -2937,7 +3050,7 @@
         tzSelectDomString += `<b style="color:${
           curData.battleStatus === "失败" ? "red" : "green"
         }">${curData.challengerAnswer}</b>`;
-        //  autoEatList[id]['lastTime'] = new Date().getTime();
+
         total++;
 
         if (curData.battleStatus === "获胜") {
@@ -3100,7 +3213,7 @@
         // 当前页面没有 <iframe> 元素，执行操作
         setTimeout(() => {
           location.reload();
-        }, 1000);
+        }, 2000);
 
         // 停止观察
         observer.disconnect();
