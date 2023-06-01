@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【测试版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      0.1.0
+// @version      0.2.0
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -18,7 +18,7 @@
   $ = jQuery = myJquery();
 
   // 设置密码，玩吹牛时隔段时间会要求输密码，填入可自动输入密码并确认
-  let myPassword = "";
+  let websitePassword = "";
   // 是否是自动吃牛
   let isAutoEatBoast = false;
   // 设置大于多少妖精才自动吃牛
@@ -28,13 +28,47 @@
   console.log("------插件开始-------");
   // ==主代码执行==
   (function () {
+    // 自动填充密码并确认
+    handlePassword();
     // 吹牛增强
     handleBoast();
   })();
   // ==其他功能函数和方法==
-
+  // 填充密码
+  function handlePassword() {
+    let password = document.querySelector("input[type=password]");
+    let submit = document.querySelector("input[type=submit]");
+    if (document.title === "请输入密码") {
+      if (!password.value) {
+        password.value = websitePassword;
+      }
+      if (password.value) {
+        submit.click();
+      }
+    }
+  }
   // 处理吹牛
   async function handleBoast() {
+    let eatBoastMaxNum = 550;
+    let isAutoEatBoast = false;
+    let minMoney = 690000;
+    MY_addStyle(`
+      .boast-btn-style{
+        color: #fff; 
+        font-size: 14px; 
+        background-color: #888888;
+        border-radius: 5px;
+        margin-left: 6px;
+        padding: 5px 8px;
+        cursor: pointer;
+      }
+      .boast-card-style{
+        padding:5px; 
+        margin: 5px; 
+        background: #e5f3ee; 
+        border-radius: 6px;
+      }
+    `);
     // 吹牛主页
     if ("/games/chuiniu/index.aspx".includes(location.pathname)) {
       // 添加查询吹牛数据
@@ -46,8 +80,11 @@
       let money = document.querySelector(
         ".subtitle a[href^='/bbs/banklist.aspx']"
       );
+      let publishBoastBtn = document.querySelector(
+        "a[href^='/games/chuiniu/add.aspx']"
+      );
 
-      for (const item of list) {
+      /* for (const item of list) {
         let match = item.innerHTML.match(/\((\d+)妖晶\)$/);
         let number = parseInt(match[1]);
         let href = item.getAttribute("href");
@@ -63,43 +100,45 @@
             location.href = newHref;
           }
         }
-      }
-      let publishBoastBtn = document.querySelector(
-        "a[href^='/games/chuiniu/add.aspx']"
-      );
+      } */
+
       if (publishBoastBtn.innerText === "我要公开挑战") {
         // 添加批量按钮
         publishBoastBtn.insertAdjacentHTML(
           "afterend",
-          `<input type="button" class="batch-publish-btn" value='批量公开挑战' style="color: #fff; font-size: 14px; background-color: #888888;border-radius: 10%;margin-left:10px">`
+          `<input type="button" class="batch-publish-btn boast-btn-style" value='批量公开挑战'>`
         );
         $(".batch-publish-btn").click(() => {
-          if (isMobile()) {
-            alert("暂时只支持pc端，批量发布吹牛，移动端等后续适配");
-            return;
-          }
-          let res = prompt("请输入批量公开挑战的数量：", 10);
-          if (res && /^\d+$/.test(res)) {
+          let number = prompt("请输入批量公开挑战的数量：");
+          if (number && /^\d+$/.test(number)) {
             let i = 0;
             let isfirst = true;
-            while (i < res) {
+            while (i < number) {
               i++;
-              // if (!isMobile()) {
-              setTimeout(() => {
-                let iframe = document.createElement("iframe");
+              if (!isMobile()) {
+                setTimeout(() => {
+                  let iframe = document.createElement("iframe");
 
-                // 设置 iframe 的属性
-                iframe.src = publishBoastBtn.href;
-                // iframe.style.display = "none";
-                document.body.appendChild(iframe);
-                if (isfirst) {
-                  isfirst = false;
-                  handleIframeMutationObserver();
-                }
-              }, (i + 1) * 100);
-              // }
+                  // 设置 iframe 的属性
+                  iframe.src = publishBoastBtn.href;
+                  iframe.style.display = "none";
+                  document.body.appendChild(iframe);
+                  if (isfirst) {
+                    isfirst = false;
+                    handleIframeMutationObserver();
+                  }
+                }, (i + 1) * 100);
+              } else {
+                setItem("publishNumber", number - 1);
+                let href = publishBoastBtn.href;
+                let newHref = href.includes("?")
+                  ? `${href}&open=new`
+                  : `${href}?open=new`;
+                location.href = newHref;
+                return;
+              }
             }
-          } else if (res) {
+          } else if (number) {
             alert("输入的格式不对，只能是大于0的数字");
           }
           console.log(res);
@@ -117,30 +156,22 @@
       let answer1Rate = 0.5;
       let randomNum = Math.random() < answer1Rate ? 1 : 2;
       let isAutoEat = window.location.search.includes("open=new");
-      if (document.title === "请输入密码") {
-        if (!password.value) {
-          password.value = myPassword;
-        }
-        if (password.value) {
-          submit.click();
-        }
-      } else if (document.title === "应战") {
+      if (document.title === "应战") {
         // 应战结果就返回
         if (!select) {
           location.href = "/games/chuiniu/index.aspx";
           return;
         }
         select.value = randomNum;
-        // 添加查询历史数据
         if (subTitle) {
           subTitle.insertAdjacentHTML(
             "beforeend",
-            `<input type="button" class="search-history-data" value='查询历史数据' style="color: #fff; font-size: 14px; background-color: #888888;border-radius: 10%;margin-left:10px">`
+            `<input type="button" class="search-history-data boast-btn-style" value='查询历史数据'>`
           );
           subTitle.insertAdjacentHTML(
             "afterend",
-            `<div class='subTitleTips' style="padding:5px">
-            <span style="color:red">正在分析发牛者历史数据，请等待，数据生成后会根据概率重新生成答案</span>
+            `<div class="subTitleTips boast-card-style">
+            <span style="color:red">正在分析发牛者历史数据请等待，数据生成后会根据概率重新生成答案</span>
             </div>`
           );
           let spaceUrl = document.querySelector(
@@ -175,13 +206,13 @@
             document.querySelector(".subTitleTips").innerHTML = `
               <p>发牛者过去${total}条中，选择了：${tzSelectDomString}，答案一：${tzSelect1}次，选择答案二：${tzSelect2}次</p>
               <p>选择1胜率：
-              <span style="color:${tzSelect1 > tzSelect2 ? "red" : "unset"}">
-              ${(tzSelect1 / total).toFixed(2)}
-              </span>
+              <b style="color:${tzSelect1 > tzSelect2 ? "red" : "unset"}">
+              ${(tzSelect1 / total || 0).toFixed(2)}
+              </b>
               ，选择2胜率：
-              <span style="color:${tzSelect1 < tzSelect2 ? "red" : "unset"}">${(
-              tzSelect2 / total
-            ).toFixed(2)}</span></p>
+              <b style="color:${tzSelect1 < tzSelect2 ? "red" : "unset"}">${(
+              tzSelect2 / total || 0
+            ).toFixed(2)}</b></p>
             `;
 
             answer1Rate = tzSelect1 / total;
@@ -191,8 +222,6 @@
             console.log("生成答案1的概率：", answer1Rate);
           }
           $(".search-history-data").click(async () => {
-            // let userId = await getUserId(spaceUrl);
-            // let url = `/games/chuiniu/book_list.aspx?type=0&touserid=${userId}&siteid=1000&classid=0`;
             location.href = url;
           });
         }
@@ -205,41 +234,32 @@
         }
         select.insertAdjacentHTML(
           "afterend",
-          `<input type="button" class="random-number-btn" value='随机生成答案' style="color: #fff; font-size: 14px; background-color: #888888;border-radius: 10%;">`
+          `<input type="button" class="random-number-btn boast-btn-style" value='随机生成答案'>`
         );
         $(".random-number-btn").click((e) => {
           randomNum = Math.random() < answer1Rate ? 1 : 2;
           select.value = randomNum;
         });
-
-        console.log(`随机答案：${randomNum},是否吃吹牛`);
-      } else {
-        // history.back();
+      } else if (document.title !== "请输入密码") {
         location.href = "/games/chuiniu/index.aspx";
       }
     }
 
     // 发布吹牛页面
     if ("/games/chuiniu/add.aspx".includes(location.pathname)) {
-      let password = document.querySelector("input[type=password]");
       let submit = document.querySelector("input[type=submit]");
       let select = document.querySelector("select");
       let answer1Rate = 0.5;
       let randomNum = Math.random() < answer1Rate ? 2 : 1;
+      let isAutoEat = window.location.search.includes("open=new");
 
-      if (document.title === "请输入密码") {
-        if (!password.value) {
-          password.value = myPassword;
-        }
-        if (password.value) {
-          submit.click();
-        }
-      } else if (document.title === "公开挑战") {
+      if (document.title === "公开挑战") {
         if (select) {
           select.value = randomNum;
+
           select.insertAdjacentHTML(
             "afterend",
-            `<input type="button" class="random-number-btn" value='随机生成答案' style="color: #fff; font-size: 14px; background-color: #888888;border-radius: 10%;">`
+            `<input type="button" class="random-number-btn boast-btn-style" value='随机生成答案'>`
           );
 
           $(".random-number-btn").click((e) => {
@@ -247,25 +267,33 @@
             let randomNum = Math.random() < answer1Rate ? 2 : 1;
             select.value = randomNum;
           });
-          // iframe里
-          if (window.self !== window.top) {
+          // iframe里或者自动发肉就提交
+          if (window.self !== window.top || isAutoEat) {
             submit?.click();
           }
         } else {
-          // iframe里
-          if (window.self !== window.top) {
-            let tip = document.querySelector(".tip");
-            if (tip) {
+          let tip = document.querySelector(".tip");
+          if (tip) {
+            // iframe里
+            if (window.self !== window.top) {
               setTimeout(() => {
-                console.log("这是iframe页面3");
                 let iframe = window.frameElement; // 获取当前 iframe 元素
                 let parent = iframe.parentElement; // 获取包含当前 iframe 的父窗口对象
 
                 parent.removeChild(iframe);
               }, 2000);
+            } else {
+              let publishNumber = getItem("publishNumber");
+
+              setTimeout(() => {
+                if (publishNumber <= 0) {
+                  location.href = "/games/chuiniu/index.aspx";
+                } else {
+                  setItem("publishNumber", publishNumber - 1);
+                  location.href = "/games/chuiniu/add.aspx?open=new";
+                }
+              }, 500);
             }
-          } else {
-            location.href = "/games/chuiniu/index.aspx";
           }
         }
       }
@@ -297,6 +325,18 @@
         </div>
         `
       );
+      MY_addStyle(`
+        .statistics-btn{
+          background: #888888;
+          border-radius: 5px;
+          width: 100%;
+          color: #fff;
+          box-sizing: border-box;
+          display: inline-block;
+          text-align: center;
+          cursor: pointer;
+        }
+      `);
       let isClick = false;
       $(".statistics-btn").click(async () => {
         if (!isClick) {
@@ -328,6 +368,7 @@
       let tzSelectDomString = "";
 
       let boastData = getItem("boastData");
+
       for (let index = 0; index < list.length; index++) {
         const item = list[index];
         let id = item.innerText;
@@ -337,6 +378,7 @@
         if (isReturnResult && total >= 10) {
           break;
         }
+
         let curData;
         if (boastData[id]) {
           curData = boastData[id];
@@ -373,15 +415,13 @@
           boastData[id] = curData;
           setItem("boastData", boastData);
         }
-        total++;
-        // 只返回10条
-
         tzSelectString += curData.challengerAnswer;
         yzSelectString += curData.opponentAnswer;
         tzSelectDomString += `<b style="color:${
           curData.battleStatus === "失败" ? "red" : "green"
         }">${curData.challengerAnswer}</b>`;
-        //  autoEatList[id]['lastTime'] = new Date().getTime();
+
+        total++;
 
         if (curData.battleStatus === "获胜") {
           // 吃吹牛获胜、发吹牛失败
@@ -543,7 +583,7 @@
         // 当前页面没有 <iframe> 元素，执行操作
         setTimeout(() => {
           location.reload();
-        }, 1000);
+        }, 2000);
 
         // 停止观察
         observer.disconnect();
@@ -574,6 +614,18 @@
       console.error("Error:", error);
       return error;
     }
+  }
+  function MY_addStyle(innerHTML) {
+    // 创建 style 元素
+    let style = document.createElement("style");
+    style.type = "text/css";
+
+    // 设置样式内容
+    let css = innerHTML;
+    style.innerHTML = css;
+
+    // 将 style 元素添加到 head 元素中
+    document.head.appendChild(style);
   }
   // 获取url参数
   function getUrlParameters() {
@@ -644,7 +696,7 @@
   function deleteExpiredID(value, key) {
     let nowTime = new Date().getTime();
     // 吹牛数据默认存储7天
-    let expire = key === "boastData" ? 5 : expiredDays;
+    let expire = key === "boastData" ? 5 : 1;
     let lastTime;
     Object.keys(value).forEach((key) => {
       if (key === "boastData") {
