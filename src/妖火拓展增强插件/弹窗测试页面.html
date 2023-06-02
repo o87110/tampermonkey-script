@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modal Example</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      /* 按钮样式 */
+      .btn {
+        padding: 8px 20px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 6px;
+      }
+      .ok-btn {
+        background-color: #1890ff;
+        color: #fff;
+      }
+      .cancel-btn {
+        color: rgba(0, 0, 0, 0.75);
+        background-color: #fff;
+        border: 1px solid #d9d9d9;
+      }
+
+      /* 弹窗遮罩层样式 */
+      .modal {
+        display: none; /* 默认隐藏弹窗 */
+        position: fixed; /* 固定定位，覆盖在页面上 */
+        z-index: 1; /* 设置层级，确保在页面元素上方 */
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto; /* 如果内容超出弹窗高度，添加滚动条 */
+        background-color: rgba(0, 0, 0, 0.4); /* 半透明黑色背景 */
+      }
+
+      /* 弹窗内容样式 */
+      .modal-content {
+        box-sizing: border-box;
+        background-color: #fefefe;
+        margin: 15% auto; /* 将弹窗垂直居中 */
+        padding: 20px;
+        border: 1px solid #888;
+        width: 90%;
+        max-width: 400px; /* 设置最大宽度 */
+        border-radius: 8px;
+      }
+
+      /* 弹窗标题样式 */
+      .modal-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      /* 弹窗按钮样式 */
+      .modal-buttons {
+        text-align: right;
+        margin-top: 20px;
+      }
+
+      /* 关闭按钮样式 */
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+
+      .close:hover,
+      .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <button class="btn">打开弹窗</button>
+
+    <div id="myModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 class="modal-title">弹窗标题</h2>
+        <p>这是一个弹窗！</p>
+        <div class="modal-buttons">
+          <button class="ok-btn btn">确认</button>
+          <button class="cancel-btn btn">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      var modal = document.getElementById("myModal");
+      var btn = document.querySelector(".btn");
+      var closeBtn = document.querySelector(".close");
+
+      btn.addEventListener("click", function () {
+        modal.style.display = "block";
+      });
+
+      closeBtn.addEventListener("click", function () {
+        modal.style.display = "none";
+      });
+
+      window.addEventListener("click", function (event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      });
+    </script>
+  </body>
+</html>

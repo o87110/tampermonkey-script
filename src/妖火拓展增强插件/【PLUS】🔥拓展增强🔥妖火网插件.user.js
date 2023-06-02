@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.2.9
+// @version      3.2.10
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -72,10 +72,18 @@
     isUnfoldFace: false,
     // 是否默认展开表情
     isUnfoldUbb: false,
+    // 是否增加回帖随机颜色
+    isAddReplyRandomColor: true,
+    // 每个字随机颜色概率
+    colorByCharacterRate: 0.01,
+    // 整句随机颜色概率
+    colorByAllRate: 0.1,
+
     // 是否自动上传到图床
     isUploadImage: false,
     // 上传图床token
     token: "",
+
     // 站内密码
     websitePassword: "",
     // 吹牛设置
@@ -132,6 +140,10 @@
     isAddReplyFace,
     isUnfoldFace,
     isUnfoldUbb,
+
+    isAddReplyRandomColor,
+    colorByCharacterRate,
+    colorByAllRate,
 
     loadNextPageType,
 
@@ -1485,6 +1497,7 @@
                 <label for="isUnfoldFace"></label>
               </div>
             </li>
+            <hr>
             <li>
               <span>回帖UBB增强</span>
               <div class="switch">
@@ -1498,6 +1511,38 @@
                 <input type="checkbox" id="isUnfoldUbb" data-key="isUnfoldUbb" />
                 <label for="isUnfoldUbb"></label>
               </div>
+            </li>
+            <hr>
+            <li>
+              <span>回帖随机颜色</span>
+              <div class="switch">
+                <input type="checkbox" id="isAddReplyRandomColor" data-key="isAddReplyRandomColor" />
+                <label for="isAddReplyRandomColor"></label>
+              </div>
+            </li>
+            <li>
+              <span>每个字随机颜色概率：<i class="range-num">${colorByCharacterRate}</i></span>
+              <input
+                type="range"
+                id="colorByCharacterRate"
+                data-key="colorByCharacterRate"
+                min="${0}"
+                value="${colorByCharacterRate}"
+                max="${1}"
+                step="${0.01}"
+              />
+            </li>
+            <li>
+              <span>整句随机颜色概率：<i class="range-num">${colorByAllRate}</i></span>
+              <input
+                type="range"
+                id="colorByAllRate"
+                data-key="colorByAllRate"
+                min="${0}"
+                value="${colorByAllRate}"
+                max="${1}"
+                step="${0.01}"
+              />
             </li>
             <li class="yaohuo-wrap-title">
               <hr class="title-line title-line-left" />
@@ -1621,6 +1666,11 @@
             autoShowElement({
               fatherIdAry: ["isAddReplyFace"],
               childIdAry: ["isUnfoldFace"],
+              dataKey,
+            });
+            autoShowElement({
+              fatherIdAry: ["isAddReplyRandomColor"],
+              childIdAry: ["colorByAllRate", "colorByCharacterRate"],
               dataKey,
             });
             autoShowElement({
@@ -2268,7 +2318,7 @@
     if (
       (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
         viewPage.includes(window.location.pathname) ||
-        "/bbs/userguessbook.aspx".includes(window.location.pathname)) &&
+        ["/bbs/userguessbook.aspx"].includes(window.location.pathname)) &&
       isAddReplyUBB
     ) {
       const form = document.getElementsByName("f")[0];
@@ -2449,8 +2499,9 @@
   }
   function handleAddReplyRandomColor() {
     if (
-      /^\/bbs-.*\.html$/.test(window.location.pathname) ||
-      viewPage.includes(window.location.pathname)
+      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
+        viewPage.includes(window.location.pathname)) &&
+      isAddReplyRandomColor
     ) {
       const form = document.getElementsByName("f")[0];
       if (!form) {
@@ -2463,10 +2514,9 @@
       let randomColor = getColorWithinBrightnessRange(0, 200);
       let random = Math.random();
       // 整句随机颜色
-      let isAddColorByAll = random < 0.1;
+      let isAddColorByAll = random < colorByAllRate;
       // 每个字符随机颜色
-      let isAddColorByCharacter = random < 0.01;
-      let isAddColor = isAddColorByAll || isAddColorByCharacter;
+      let isAddColorByCharacter = random < colorByCharacterRate;
       let reg = /\[(\w+)=?([^\]]+)?\]([\s\S]*?)\[\/\1\]/;
       let colorReg =
         /\[forecolor=(#[0-9A-Fa-f]{6}|[A-Za-z]+)\].*?\[\/forecolor\]/;
@@ -2794,12 +2844,16 @@
   }
   // 处理吹牛
   async function handleBoast() {
-    if (!isOpenBoast) {
+    let boastPage = [
+      "/games/chuiniu/index.aspx",
+      "/games/chuiniu/doit.aspx",
+      "/games/chuiniu/add.aspx",
+      "/games/chuiniu/book_list.aspx",
+      "/games/chuiniu/book_view.aspx",
+    ];
+    if (!isOpenBoast || !boastPage.includes(location.pathname)) {
       return;
     }
-    // let eatBoastMaxNum = 550;
-    // let isAutoEatBoast = false;
-    // let eatBoastMaxMoney = 690000;
     MY_addStyle(`
       .boast-btn-style{
         color: #fff; 
@@ -3059,6 +3113,18 @@
     if ("/games/chuiniu/book_list.aspx".includes(location.pathname)) {
       handleAddSearch();
       handleStatistics();
+      // 处理如果是进行中则直接跳转到对应吃牛页面
+      let list = document.querySelectorAll(
+        "a[href^='/games/chuiniu/book_view.aspx']"
+      );
+      for (let index = 0; index < list.length; index++) {
+        const item = list[index];
+        let id = item.innerText;
+        if (item.parentElement.innerText.includes("进行中")) {
+          item.href = `/games/chuiniu/doit.aspx?siteid=1000&classid=0&id=${id}`;
+          console.log(`修改完成：${item.href}`);
+        }
+      }
     }
     // 查看状态
     if ("/games/chuiniu/book_view.aspx".includes(location.pathname)) {
