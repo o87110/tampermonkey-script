@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.2.8
+// @version      3.2.9
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -78,6 +78,21 @@
     token: "",
     // 站内密码
     websitePassword: "",
+    // 吹牛设置
+    // 吹牛总开关
+    isOpenBoast: false,
+    // 发吹牛答案1的概率
+    publishAnswer1Rate: 0.5,
+    // 吃吹牛答案1的概率
+    eatAnswer1Rate: 0.5,
+    // 批量发牛金额
+    batchPublishBoastMoney: 500,
+    // 是否自动吃吹牛
+    isAutoEatBoast: false,
+    // 赌注妖精大于则不自动吃
+    eatBoastMaxNum: 500,
+    // 自身妖精小于则不自动吃
+    eatBoastMaxMoney: 100000,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -124,6 +139,14 @@
     token,
 
     websitePassword,
+    isOpenBoast,
+    publishAnswer1Rate,
+    eatAnswer1Rate,
+
+    batchPublishBoastMoney,
+    isAutoEatBoast,
+    eatBoastMaxNum,
+    eatBoastMaxMoney,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1160,12 +1183,12 @@
       }
 
       .yaohuo-wrap-title{
-        /* height: 38px !important; */
+        height: 38px !important;
       }
       .yaohuo-wrap-title .title-line {
         margin: 0px;
         border: none;
-        border-top: 2px solid #ddd;
+        border-top: 1px dashed #dcdcdc;
         width: 30%; /* 可根据需要调整宽度 */
       }
 
@@ -1174,6 +1197,10 @@
         box-sizing: border-box;
         height: 32px;
         padding-right: 28px;
+      }
+      .yaohuo-wrap li input[type="number"] {
+        box-sizing: border-box;
+        height: 30px;
       }
 
       .yaohuo-wrap .switch label {
@@ -1312,11 +1339,75 @@
               <hr class="title-line title-line-right" />
             </li>
             <li>
-              <span>批量发牛</span>
+              <span>吹牛总开关</span>
               <div class="switch">
-                <input type="checkbox" id="isAutoEat" data-key="isAutoEat" />
-                <label for="isAutoEat"></label>
+                <input type="checkbox" id="isOpenBoast" data-key="isOpenBoast" />
+                <label for="isOpenBoast"></label>
               </div>
+            </li>
+            <li>
+              <span>发牛答案一概率：<i class="range-num">${publishAnswer1Rate}</i></span>
+              <input
+                type="range"
+                id="publishAnswer1Rate"
+                data-key="publishAnswer1Rate"
+                min="${0}"
+                value="${publishAnswer1Rate}"
+                max="${1}"
+                step="${0.01}"
+              />
+            </li>
+            <li>
+              <span>吃牛答案一概率：<i class="range-num">${eatAnswer1Rate}</i></span>
+              <input
+                type="range"
+                id="eatAnswer1Rate"
+                data-key="eatAnswer1Rate"
+                min="${0}"
+                value="${eatAnswer1Rate}"
+                max="${1}"
+                step="${0.01}"
+              />
+            </li>
+            <li>
+              <span>批量发牛金额</span>
+              <input 
+                type="number" 
+                id="batchPublishBoastMoney"
+                data-key="batchPublishBoastMoney"
+                min="${500}"
+                step="${100}"
+                value="${batchPublishBoastMoney}"
+              >
+            </li>
+            <li>
+              <span>自动吃吹牛</span>
+              <div class="switch">
+                <input type="checkbox" id="isAutoEatBoast" data-key="isAutoEatBoast" />
+                <label for="isAutoEatBoast"></label>
+              </div>
+            </li>
+            <li>
+              <span>自动吃牛最大赌注妖精</span>
+              <input 
+                type="number" 
+                id="eatBoastMaxNum"
+                data-key="eatBoastMaxNum"
+                min="${0}"
+                step="${100}"
+                value="${eatBoastMaxNum}"
+              >
+            </li>
+            <li>
+              <span>自身妖精低于则不自动吃</span>
+              <input 
+                type="number" 
+                id="eatBoastMaxMoney"
+                data-key="eatBoastMaxMoney"
+                min="${0}"
+                step="${100}"
+                value="${eatBoastMaxMoney}"
+              >
             </li>
             <li class="yaohuo-wrap-title">
               <hr class="title-line title-line-left" />
@@ -1394,7 +1485,6 @@
                 <label for="isUnfoldFace"></label>
               </div>
             </li>
-            <hr>
             <li>
               <span>回帖UBB增强</span>
               <div class="switch">
@@ -1533,6 +1623,23 @@
               childIdAry: ["isUnfoldFace"],
               dataKey,
             });
+            autoShowElement({
+              fatherIdAry: ["isOpenBoast"],
+              childIdAry: [
+                "publishAnswer1Rate",
+                "eatAnswer1Rate",
+                "batchPublishBoastMoney",
+                "isAutoEatBoast",
+                "eatBoastMaxNum",
+                "eatBoastMaxMoney",
+              ],
+              dataKey,
+            });
+            autoShowElement({
+              fatherIdAry: ["isAutoEatBoast"],
+              childIdAry: ["eatBoastMaxNum", "eatBoastMaxMoney"],
+              dataKey,
+            });
           } else {
             setValue(dataKey, item.checked);
           }
@@ -1544,7 +1651,7 @@
               $(item).prev().children(".range-num").text(item.value);
             });
           } else {
-            setValue(dataKey, parseInt(item.value));
+            setValue(dataKey, parseFloat(item.value));
           }
           break;
 
@@ -1562,6 +1669,14 @@
         case "number":
           if (status === "edit") {
             item.value = getValue(dataKey);
+            $(item).on("change", function (event) {
+              if (
+                dataKey === "batchPublishBoastMoney" &&
+                (event.target.value < 500 || isNaN(event.target.value))
+              ) {
+                item.value = "500";
+              }
+            });
           } else {
             setValue(dataKey, item.value);
           }
@@ -2679,9 +2794,12 @@
   }
   // 处理吹牛
   async function handleBoast() {
-    let eatBoastMaxNum = 550;
-    let isAutoEatBoast = false;
-    let minMoney = 690000;
+    if (!isOpenBoast) {
+      return;
+    }
+    // let eatBoastMaxNum = 550;
+    // let isAutoEatBoast = false;
+    // let eatBoastMaxMoney = 690000;
     MY_addStyle(`
       .boast-btn-style{
         color: #fff; 
@@ -2714,7 +2832,7 @@
         "a[href^='/games/chuiniu/add.aspx']"
       );
 
-      /* for (const item of list) {
+      for (const item of list) {
         let match = item.innerHTML.match(/\((\d+)妖晶\)$/);
         let number = parseInt(match[1]);
         let href = item.getAttribute("href");
@@ -2722,15 +2840,21 @@
         let newHref = href.includes("?")
           ? `${href}&open=new`
           : `${href}?open=new`;
-
-        if (number <= eatBoastMaxNum) {
-          console.log(`当前小于最大自动吃牛数：${eatBoastMaxNum}`);
-          if (isAutoEatBoast && money.innerText > minMoney + eatBoastMaxNum) {
+        if (isAutoEatBoast && money.innerText - number >= eatBoastMaxMoney) {
+          if (number <= eatBoastMaxNum) {
             // item.click();
             location.href = newHref;
+          } else {
+            console.log(
+              `当前大于设置的赌注妖精：${eatBoastMaxNum}，则不自动吃`
+            );
           }
+        } else {
+          console.log(
+            `当前没有开启自动吃肉，或者减去当前金额${number}小于设置的自身妖精低于${eatBoastMaxMoney}则不自动吃`
+          );
         }
-      } */
+      }
 
       if (publishBoastBtn.innerText === "我要公开挑战") {
         // 添加批量按钮
@@ -2783,7 +2907,8 @@
       let select = document.querySelector("select");
       let subTitle = document.querySelector(".subtitle");
       // 吃多吃2少吃1
-      let answer1Rate = 0.5;
+      let answer1Rate = eatAnswer1Rate;
+      console.log(`吃吹牛答案1的概率：${answer1Rate}`);
       let randomNum = Math.random() < answer1Rate ? 1 : 2;
       let isAutoEat = window.location.search.includes("open=new");
       if (document.title === "应战") {
@@ -2846,21 +2971,21 @@
             `;
 
             answer1Rate = tzSelect1 / total;
-
+            console.log(`重新计算，吃吹牛答案1的概率：${answer1Rate}`);
             randomNum = Math.random() < answer1Rate ? 1 : 2;
             select.value = randomNum;
-            console.log("生成答案1的概率：", answer1Rate);
           }
           $(".search-history-data").click(async () => {
             location.href = url;
           });
         }
-
         let payMoney = document
           .querySelector("form")
           ?.innerText.match(/赌注是 (\d+) 妖晶/)?.[1];
         if (isAutoEat && payMoney && payMoney <= eatBoastMaxNum) {
           submit.click();
+        } else {
+          console.log("非自动吃牛，不自动吃");
         }
         select.insertAdjacentHTML(
           "afterend",
@@ -2879,7 +3004,8 @@
     if ("/games/chuiniu/add.aspx".includes(location.pathname)) {
       let submit = document.querySelector("input[type=submit]");
       let select = document.querySelector("select");
-      let answer1Rate = 0.5;
+      let answer1Rate = publishAnswer1Rate;
+      console.log(`发布吹牛答案1的概率：${answer1Rate}`);
       let randomNum = Math.random() < answer1Rate ? 2 : 1;
       let isAutoEat = window.location.search.includes("open=new");
 
@@ -2966,6 +3092,14 @@
           text-align: center;
           cursor: pointer;
         }
+        /* 已访问的链接状态 */
+        a.statistics-btn:visited{
+          color: #fff;
+        }
+        /* 正在点击链接时的状态 */
+        a.statistics-btn:active{
+          color: #fff;
+        }
       `);
       let isClick = false;
       $(".statistics-btn").click(async () => {
@@ -3005,9 +3139,9 @@
         if (item.parentElement.innerText.includes("进行中")) {
           continue;
         }
-        if (isReturnResult && total >= 10) {
-          break;
-        }
+        // if (isReturnResult && total >= 10) {
+        //   break;
+        // }
 
         let curData;
         if (boastData[id]) {
