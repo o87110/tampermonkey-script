@@ -3321,7 +3321,7 @@
         });
         alert(
           `
-          =====当前页发吹牛总条数：${total}====
+          ====当前页发吹牛总条数：${total}===\n
           发吹牛选择：${tzSelectString}\n
           发吹牛选1的次数：${tzSelect1}，选2的次数：${tzSelect2}\n
           实际发吹牛选1赢的概率：${(tzSelect1Win / total).toFixed(
@@ -3331,7 +3331,7 @@
             2
           )}，选2赢的概率：${(tzSelect2 / total).toFixed(2)}\n
           发吹牛赢的次数：${tzWin}，胜率：${tzWinRate}\n
-          =====当前页吃吹牛总条数：${total}=====
+          ====当前页吃吹牛总条数：${total}====\n
           吃吹牛选择：${yzSelectString}\n
           吃吹牛选1的次数：${yzSelect1}，选2的次数：${yzSelect2}\n
           实际吃吹牛实际选1赢的概率：${(yzSelect1Win / total).toFixed(
