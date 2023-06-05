@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【测试版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      0.2.0
+// @version      0.3.0
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -23,9 +23,17 @@
   let isAutoEatBoast = false;
   // 设置大于多少妖精才自动吃牛
   let minMoney = 690000;
-  // 设置自动吃牛最大数量，当前牛妖精小于等于这个数才自动吃
+  // 赌注妖精大于则不自动吃
   let eatBoastMaxNum = 500;
-  console.log("------插件开始-------");
+  // 自身妖精小于则不自动吃
+  let eatBoastMaxMoney = 100000;
+  // 批量发牛金额，
+  let batchPublishBoastMoney = 500;
+  // 发吹牛答案1的概率，如果设置0.6代表60%选1,40%选2
+  let publishAnswer1Rate = 0.5;
+  // 吃吹牛答案1的概率，如果设置0.6代表60%选1,40%选2
+  let eatAnswer1Rate = 0.5;
+
   // ==主代码执行==
   (function () {
     // 自动填充密码并确认
@@ -49,9 +57,17 @@
   }
   // 处理吹牛
   async function handleBoast() {
-    let eatBoastMaxNum = 550;
-    let isAutoEatBoast = false;
-    let minMoney = 690000;
+    let boastPage = [
+      "/games/chuiniu/index.aspx",
+      "/games/chuiniu/doit.aspx",
+      "/games/chuiniu/add.aspx",
+      "/games/chuiniu/book_list.aspx",
+      "/games/chuiniu/book_view.aspx",
+    ];
+    if (!boastPage.includes(location.pathname)) {
+      return;
+    }
+
     MY_addStyle(`
       .boast-btn-style{
         color: #fff; 
@@ -84,7 +100,7 @@
         "a[href^='/games/chuiniu/add.aspx']"
       );
 
-      /* for (const item of list) {
+      for (const item of list) {
         let match = item.innerHTML.match(/\((\d+)妖晶\)$/);
         let number = parseInt(match[1]);
         let href = item.getAttribute("href");
@@ -92,15 +108,21 @@
         let newHref = href.includes("?")
           ? `${href}&open=new`
           : `${href}?open=new`;
-
-        if (number <= eatBoastMaxNum) {
-          console.log(`当前小于最大自动吃牛数：${eatBoastMaxNum}`);
-          if (isAutoEatBoast && money.innerText > minMoney + eatBoastMaxNum) {
+        if (isAutoEatBoast && money.innerText - number >= eatBoastMaxMoney) {
+          if (number <= eatBoastMaxNum) {
             // item.click();
             location.href = newHref;
+          } else {
+            console.log(
+              `当前大于设置的赌注妖精：${eatBoastMaxNum}，则不自动吃`
+            );
           }
+        } else {
+          console.log(
+            `当前没有开启自动吃肉，或者减去当前金额${number}小于设置的自身妖精低于${eatBoastMaxMoney}则不自动吃`
+          );
         }
-      } */
+      }
 
       if (publishBoastBtn.innerText === "我要公开挑战") {
         // 添加批量按钮
@@ -111,37 +133,15 @@
         $(".batch-publish-btn").click(() => {
           let number = prompt("请输入批量公开挑战的数量：");
           if (number && /^\d+$/.test(number)) {
-            let i = 0;
-            let isfirst = true;
-            while (i < number) {
-              i++;
-              if (!isMobile()) {
-                setTimeout(() => {
-                  let iframe = document.createElement("iframe");
-
-                  // 设置 iframe 的属性
-                  iframe.src = publishBoastBtn.href;
-                  iframe.style.display = "none";
-                  document.body.appendChild(iframe);
-                  if (isfirst) {
-                    isfirst = false;
-                    handleIframeMutationObserver();
-                  }
-                }, (i + 1) * 100);
-              } else {
-                setItem("publishNumber", number - 1);
-                let href = publishBoastBtn.href;
-                let newHref = href.includes("?")
-                  ? `${href}&open=new`
-                  : `${href}?open=new`;
-                location.href = newHref;
-                return;
-              }
-            }
+            setItem("publishNumber", number - 1);
+            let href = publishBoastBtn.href;
+            let newHref = href.includes("?")
+              ? `${href}&open=new`
+              : `${href}?open=new`;
+            location.href = newHref;
           } else if (number) {
             alert("输入的格式不对，只能是大于0的数字");
           }
-          console.log(res);
         });
       }
     }
@@ -153,7 +153,7 @@
       let select = document.querySelector("select");
       let subTitle = document.querySelector(".subtitle");
       // 吃多吃2少吃1
-      let answer1Rate = 0.5;
+      let answer1Rate = eatAnswer1Rate;
       let randomNum = Math.random() < answer1Rate ? 1 : 2;
       let isAutoEat = window.location.search.includes("open=new");
       if (document.title === "应战") {
@@ -231,6 +231,8 @@
           ?.innerText.match(/赌注是 (\d+) 妖晶/)?.[1];
         if (isAutoEat && payMoney && payMoney <= eatBoastMaxNum) {
           submit.click();
+        } else {
+          console.log("非自动吃牛，不自动吃");
         }
         select.insertAdjacentHTML(
           "afterend",
@@ -247,14 +249,16 @@
 
     // 发布吹牛页面
     if ("/games/chuiniu/add.aspx".includes(location.pathname)) {
+      let number = document.querySelector("input[type=number]");
       let submit = document.querySelector("input[type=submit]");
       let select = document.querySelector("select");
-      let answer1Rate = 0.5;
+      let answer1Rate = publishAnswer1Rate;
       let randomNum = Math.random() < answer1Rate ? 2 : 1;
       let isAutoEat = window.location.search.includes("open=new");
 
       if (document.title === "公开挑战") {
         if (select) {
+          number.value = batchPublishBoastMoney || 500;
           select.value = randomNum;
 
           select.insertAdjacentHTML(
@@ -274,26 +278,16 @@
         } else {
           let tip = document.querySelector(".tip");
           if (tip) {
-            // iframe里
-            if (window.self !== window.top) {
-              setTimeout(() => {
-                let iframe = window.frameElement; // 获取当前 iframe 元素
-                let parent = iframe.parentElement; // 获取包含当前 iframe 的父窗口对象
+            let publishNumber = getItem("publishNumber", "0");
 
-                parent.removeChild(iframe);
-              }, 2000);
-            } else {
-              let publishNumber = getItem("publishNumber");
-
-              setTimeout(() => {
-                if (publishNumber <= 0) {
-                  location.href = "/games/chuiniu/index.aspx";
-                } else {
-                  setItem("publishNumber", publishNumber - 1);
-                  location.href = "/games/chuiniu/add.aspx?open=new";
-                }
-              }, 500);
-            }
+            setTimeout(() => {
+              setItem("publishNumber", publishNumber - 1);
+              if (publishNumber <= 0) {
+                location.href = "/games/chuiniu/index.aspx";
+              } else {
+                location.href = "/games/chuiniu/add.aspx?open=new";
+              }
+            }, 500);
           }
         }
       }
@@ -303,6 +297,18 @@
     if ("/games/chuiniu/book_list.aspx".includes(location.pathname)) {
       handleAddSearch();
       handleStatistics();
+      // 处理如果是进行中则直接跳转到对应吃牛页面
+      let list = document.querySelectorAll(
+        "a[href^='/games/chuiniu/book_view.aspx']"
+      );
+      for (let index = 0; index < list.length; index++) {
+        const item = list[index];
+        let id = item.innerText;
+        if (item.parentElement.innerText.includes("进行中")) {
+          item.href = `/games/chuiniu/doit.aspx?siteid=1000&classid=0&id=${id}`;
+          console.log(`修改完成：${item.href}`);
+        }
+      }
     }
     // 查看状态
     if ("/games/chuiniu/book_view.aspx".includes(location.pathname)) {
@@ -335,6 +341,14 @@
           display: inline-block;
           text-align: center;
           cursor: pointer;
+        }
+        /* 已访问的链接状态 */
+        a.statistics-btn:visited{
+          color: #fff;
+        }
+        /* 正在点击链接时的状态 */
+        a.statistics-btn:active{
+          color: #fff;
         }
       `);
       let isClick = false;
@@ -473,22 +487,6 @@
           yzSelectString,
         };
       } else {
-        console.log({
-          total,
-          tzSelectString,
-          yzSelectString,
-          tzSelect1,
-          tzSelect2,
-          tzSelect1Win,
-          tzSelect2Win,
-          tzWin,
-          tzWinRate,
-          yzSelect1,
-          yzSelect2,
-          yzSelect1Win,
-          yzSelect2Win,
-          yzSelectString,
-        });
         alert(
           `
           =====当前页发吹牛总条数：${total}====
@@ -566,38 +564,6 @@
       let res = await fetchData(url);
       let id = res.match(/<b>ID号:<\/b>(\d+)/)?.[1];
       return id;
-    }
-    // 监听iframe移除时刷新页面
-    function handleIframeMutationObserver() {
-      const observer = new MutationObserver(function (mutationsList, observer) {
-        for (let mutation of mutationsList) {
-          if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-            for (let node of mutation.addedNodes) {
-              if (node.tagName === "IFRAME") {
-                return; // 存在 <iframe> 元素，不执行操作
-              }
-            }
-          }
-        }
-
-        // 当前页面没有 <iframe> 元素，执行操作
-        setTimeout(() => {
-          location.reload();
-        }, 2000);
-
-        // 停止观察
-        observer.disconnect();
-      });
-
-      // 配置观察选项
-      const observerConfig = {
-        childList: true, // 监听子节点的变化
-        subtree: true, // 监听后代节点的变化
-      };
-
-      const targetNode = document.body;
-
-      observer.observe(targetNode, observerConfig);
     }
   }
   // 封装请求

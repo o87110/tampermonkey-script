@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.3.1
+// @version      3.3.2
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -3053,37 +3053,15 @@
         $(".batch-publish-btn").click(() => {
           let number = prompt("请输入批量公开挑战的数量：");
           if (number && /^\d+$/.test(number)) {
-            let i = 0;
-            let isfirst = true;
-            while (i < number) {
-              i++;
-              if (!isMobile()) {
-                setTimeout(() => {
-                  let iframe = document.createElement("iframe");
-
-                  // 设置 iframe 的属性
-                  iframe.src = publishBoastBtn.href;
-                  iframe.style.display = "none";
-                  document.body.appendChild(iframe);
-                  if (isfirst) {
-                    isfirst = false;
-                    handleIframeMutationObserver();
-                  }
-                }, (i + 1) * 100);
-              } else {
-                setItem("publishNumber", number - 1);
-                let href = publishBoastBtn.href;
-                let newHref = href.includes("?")
-                  ? `${href}&open=new`
-                  : `${href}?open=new`;
-                location.href = newHref;
-                return;
-              }
-            }
+            setItem("publishNumber", number - 1);
+            let href = publishBoastBtn.href;
+            let newHref = href.includes("?")
+              ? `${href}&open=new`
+              : `${href}?open=new`;
+            location.href = newHref;
           } else if (number) {
             alert("输入的格式不对，只能是大于0的数字");
           }
-          console.log(res);
         });
       }
     }
@@ -3190,6 +3168,7 @@
 
     // 发布吹牛页面
     if ("/games/chuiniu/add.aspx".includes(location.pathname)) {
+      let number = document.querySelector("input[type=number]");
       let submit = document.querySelector("input[type=submit]");
       let select = document.querySelector("select");
       let answer1Rate = publishAnswer1Rate;
@@ -3199,6 +3178,7 @@
 
       if (document.title === "公开挑战") {
         if (select) {
+          number.value = batchPublishBoastMoney || 500;
           select.value = randomNum;
 
           select.insertAdjacentHTML(
@@ -3218,26 +3198,16 @@
         } else {
           let tip = document.querySelector(".tip");
           if (tip) {
-            // iframe里
-            if (window.self !== window.top) {
-              setTimeout(() => {
-                let iframe = window.frameElement; // 获取当前 iframe 元素
-                let parent = iframe.parentElement; // 获取包含当前 iframe 的父窗口对象
+            let publishNumber = getItem("publishNumber", "0");
 
-                parent.removeChild(iframe);
-              }, 2000);
-            } else {
-              let publishNumber = getItem("publishNumber");
-
-              setTimeout(() => {
-                if (publishNumber <= 0) {
-                  location.href = "/games/chuiniu/index.aspx";
-                } else {
-                  setItem("publishNumber", publishNumber - 1);
-                  location.href = "/games/chuiniu/add.aspx?open=new";
-                }
-              }, 500);
-            }
+            setTimeout(() => {
+              setItem("publishNumber", publishNumber - 1);
+              if (publishNumber <= 0) {
+                location.href = "/games/chuiniu/index.aspx";
+              } else {
+                location.href = "/games/chuiniu/add.aspx?open=new";
+              }
+            }, 500);
           }
         }
       }
@@ -3437,22 +3407,6 @@
           yzSelectString,
         };
       } else {
-        console.log({
-          total,
-          tzSelectString,
-          yzSelectString,
-          tzSelect1,
-          tzSelect2,
-          tzSelect1Win,
-          tzSelect2Win,
-          tzWin,
-          tzWinRate,
-          yzSelect1,
-          yzSelect2,
-          yzSelect1Win,
-          yzSelect2Win,
-          yzSelectString,
-        });
         alert(
           `
           ====当前页发吹牛总条数：${total}===\n
@@ -3530,38 +3484,6 @@
       let res = await fetchData(url);
       let id = res.match(/<b>ID号:<\/b>(\d+)/)?.[1];
       return id;
-    }
-    // 监听iframe移除时刷新页面
-    function handleIframeMutationObserver() {
-      const observer = new MutationObserver(function (mutationsList, observer) {
-        for (let mutation of mutationsList) {
-          if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-            for (let node of mutation.addedNodes) {
-              if (node.tagName === "IFRAME") {
-                return; // 存在 <iframe> 元素，不执行操作
-              }
-            }
-          }
-        }
-
-        // 当前页面没有 <iframe> 元素，执行操作
-        setTimeout(() => {
-          location.reload();
-        }, 2000);
-
-        // 停止观察
-        observer.disconnect();
-      });
-
-      // 配置观察选项
-      const observerConfig = {
-        childList: true, // 监听子节点的变化
-        subtree: true, // 监听后代节点的变化
-      };
-
-      const targetNode = document.body;
-
-      observer.observe(targetNode, observerConfig);
     }
   }
   /**
