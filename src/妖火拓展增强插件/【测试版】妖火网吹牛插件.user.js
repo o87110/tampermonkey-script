@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【测试版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      0.3.1
+// @version      0.3.2
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -279,10 +279,11 @@
             let publishNumber = getItem("publishNumber", "0");
 
             setTimeout(() => {
-              setItem("publishNumber", publishNumber - 1);
               if (publishNumber <= 0) {
+                setItem("publishNumber", "0");
                 location.href = "/games/chuiniu/index.aspx";
               } else {
+                setItem("publishNumber", publishNumber - 1);
                 location.href = "/games/chuiniu/add.aspx?open=new";
               }
             }, 500);
@@ -635,7 +636,7 @@
       setItem(key, list);
       return list;
     }
-    return MY_getValue(key, {});
+    return MY_getValue(key, defaultValue);
   }
   // 设置值
   function setItem(key, value) {
