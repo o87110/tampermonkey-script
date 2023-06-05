@@ -21,8 +21,6 @@
   let websitePassword = "";
   // 是否是自动吃牛
   let isAutoEatBoast = false;
-  // 设置大于多少妖精才自动吃牛
-  let minMoney = 690000;
   // 赌注妖精大于则不自动吃
   let eatBoastMaxNum = 500;
   // 自身妖精小于则不自动吃
