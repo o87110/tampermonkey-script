@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.2.10
+// @version      3.3.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -82,7 +82,10 @@
     // 是否自动上传到图床
     isUploadImage: false,
     // 上传图床token
-    token: "",
+    imageBedType: "极速图床",
+    inkToken: "",
+    meetToken: "",
+    speedFreeToken: "",
 
     // 站内密码
     websitePassword: "",
@@ -148,7 +151,10 @@
     loadNextPageType,
 
     isUploadImage,
-    token,
+    imageBedType,
+    inkToken,
+    meetToken,
+    speedFreeToken,
 
     websitePassword,
     isOpenBoast,
@@ -1320,14 +1326,74 @@
               </div>
             </li>
             <li>
-              <span>图床token</span>
+              <span>图床设置</span>
+              <select data-key="imageBedType" id="imageBedType">
+                <option value="水墨图床">水墨图床</option>
+                <option value="遇见图床">遇见图床</option>
+                <option value="极速图床">极速图床</option>
+              </select>
+            </li>
+            <li>
+              <span><a href="https://img.ink" target="_blank">水墨图床token</a></span>
               <div class="password-container">
                 <input 
                   type="password" 
                   placeholder="为空则为游客上传"
-                  id="token" 
-                  data-key="token"
-                  value="${token}"
+                  id="inkToken" 
+                  data-key="inkToken"
+                  value="${inkToken}"
+                />
+                <svg
+                  viewBox="64 64 896 896"
+                  focusable="false"
+                  data-icon="eye"
+                  width="20px"
+                  height="20px"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  class="toggle-password"
+                >
+                  <path
+                    d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 0 0 0 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
+                  ></path>
+                </svg>
+              </div>
+            </li>
+            <li>
+              <span><a href="https://www.hualigs.cn" target="_blank">遇见图床token</a></span>
+              <div class="password-container">
+                <input 
+                  type="password" 
+                  placeholder="为空则为游客上传"
+                  id="meetToken" 
+                  data-key="meetToken"
+                  value="${meetToken}"
+                />
+                <svg
+                  viewBox="64 64 896 896"
+                  focusable="false"
+                  data-icon="eye"
+                  width="20px"
+                  height="20px"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  class="toggle-password"
+                >
+                  <path
+                    d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 0 0 0 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
+                  ></path>
+                </svg>
+              </div>
+            </li>
+            <li>
+              <span><a href="https://tucdn.wpon.cn" target="_blank">极速图床token</a></span>
+              <div class="password-container">
+                <input 
+                  type="password" 
+                  placeholder="为空则为游客上传"
+                  id="speedFreeToken" 
+                  data-key="speedFreeToken"
+                  value="${speedFreeToken}"
                 />
                 <svg
                   viewBox="64 64 896 896"
@@ -1655,7 +1721,12 @@
             });
             autoShowElement({
               fatherIdAry: ["isUploadImage"],
-              childIdAry: ["token"],
+              childIdAry: [
+                "imageBedType",
+                "inkToken",
+                "meetToken",
+                "speedFreeToken",
+              ],
               dataKey,
             });
             autoShowElement({
@@ -1709,8 +1780,9 @@
           if (status === "edit") {
             item.value = getValue(dataKey);
             $(item).on("change", function (event) {
-              $(item).prev().children(".range-num").text(item.value);
+              autoShowImageToken(item, dataKey);
             });
+            autoShowImageToken(item, dataKey);
           } else {
             setValue(dataKey, item.value);
           }
@@ -1754,7 +1826,22 @@
           break;
       }
     });
-
+    function autoShowImageToken(item, dataKey) {
+      if (dataKey === "imageBedType") {
+        let config = {
+          水墨图床: "#inkToken",
+          遇见图床: "#meetToken",
+          极速图床: "#speedFreeToken",
+        };
+        Object.keys(config).forEach((name) => {
+          if (item.value === name) {
+            $(config[name]).closest("li").show();
+          } else {
+            $(config[name]).closest("li").hide();
+          }
+        });
+      }
+    }
     /**
      * 根据当前的选中状态处理子项的显示或隐藏
      * @param {Object} options - 选项对象
@@ -1772,8 +1859,7 @@
       function execFn() {
         if (fatherIdAry.includes(dataKey)) {
           childIdAry.forEach((childId) => {
-            let parent = $(`#${childId}`).parent();
-            parent = parent.prop("tagName") === "LI" ? parent : parent.parent();
+            let parent = $(`#${childId}`).closest("li");
 
             let isShow = fatherIdAry.some((item) =>
               $(`#${item}`).prop("checked")
@@ -1784,11 +1870,25 @@
       }
     }
   }
+  function checkSaveSetting() {
+    let openUploadImageBed = $("#isUploadImage").prop("checked");
+    let imageBedType = $("#imageBedType").prop("value");
+    let meetToken = $("#meetToken").prop("value");
+
+    if (openUploadImageBed && imageBedType === "遇见图床" && !meetToken) {
+      alert("遇见图床必须填写token");
+      return false;
+    }
+    return true;
+  }
   function handleCancelBtn() {
     $("body").removeClass("overflow-hidden-scroll");
     $(".yaohuo-modal-mask").remove();
   }
   function handleOkBtn() {
+    if (!checkSaveSetting()) {
+      return;
+    }
     setSettingInputEvent("save");
     $("body").removeClass("overflow-hidden-scroll");
     $(".yaohuo-modal-mask").hide();
@@ -2738,27 +2838,61 @@
 
       // 上传事件
       async function uploadFile(file) {
-        const formData = new FormData();
-        formData.append("image", file);
+        let uploadConfig = {
+          水墨: {
+            url: "https://img.ink/api/upload",
+            name: "image",
+            token: inkToken || "",
+          },
+          极速图床: {
+            url: "https://tucdn.wpon.cn/api/upload",
+            name: "image",
+            token: speedFreeToken || "",
+          },
+          遇见图床: {
+            url: "https://www.hualigs.cn/api/upload",
+            name: "image",
+            token: meetToken,
+          },
+        };
+        let {
+          url: uploadUrl,
+          name: uploadName,
+          token: uploadToken,
+        } = uploadConfig[imageBedType];
 
+        let formData = new FormData();
+        formData.append(uploadName, file);
         try {
-          const response = await fetch("https://img.ink/api/upload", {
-            method: "POST",
-            headers: {
-              token: token || "",
-            },
-            body: formData,
-          });
+          let response;
+          if (imageBedType === "遇见图床") {
+            formData.append("token", meetToken);
+            formData.append("apiType", "chaoneng");
+            response = await fetch(uploadUrl, {
+              method: "POST",
+              body: formData,
+            });
+          } else {
+            response = await fetch(uploadUrl, {
+              method: "POST",
+              headers: {
+                token: uploadToken || "",
+              },
+              body: formData,
+            });
+          }
 
           const res = await response.json();
           let {
             code,
-            data,
             data: { url },
             msg,
           } = res;
 
-          if (code === 200) {
+          if (code === 200 || code === 0) {
+            if (imageBedType === "遇见图床") {
+              url = url.chaoneng;
+            }
             if (url) {
               // 如果是回帖页面把光标移到文本框最前面
               if (isReplyPage) {
@@ -3989,6 +4123,20 @@
           }
         });
         return jQuery(parentElements);
+      },
+
+      closest: function (selector) {
+        var result = [];
+
+        this.each(function () {
+          var closestElement = this.closest(selector);
+
+          if (closestElement) {
+            result.push(closestElement);
+          }
+        });
+
+        return new jQuery(result);
       },
 
       prop: function (name, value) {
