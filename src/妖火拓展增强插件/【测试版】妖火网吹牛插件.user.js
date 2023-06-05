@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【测试版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      0.3.2
+// @version      0.3.3
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -256,6 +256,10 @@
 
       if (document.title === "公开挑战") {
         if (select) {
+          if (!isAutoEat) {
+            setItem("publishNumber", "0");
+          }
+
           number.value = batchPublishBoastMoney || 500;
           select.value = randomNum;
 
