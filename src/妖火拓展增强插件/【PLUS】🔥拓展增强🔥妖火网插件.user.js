@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.3.6
+// @version      3.3.7
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -104,6 +104,7 @@
     eatBoastMaxNum: 500,
     // 自身妖精小于则不自动吃
     eatBoastMaxMoney: 100000,
+    isReplaceHistoryHref: true,
 
     // 是否自动发吹牛：true为是：false为否
     isAutoPublishBoast: false,
@@ -111,6 +112,8 @@
     // 1为加法策略，下一次金额为最近两次之和，例如：500, 1000, 1500, 2500, 4000, 6500, 10500
     // 2为乘积策略，下一次金额为上一次的两倍，例如：500, 1000, 1500, 3000, 6000, 12000, 24000
     autoPublishBoastStrategy: 1,
+    // 自动发牛初始值，默认500
+    autoPublishBoastInitialValue: 500,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -172,9 +175,11 @@
     isAutoEatBoast,
     eatBoastMaxNum,
     eatBoastMaxMoney,
+    isReplaceHistoryHref,
 
     isAutoPublishBoast,
     autoPublishBoastStrategy,
+    autoPublishBoastInitialValue,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1459,6 +1464,13 @@
               />
             </li>
             <li>
+              <span>替换吹牛链接</span>
+              <div class="switch">
+                <input type="checkbox" id="isReplaceHistoryHref" data-key="isReplaceHistoryHref" />
+                <label for="isReplaceHistoryHref"></label>
+              </div>
+            </li>
+            <li>
               <span>批量发牛金额</span>
               <input 
                 type="number" 
@@ -1475,20 +1487,6 @@
                 <input type="checkbox" id="isAutoEatBoast" data-key="isAutoEatBoast" />
                 <label for="isAutoEatBoast"></label>
               </div>
-            </li>
-            <li>
-              <span>自动发吹牛</span>
-              <div class="switch">
-                <input type="checkbox" id="isAutoPublishBoast" data-key="isAutoPublishBoast" />
-                <label for="isAutoPublishBoast"></label>
-              </div>
-            </li>
-            <li>
-              <span>自动发吹牛策略</span>
-              <select data-key="autoPublishBoastStrategy" id="autoPublishBoastStrategy">
-                <option value="1">策略1最近两次之和</option>
-                <option value="2">策略2最近一次两倍</option>
-              </select>
             </li>
             <li>
               <span>自动吃牛最大赌注妖精</span>
@@ -1511,6 +1509,32 @@
                 step="${100}"
                 value="${eatBoastMaxMoney}"
               >
+            </li>
+            <li>
+              <span>自动发吹牛</span>
+              <div class="switch">
+                <input type="checkbox" id="isAutoPublishBoast" data-key="isAutoPublishBoast" />
+                <label for="isAutoPublishBoast"></label>
+              </div>
+            </li>
+            <li>
+              <span>自动发吹牛策略</span>
+              <select data-key="autoPublishBoastStrategy" id="autoPublishBoastStrategy">
+                <option value="1">策略1最近两次之和</option>
+                <option value="2">策略2最近一次两倍</option>
+              </select>
+            </li>
+            <li>
+              <span>自动发牛初始值：<i class="range-num">${autoPublishBoastInitialValue}</i></span>
+              <input
+                type="range"
+                id="autoPublishBoastInitialValue"
+                data-key="autoPublishBoastInitialValue"
+                min="${500}"
+                value="${autoPublishBoastInitialValue}"
+                max="${5000}"
+                step="${500}"
+              />
             </li>
             <li class="yaohuo-wrap-title">
               <hr class="title-line title-line-left" />
@@ -1780,6 +1804,7 @@
                 "eatBoastMaxMoney",
                 "isAutoPublishBoast",
                 "autoPublishBoastStrategy",
+                "autoPublishBoastInitialValue",
               ],
               dataKey,
             });
@@ -1790,7 +1815,10 @@
             });
             autoShowElement({
               fatherIdAry: ["isAutoPublishBoast"],
-              childIdAry: ["autoPublishBoastStrategy"],
+              childIdAry: [
+                "autoPublishBoastStrategy",
+                "autoPublishBoastInitialValue",
+              ],
               dataKey,
             });
           } else {
@@ -3089,8 +3117,10 @@
         }
         if (nextBoastData.isFinished) {
           setItem("publishNumber", "0");
+
           let href = publishBoastBtn.href;
           let nextMoney = nextBoastData.money || 500;
+          // setItem("nextMoney", nextMoney);
           let newHref = href.includes("?")
             ? `${href}&open=new&publishMoney=${nextMoney}`
             : `${href}?open=new&publishMoney=${nextMoney}`;
@@ -3241,7 +3271,6 @@
       console.log(`发布吹牛答案1的概率：${answer1Rate}`);
       let randomNum = Math.random() < answer1Rate ? 2 : 1;
       let isAutoEat = window.location.search.includes("open=new");
-
       if (document.title === "公开挑战") {
         if (select) {
           if (!isAutoEat) {
@@ -3249,6 +3278,11 @@
           } else {
             let publishMoney = getUrlParameters().publishMoney;
             number.value = publishMoney || batchPublishBoastMoney || 500;
+          }
+          if (isAutoPublishBoast && !isAutoEat) {
+            setTimeout(() => {
+              location.href = "/games/chuiniu/index.aspx";
+            }, 5000);
           }
 
           select.value = randomNum;
@@ -3272,6 +3306,7 @@
           if (tip) {
             let publishNumber = getItem("publishNumber", "0");
             setTimeout(() => {
+              setItem("nextMoney", "0");
               if (publishNumber <= 0) {
                 setItem("publishNumber", "0");
                 location.href = "/games/chuiniu/index.aspx";
@@ -3289,16 +3324,17 @@
     if ("/games/chuiniu/book_list.aspx".includes(location.pathname)) {
       handleAddSearch();
       handleStatistics();
-      // 处理如果是进行中则直接跳转到对应吃牛页面
-      let list = document.querySelectorAll(
-        "a[href^='/games/chuiniu/book_view.aspx']"
-      );
-      for (let index = 0; index < list.length; index++) {
-        const item = list[index];
-        let id = item.innerText;
-        if (item.parentElement.innerText.includes("进行中")) {
-          item.href = `/games/chuiniu/doit.aspx?siteid=1000&classid=0&id=${id}`;
-          console.log(`修改完成：${item.href}`);
+      if (isReplaceHistoryHref) {
+        // 处理如果是进行中则直接跳转到对应吃牛页面
+        let list = document.querySelectorAll(
+          "a[href^='/games/chuiniu/book_view.aspx']"
+        );
+        for (let index = 0; index < list.length; index++) {
+          const item = list[index];
+          let id = item.innerText;
+          if (item.parentElement.innerText.includes("进行中")) {
+            item.href = `/games/chuiniu/doit.aspx?siteid=1000&classid=0&id=${id}`;
+          }
         }
       }
     }
@@ -3580,42 +3616,7 @@
         money: getNextMoney(count),
       };
     }
-    function getNextMoney(n) {
-      return Number(autoPublishBoastStrategy) === 1
-        ? generateSequenceByAdd(n)
-        : generateSequenceByMultiply(n);
-    }
-    /**
-     * 策略1：下一次金额为最近两次之和
-     * @param {number} n 第几回合
-     * @returns 返回第几回合的金额
-     */
-    function generateSequenceByAdd(n) {
-      let result = [500, 1000];
 
-      for (let i = 2; i < n; i++) {
-        let nextValue = result[i - 1] + result[i - 2];
-        result.push(nextValue);
-      }
-
-      return result[n - 1];
-    }
-    /**
-     * 策略2：下一次金额为最近一次的两倍
-     * @param {number} n 第几回合
-     * @returns 返回第几回合的金额
-     */
-    function generateSequenceByMultiply(n) {
-      const result = [500, 1000, 1500];
-
-      for (let i = 3; i < n; i++) {
-        const previousValue = result[i - 1];
-        const currentValue = previousValue * 2;
-        result.push(currentValue);
-      }
-
-      return result[n - 1];
-    }
     function handleAddSearch(dom = document) {
       let arr = ["/games/chuiniu/book_list.aspx", "/games/chuiniu/index.aspx"];
       if (!arr.includes(location.pathname)) {
@@ -3666,6 +3667,56 @@
       let id = res.match(/<b>ID号:<\/b>(\d+)/)?.[1];
       return id;
     }
+  }
+  function getNextMoney(n) {
+    return Number(autoPublishBoastStrategy) === 1
+      ? generateSequenceByAdd(autoPublishBoastInitialValue, n)[n - 1]
+      : generateSequenceByMultiply(autoPublishBoastInitialValue, n)[n - 1];
+  }
+  /**
+   * 策略1：下一次金额为最近两次之和
+   * @param {number} n 第几回合
+   * @returns 返回第几回合的金额
+   */
+  function generateSequenceByAdd(initialValue = 500, n = 10) {
+    let result = [initialValue];
+
+    if (n === 1) {
+      return result;
+    }
+
+    result.push(Math.max(initialValue * 1.5, 1000));
+
+    for (let i = 2; i < n; i++) {
+      let nextValue = result[i - 1] + result[i - 2];
+      result.push(nextValue);
+    }
+
+    return result;
+  }
+  /**
+   * 策略2：下一次金额为最近一次的两倍
+   * @param {number} n 第几回合
+   * @returns 返回第几回合的金额
+   */
+  function generateSequenceByMultiply(initialValue = 500, n = 10) {
+    let result = [initialValue];
+
+    result.push(Math.max(initialValue * 1.5, 1000));
+
+    result.push(result[result.length - 1] + result[result.length - 2]);
+
+    if (n <= 3) {
+      return result.slice(0, n);
+    }
+
+    for (let i = 3; i < n; i++) {
+      const previousValue = result[i - 1];
+      const currentValue = previousValue * 2;
+      result.push(currentValue);
+    }
+
+    return result;
   }
   /**
    * 删除过期的帖子
