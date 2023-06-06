@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.3.4
+// @version      3.3.5
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -564,18 +564,18 @@
   async function handleStatisticalData() {
     // /games/chuiniu/book_list.aspx
     // /games/chuiniu/book_view.aspx?siteid=1000&classid=0&type=0&touserid=&id=877578
-    if ("/games/chuiniu/book_view.aspx".includes(location.pathname)) {
+    if (["/games/chuiniu/book_view.aspx"].includes(location.pathname)) {
       let page = 1;
       let initId = Number(getUrlParameters().id || 0);
       let minId = initId - 500;
-      let obj = MY_getValue("boastObject");
+      let obj = MY_getValue("boastData");
       let url;
       let id;
       for (id = initId; id > minId; id--) {
         if ((initId - id) % 100 === 0) {
-          console.log(`第${initId - id}次循环`);
+          console.log(`第${initId - id + 100}次循环`);
         }
-        if (id < 877594 - 3000) {
+        if (id < 885384 - 3000) {
           break;
         }
 
@@ -608,8 +608,9 @@
           challengerAnswer,
           opponentAnswer,
           battleStatus,
+          lastTime: new Date().getTime(),
         };
-        MY_setValue("boastObject", obj);
+        MY_setValue("boastData", obj);
         // console.log({
         //   id,
         //   money,
@@ -3123,6 +3124,8 @@
               tzSelectString,
               yzSelectString,
               tzSelectDomString,
+              tzMoney,
+              yzMoney,
             } = res;
             document.querySelector(".subTitleTips").innerHTML = `
               <p>发牛者过去${total}条中，选择了：${tzSelectDomString}，答案一：${tzSelect1}次，选择答案二：${tzSelect2}次</p>
@@ -3133,7 +3136,13 @@
               ，选择2胜率：
               <b style="color:${tzSelect1 < tzSelect2 ? "red" : "unset"}">${(
               tzSelect2 / total || 0
-            ).toFixed(2)}</b></p>
+            ).toFixed(2)}</b>
+              </p>
+              <p>
+              发吹牛<b style="color:${tzMoney >= 0 ? "red" : "green"}">${
+              tzMoney > 0 ? "赢了" : "输了"
+            }</b>${Math.abs(tzMoney)}妖精\n
+              </p>
             `;
 
             answer1Rate = tzSelect1 / total;
@@ -3304,6 +3313,8 @@
       let tzSelectString = "";
       let yzSelectString = "";
       let tzSelectDomString = "";
+      let tzMoney = 0;
+      let yzMoney = 0;
 
       let boastData = getItem("boastData");
 
@@ -3374,6 +3385,8 @@
             tzSelect2++;
             yzSelect2Win++;
           }
+          tzMoney += -curData.money;
+          yzMoney += curData.money * 0.9;
         } else {
           // 吃吹牛失败、发吹牛获胜
           tzWin++;
@@ -3391,8 +3404,12 @@
             tzSelect1++;
             tzSelect1Win++;
           }
+          tzMoney += curData.money * 0.9;
+          yzMoney += -curData.money;
         }
       }
+      tzMoney = tzMoney.toFixed(2);
+      yzMoney = yzMoney.toFixed(2);
       if (isReturnResult) {
         return {
           total,
@@ -3409,6 +3426,8 @@
           tzSelectString,
           tzSelectDomString,
           yzSelectString,
+          tzMoney,
+          yzMoney,
         };
       } else {
         alert(
@@ -3422,7 +3441,9 @@
           如果吃吹牛选1赢的概率：${(tzSelect1 / total).toFixed(
             2
           )}，选2赢的概率：${(tzSelect2 / total).toFixed(2)}\n
-          发吹牛赢的次数：${tzWin}，胜率：${tzWinRate}\n
+          发吹牛赢的次数：${tzWin}，胜率：${tzWinRate}，${
+            tzMoney > 0 ? "赢了" : "输了"
+          }${Math.abs(tzMoney)}妖精\n
           ====当前页吃吹牛总条数：${total}====\n
           吃吹牛选择：${yzSelectString}\n
           吃吹牛选1的次数：${yzSelect1}，选2的次数：${yzSelect2}\n
@@ -3434,7 +3455,9 @@
           )}，选2赢的概率：${((total - yzSelect2) / total).toFixed(2)}\n
           吃吹牛赢的次数：${total - tzWin}，吃吹牛的胜率：${(
             1 - tzWinRate
-          ).toFixed(2)}\n
+          ).toFixed(2)}，${yzMoney > 0 ? "赢了" : "输了"}${Math.abs(
+            yzMoney
+          )}妖精
           `
         );
       }

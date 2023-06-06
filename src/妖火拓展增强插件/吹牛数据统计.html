@@ -24,12 +24,12 @@
             const item = data[key];
             if (!moneyObj[item.money]) {
               moneyObj[item.money] = {
-                fabu1: 0,
-                fabu2: 0,
-                tiaozhan1: 0,
-                tiaozhan2: 0,
-                shenglv1: 0,
-                shenglv2: 0,
+                发牛选1: 0,
+                发牛选2: 0,
+                吃牛选1: 0,
+                吃牛选2: 0,
+                吃牛选1赢: 0,
+                吃牛选2赢: 0,
                 rate1: 0,
                 rate2: 0,
                 fabuselect2: 0,
@@ -43,40 +43,44 @@
               // 胜利
               if (item.opponentAnswer == 1) {
                 // 挑战选1
-                moneyObj[item.money].tiaozhan1++;
-                moneyObj[item.money].fabu1++;
+                moneyObj[item.money]["吃牛选1"]++;
+                moneyObj[item.money]["发牛选1"]++;
 
-                moneyObj[item.money].shenglv1++;
+                moneyObj[item.money]["吃牛选1赢"]++;
               } else {
                 // 挑战选2
-                moneyObj[item.money].tiaozhan2++;
-                moneyObj[item.money].fabu2++;
+                moneyObj[item.money]["吃牛选2"]++;
+                moneyObj[item.money]["发牛选2"]++;
                 fabu2++;
-                moneyObj[item.money].shenglv2++;
+                moneyObj[item.money]["吃牛选2赢"]++;
               }
             } else {
               // 失败
               if (item.opponentAnswer == 1) {
                 // 挑战选1
-                moneyObj[item.money].tiaozhan1++;
-                moneyObj[item.money].fabu2++;
+                moneyObj[item.money]["吃牛选1"]++;
+                moneyObj[item.money]["发牛选2"]++;
                 fabu2++;
-                moneyObj[item.money].shenglv2++;
+                moneyObj[item.money]["吃牛选2赢"]++;
               } else {
                 // 挑战选2
-                moneyObj[item.money].tiaozhan2++;
-                moneyObj[item.money].fabu1++;
-                moneyObj[item.money].shenglv1++;
+                moneyObj[item.money]["吃牛选2"]++;
+                moneyObj[item.money]["发牛选1"]++;
+                moneyObj[item.money]["吃牛选1赢"]++;
               }
             }
-            moneyObj[item.money].rate1 =
-              moneyObj[item.money].shenglv1 / moneyObj[item.money].total;
-            moneyObj[item.money].rate2 =
-              moneyObj[item.money].shenglv2 / moneyObj[item.money].total;
-            moneyObj[item.money].fabuselect2 =
-              moneyObj[item.money].fabu2 / moneyObj[item.money].total;
-            moneyObj[item.money].tiaozhanselect1 =
-              moneyObj[item.money].tiaozhan1 / moneyObj[item.money].total;
+            moneyObj[item.money]["吃牛选1赢的概率"] =
+              moneyObj[item.money]["吃牛选1赢"] / moneyObj[item.money].total;
+            moneyObj[item.money]["吃牛选2赢的概率"] =
+              moneyObj[item.money]["吃牛选2赢"] / moneyObj[item.money].total;
+            moneyObj[item.money]["发牛选1的概率"] =
+              moneyObj[item.money]["发牛选1"] / moneyObj[item.money].total;
+            moneyObj[item.money]["发牛选2的概率"] =
+              moneyObj[item.money]["发牛选2"] / moneyObj[item.money].total;
+            moneyObj[item.money]["吃牛选1的概率"] =
+              moneyObj[item.money]["吃牛选1"] / moneyObj[item.money].total;
+            moneyObj[item.money]["吃牛选2的概率"] =
+              moneyObj[item.money]["吃牛选2"] / moneyObj[item.money].total;
           }
         }
         moneyObj.total = total;
