@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.3.5
+// @version      3.3.6
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -104,6 +104,13 @@
     eatBoastMaxNum: 500,
     // 自身妖精小于则不自动吃
     eatBoastMaxMoney: 100000,
+
+    // 是否自动发吹牛：true为是：false为否
+    isAutoPublishBoast: false,
+    // 自动发布吹牛策略：1、2
+    // 1为加法策略，下一次金额为最近两次之和，例如：500, 1000, 1500, 2500, 4000, 6500, 10500
+    // 2为乘积策略，下一次金额为上一次的两倍，例如：500, 1000, 1500, 3000, 6000, 12000, 24000
+    autoPublishBoastStrategy: 1,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -165,6 +172,9 @@
     isAutoEatBoast,
     eatBoastMaxNum,
     eatBoastMaxMoney,
+
+    isAutoPublishBoast,
+    autoPublishBoastStrategy,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1467,6 +1477,20 @@
               </div>
             </li>
             <li>
+              <span>自动发吹牛</span>
+              <div class="switch">
+                <input type="checkbox" id="isAutoPublishBoast" data-key="isAutoPublishBoast" />
+                <label for="isAutoPublishBoast"></label>
+              </div>
+            </li>
+            <li>
+              <span>自动发吹牛策略</span>
+              <select data-key="autoPublishBoastStrategy" id="autoPublishBoastStrategy">
+                <option value="1">策略1最近两次之和</option>
+                <option value="2">策略2最近一次两倍</option>
+              </select>
+            </li>
+            <li>
               <span>自动吃牛最大赌注妖精</span>
               <input 
                 type="number" 
@@ -1754,12 +1778,19 @@
                 "isAutoEatBoast",
                 "eatBoastMaxNum",
                 "eatBoastMaxMoney",
+                "isAutoPublishBoast",
+                "autoPublishBoastStrategy",
               ],
               dataKey,
             });
             autoShowElement({
               fatherIdAry: ["isAutoEatBoast"],
               childIdAry: ["eatBoastMaxNum", "eatBoastMaxMoney"],
+              dataKey,
+            });
+            autoShowElement({
+              fatherIdAry: ["isAutoPublishBoast"],
+              childIdAry: ["autoPublishBoastStrategy"],
               dataKey,
             });
           } else {
@@ -3021,30 +3052,6 @@
         "a[href^='/games/chuiniu/add.aspx']"
       );
 
-      for (const item of list) {
-        let match = item.innerHTML.match(/\((\d+)妖晶\)$/);
-        let number = parseInt(match[1]);
-        let href = item.getAttribute("href");
-
-        let newHref = href.includes("?")
-          ? `${href}&open=new`
-          : `${href}?open=new`;
-        if (isAutoEatBoast && money.innerText - number >= eatBoastMaxMoney) {
-          if (number <= eatBoastMaxNum) {
-            // item.click();
-            location.href = newHref;
-          } else {
-            console.log(
-              `当前大于设置的赌注妖精：${eatBoastMaxNum}，则不自动吃`
-            );
-          }
-        } else {
-          console.log(
-            `当前没有开启自动吃肉，或者减去当前金额${number}小于设置的自身妖精低于${eatBoastMaxMoney}则不自动吃`
-          );
-        }
-      }
-
       if (publishBoastBtn.innerText === "我要公开挑战") {
         // 添加批量按钮
         publishBoastBtn.insertAdjacentHTML(
@@ -3064,6 +3071,56 @@
             alert("输入的格式不对，只能是大于0的数字");
           }
         });
+      }
+
+      // 是否开启自动发牛
+      if (isAutoPublishBoast) {
+        if (!timer) {
+          timer = setInterval(function () {
+            location.reload();
+          }, 30 * 1000);
+        }
+
+        let nextBoastData = await getMyBoastData();
+        console.log("nextBoastData", nextBoastData);
+        // 小于8点不发肉
+        if (new Date().getHours() < 7 && nextBoastData.lastIsWin) {
+          return;
+        }
+        if (nextBoastData.isFinished) {
+          setItem("publishNumber", "0");
+          let href = publishBoastBtn.href;
+          let nextMoney = nextBoastData.money || 500;
+          let newHref = href.includes("?")
+            ? `${href}&open=new&publishMoney=${nextMoney}`
+            : `${href}?open=new&publishMoney=${nextMoney}`;
+          // console.log("跳转到自动发肉页面", newHref);
+          location.href = newHref;
+        } else {
+          console.log("当前未完成不发牛");
+        }
+      }
+      // 是否开启自动吃牛
+      if (isAutoEatBoast) {
+        for (const item of list) {
+          let match = item.innerHTML.match(/\((\d+)妖晶\)$/);
+          let number = parseInt(match[1]);
+          let href = item.getAttribute("href");
+
+          let newHref = href.includes("?")
+            ? `${href}&open=new`
+            : `${href}?open=new`;
+          if (money.innerText - number >= eatBoastMaxMoney) {
+            if (number <= eatBoastMaxNum) {
+              // item.click();
+              location.href = newHref;
+            } else {
+              console.log(
+                `当前大于设置的赌注妖精：${eatBoastMaxNum}，则不自动吃`
+              );
+            }
+          }
+        }
       }
     }
 
@@ -3189,9 +3246,11 @@
         if (select) {
           if (!isAutoEat) {
             setItem("publishNumber", "0");
+          } else {
+            let publishMoney = getUrlParameters().publishMoney;
+            number.value = publishMoney || batchPublishBoastMoney || 500;
           }
 
-          number.value = batchPublishBoastMoney || 500;
           select.value = randomNum;
 
           select.insertAdjacentHTML(
@@ -3462,7 +3521,102 @@
         );
       }
     }
-    function handleAddSearch() {
+    async function getMyBoastData(url) {
+      let list;
+      // url =
+      //   "https://yaohuo.me/games/chuiniu/book_list.aspx?type=0&siteid=1000&classid=0&touserid=&lpage=&getTotal=887265&page=8";
+      if (!url) {
+        let btn = document.querySelector(
+          "a[href^='/games/chuiniu/book_list.aspx']"
+        );
+        if (btn.innerText !== "我的大话") {
+          return {
+            isFinished: false,
+          };
+        }
+        url = btn.href;
+      }
+
+      let res = await fetchData(url);
+      let match = /<body>([\s\S]*?)<\/body>/.exec(res);
+      let bodyString = match?.[0];
+      let tempDiv = document.createElement("div");
+      tempDiv.innerHTML = bodyString;
+      list = tempDiv.querySelectorAll(
+        "a[href^='/games/chuiniu/book_view.aspx'], a[href^='/games/chuiniu/doit.aspx']"
+      );
+      // let boastData = getItem("boastData");
+      // let statusAry = [];
+      // let moneyAry = [];
+      let count = 1;
+      let lastIsWin = false;
+      let isFirstWin = false;
+      for (let index = 0; index < list.length; index++) {
+        const item = list[index];
+        let id = item.innerText;
+        let innerText = item.parentElement.innerText;
+        if (innerText.includes("进行中")) {
+          return {
+            isFinished: false,
+            isFirstWin,
+          };
+        } else {
+          let matchResult = innerText.match(/(赚了|输了)(\d+)妖晶/);
+          let status = matchResult[1];
+          let money = matchResult[2];
+          if (status === "输了" && !isFirstWin) {
+            count++;
+          } else {
+            if (count === 1) {
+              lastIsWin = true;
+            }
+            isFirstWin = true;
+          }
+        }
+      }
+      return {
+        isFinished: true,
+        lastIsWin,
+        money: getNextMoney(count),
+      };
+    }
+    function getNextMoney(n) {
+      return Number(autoPublishBoastStrategy) === 1
+        ? generateSequenceByAdd(n)
+        : generateSequenceByMultiply(n);
+    }
+    /**
+     * 策略1：下一次金额为最近两次之和
+     * @param {number} n 第几回合
+     * @returns 返回第几回合的金额
+     */
+    function generateSequenceByAdd(n) {
+      let result = [500, 1000];
+
+      for (let i = 2; i < n; i++) {
+        let nextValue = result[i - 1] + result[i - 2];
+        result.push(nextValue);
+      }
+
+      return result[n - 1];
+    }
+    /**
+     * 策略2：下一次金额为最近一次的两倍
+     * @param {number} n 第几回合
+     * @returns 返回第几回合的金额
+     */
+    function generateSequenceByMultiply(n) {
+      const result = [500, 1000, 1500];
+
+      for (let i = 3; i < n; i++) {
+        const previousValue = result[i - 1];
+        const currentValue = previousValue * 2;
+        result.push(currentValue);
+      }
+
+      return result[n - 1];
+    }
+    function handleAddSearch(dom = document) {
       let arr = ["/games/chuiniu/book_list.aspx", "/games/chuiniu/index.aspx"];
       if (!arr.includes(location.pathname)) {
         return;
