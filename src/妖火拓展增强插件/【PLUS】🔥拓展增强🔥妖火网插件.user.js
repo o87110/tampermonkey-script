@@ -3685,7 +3685,7 @@
       return result;
     }
 
-    result.push(Math.max(initialValue * 1.5, 1000));
+    result.push(initialValue <= 1000 ? initialValue * 2 : initialValue * 1.5);
 
     for (let i = 2; i < n; i++) {
       let nextValue = result[i - 1] + result[i - 2];
@@ -3702,7 +3702,7 @@
   function generateSequenceByMultiply(initialValue = 500, n = 10) {
     let result = [initialValue];
 
-    result.push(Math.max(initialValue * 1.5, 1000));
+    result.push(initialValue <= 1000 ? initialValue * 2 : initialValue * 1.5);
 
     result.push(result[result.length - 1] + result[result.length - 2]);
 
