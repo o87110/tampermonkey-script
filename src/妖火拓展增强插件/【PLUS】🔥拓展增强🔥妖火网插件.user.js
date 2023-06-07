@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.3.7
+// @version      3.3.8
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1976,7 +1976,7 @@
         }
         // 指定时间不自动吃肉
         if (new Date().getHours() < 7) {
-          console.log("当前小于8点，不吃肉");
+          console.log("当前小于7点，不吃肉");
           return;
         }
         let eatImgSrc = "/NetImages/li.gif";
@@ -3111,7 +3111,7 @@
 
         let nextBoastData = await getMyBoastData();
         console.log("nextBoastData", nextBoastData);
-        // 小于8点不发肉
+        // 小于7点不发牛
         if (new Date().getHours() < 7 && nextBoastData.lastIsWin) {
           return;
         }
@@ -3119,7 +3119,7 @@
           setItem("publishNumber", "0");
 
           let href = publishBoastBtn.href;
-          let nextMoney = nextBoastData.money || 500;
+          let nextMoney = nextBoastData.nextMoney || 500;
           // setItem("nextMoney", nextMoney);
           let newHref = href.includes("?")
             ? `${href}&open=new&publishMoney=${nextMoney}`
@@ -3191,6 +3191,10 @@
           let res = await fetchData(url);
           let match = /<body>([\s\S]*?)<\/body>/.exec(res);
           let bodyString = match?.[0];
+          bodyString = bodyString.replace(
+            /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+            ""
+          );
           if (bodyString) {
             let tempDiv = document.createElement("div");
             tempDiv.innerHTML = bodyString;
@@ -3354,16 +3358,22 @@
       title.insertAdjacentHTML(
         "afterend",
         `
-        <div class="line1">
-        <a class="statistics-btn">统计当页数据，点击后请等待弹窗返回数据</a>
+        <div class="line1 statistics-btn-wrap">
+        <a class="statistics-btn-left">统计当页数据</a>
+
+        <a class="statistics-btn-right">统计指定页数据</a>
         </div>
         `
       );
       MY_addStyle(`
-        .statistics-btn{
+        .statistics-btn-wrap {
+          display: flex;
+          justify-content: space-around;
+        }
+        .statistics-btn-wrap a{
           background: #888888;
           border-radius: 5px;
-          width: 100%;
+          width: 48%;
           color: #fff;
           box-sizing: border-box;
           display: inline-block;
@@ -3371,24 +3381,135 @@
           cursor: pointer;
         }
         /* 已访问的链接状态 */
-        a.statistics-btn:visited{
+        .statistics-btn-wrap a:visited{
           color: #fff;
         }
         /* 正在点击链接时的状态 */
-        a.statistics-btn:active{
+        .statistics-btn-wrap a:active{
           color: #fff;
         }
       `);
       let isClick = false;
-      $(".statistics-btn").click(async () => {
+      $(".statistics-btn-left").click(async () => {
         if (!isClick) {
           isClick = true;
           await handleData();
           isClick = false;
         }
       });
+      $(".statistics-btn-right").click(async () => {
+        if (!isClick) {
+          isClick = true;
+          let todayFirstId = getItem("todayFirstId", "0");
+          let number = prompt(
+            "请输入要查询页数或者截止的id：",
+            parseInt(todayFirstId) || 5
+          );
+          // 888663
+          let isId = number.length > 5;
+          if (number.length > 5) {
+            setItem("todayFirstId", number);
+          }
+
+          if (!/^\d+$/.test(number)) {
+            isClick = false;
+            return;
+          }
+          number = parseInt(number);
+          if (number <= 0) {
+            return;
+          }
+          // if (number > 10) {
+          //   number = 10;
+          // }
+          let url = location.href;
+          let initPage = getUrlParameters().page || 1;
+
+          if (!/(&|\?)page=/.test(url)) {
+            url += "&page=1";
+          }
+          let innerHTML = "";
+          for (let index = 0; index < number; index++) {
+            let newUrl = url.replace(
+              /([?|&]page=)(\d*)/,
+              function (match, prefix, pageNumber) {
+                let newPageNumber = parseInt(pageNumber || 1) + index;
+                return prefix + newPageNumber;
+              }
+            );
+            console.log(newUrl);
+            let res = await fetchData(newUrl);
+            let match = /<body>([\s\S]*?)<\/body>/.exec(res);
+            let bodyString = match?.[0];
+            bodyString = bodyString.replace(
+              /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+              ""
+            );
+            innerHTML += bodyString;
+            if (isId && bodyString.includes(number)) {
+              break;
+            }
+          }
+          let tempDiv = document.createElement("div");
+          tempDiv.innerHTML = innerHTML;
+          console.log(tempDiv);
+          let res = await handleData(tempDiv, true, isId ? number : 0);
+
+          let {
+            total,
+            tzSelect1,
+            tzSelect2,
+            tzSelect1Win,
+            tzSelect2Win,
+            tzWin,
+            tzWinRate,
+            yzSelect1,
+            yzSelect2,
+            yzSelect1Win,
+            yzSelect2Win,
+            tzSelectString,
+            tzSelectDomString,
+            yzSelectString,
+            tzMoney,
+            yzMoney,
+          } = res;
+          alert(
+            `
+            ====${isId ? "今日" : `最近${number}页`}发吹牛总条数：${total}===\n
+            发吹牛选1的次数：${tzSelect1}，选2的次数：${tzSelect2}\n
+            实际发吹牛选1赢的概率：${(tzSelect1Win / total).toFixed(
+              2
+            )}，选2赢的概率：${(tzSelect2Win / total).toFixed(2)}\n
+            如果吃吹牛选1赢的概率：${(tzSelect1 / total).toFixed(
+              2
+            )}，选2赢的概率：${(tzSelect2 / total).toFixed(2)}\n
+            发吹牛赢的次数：${tzWin}，胜率：${tzWinRate}，${
+              tzMoney > 0 ? "赢了" : "输了"
+            }${Math.abs(tzMoney)}妖精\n
+            ====${isId ? "今日" : `最近${number}页`}吹牛总条数：${total}====\n
+            吃吹牛选1的次数：${yzSelect1}，选2的次数：${yzSelect2}\n
+            实际吃吹牛实际选1赢的概率：${(yzSelect1Win / total).toFixed(
+              2
+            )}，选2赢的概率：${(yzSelect2Win / total).toFixed(2)}\n
+            如果发吹牛选1赢的概率：${((total - yzSelect1) / total).toFixed(
+              2
+            )}，选2赢的概率：${((total - yzSelect2) / total).toFixed(2)}\n
+            吃吹牛赢的次数：${total - tzWin}，吃吹牛的胜率：${(
+              1 - tzWinRate
+            ).toFixed(2)}，${yzMoney > 0 ? "赢了" : "输了"}${Math.abs(
+              yzMoney
+            )}妖精
+            `
+          );
+          isClick = false;
+        }
+      });
     }
-    async function handleData(dom = document, isReturnResult = false) {
+    async function handleData(
+      dom = document,
+      isReturnResult = false,
+      endId = 0
+    ) {
       let list = dom.querySelectorAll(
         "a[href^='/games/chuiniu/book_view.aspx']"
       );
@@ -3418,6 +3539,9 @@
         let id = item.innerText;
         if (item.parentElement.innerText.includes("进行中")) {
           continue;
+        }
+        if (endId && parseInt(endId) > parseInt(id)) {
+          break;
         }
         // if (isReturnResult && total >= 10) {
         //   break;
@@ -3587,33 +3711,42 @@
       let count = 1;
       let lastIsWin = false;
       let isFirstWin = false;
+      let isFinished = true;
+      let moneyChange = 0;
       for (let index = 0; index < list.length; index++) {
         const item = list[index];
         let id = item.innerText;
         let innerText = item.parentElement.innerText;
         if (innerText.includes("进行中")) {
-          return {
-            isFinished: false,
-            isFirstWin,
-          };
+          isFinished = false;
+          // return {
+          //   isFinished: false,
+          //   lastIsWin,
+          // };
         } else {
           let matchResult = innerText.match(/(赚了|输了)(\d+)妖晶/);
           let status = matchResult[1];
           let money = matchResult[2];
-          if (status === "输了" && !isFirstWin) {
-            count++;
+          if (status === "输了") {
+            if (!isFirstWin) {
+              count++;
+            }
+            moneyChange -= Number(money);
           } else {
             if (count === 1) {
               lastIsWin = true;
             }
             isFirstWin = true;
+            moneyChange += Number(money * 0.9);
           }
         }
       }
+      moneyChange = moneyChange.toFixed(2);
       return {
-        isFinished: true,
+        isFinished,
         lastIsWin,
-        money: getNextMoney(count),
+        moneyChange,
+        nextMoney: getNextMoney(count),
       };
     }
 
