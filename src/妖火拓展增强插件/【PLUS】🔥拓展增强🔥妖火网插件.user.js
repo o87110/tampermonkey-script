@@ -1994,7 +1994,6 @@
         let eatImgSrc = "/NetImages/li.gif";
 
         let eatList = document.querySelectorAll(`img[src='${eatImgSrc}']`);
-        let randomNum = getRandomNumber(0, 20);
 
         for (let index = 0; index < eatList.length; index++) {
           const element = eatList[index];
@@ -3047,6 +3046,52 @@
         location.reload();
       }, timeInterval * 1000);
     }
+  }
+  function getBoastRandomNum() {
+    // 发牛答案 publishAnswer1Rate
+    // 吃牛答案 eatAnswer1Rate
+    // let randomNum = Math.random() < publishAnswer1Rate ? 1 : 2;
+    return generateRandomNumber(publishAnswer1Rate, 3);
+    /**
+     *
+     * @param {*} probability 概率
+     * @param {*} maxConsecutive 最大连续数
+     * @returns 返回生成后的随机数
+     */
+    function generateRandomNumber(probability, maxConsecutive) {
+      let boastConfig = MY_getValue("boastConfig", {});
+      let {
+        previousNumber,
+        consecutiveCount = 1,
+        previousAry = [],
+      } = boastConfig;
+
+      let randomNumber = Math.random() < probability ? 1 : 2;
+
+      if (consecutiveCount >= maxConsecutive) {
+        randomNumber = randomNumber === 1 ? 2 : 1; // 切换到另一个数字
+      }
+
+      return randomNumber;
+    }
+  }
+  function saveBoastRandomNumber(randomNumber) {
+    let boastConfig = MY_getValue("boastConfig", {});
+    let { previousNumber, consecutiveCount, previousAry = [] } = boastConfig;
+
+    if (randomNumber === previousNumber) {
+      consecutiveCount++;
+    } else {
+      consecutiveCount = 1;
+    }
+    previousNumber = randomNumber;
+    previousAry.push(randomNumber);
+
+    boastConfig.previousNumber = previousNumber;
+    boastConfig.consecutiveCount = consecutiveCount;
+    boastConfig.previousAry = previousAry.slice(-10);
+    MY_setValue("boastConfig", boastConfig);
+    return randomNumber
   }
   // 处理吹牛
   async function handleBoast() {
