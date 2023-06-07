@@ -108,6 +108,7 @@
 
     // 是否自动发吹牛：true为是：false为否
     isAutoPublishBoast: false,
+    autoPublishBoastInterval: 30,
     // 自动发布吹牛策略：1、2
     // 1为加法策略，下一次金额为最近两次之和，例如：500, 1000, 1500, 2500, 4000, 6500, 10500
     // 2为乘积策略，下一次金额为上一次的两倍，例如：500, 1000, 1500, 3000, 6000, 12000, 24000
@@ -186,6 +187,7 @@
     autoPublishBoastInitialValue,
     searchBoastLogType,
     publishBoastMaxConsecutive,
+    autoPublishBoastInterval,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -3198,13 +3200,26 @@
 
       // 是否开启自动发牛
       if (isAutoPublishBoast) {
+        let nextBoastData = await getMyBoastData();
         if (!timer) {
+          autoPublishBoastInterval = nextBoastData.isFinished
+            ? parseInt(autoPublishBoastInterval) - 25
+            : parseInt(autoPublishBoastInterval) + 5;
+          if (autoPublishBoastInterval <= 5) {
+            autoPublishBoastInterval = 5;
+          }
+          if (autoPublishBoastInterval >= 50) {
+            autoPublishBoastInterval = 50;
+          }
+          yaohuo_userData.autoPublishBoastInterval = autoPublishBoastInterval;
+          console.log("autoPublishBoastInterval", autoPublishBoastInterval);
           timer = setInterval(function () {
             location.reload();
-          }, 30 * 1000);
-        }
+          }, autoPublishBoastInterval * 1000);
 
-        let nextBoastData = await getMyBoastData();
+          MY_setValue("yaohuo_userData", yaohuo_userData);
+        }
+        // autoPublishBoastInterval
         console.log("nextBoastData", nextBoastData);
         // 小于7点不发牛
         if (new Date().getHours() < 7 && nextBoastData.lastIsWin) {
