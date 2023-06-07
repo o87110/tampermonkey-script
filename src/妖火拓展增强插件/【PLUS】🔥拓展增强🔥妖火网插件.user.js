@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.3.11
+// @version      3.3.12
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -3106,28 +3106,41 @@
     let {
       previousNumber,
       consecutiveCount = 1,
+      randomConsecutive,
       previousAry = [],
     } = boastConfig;
 
     let randomNumber = Math.random() < probability ? 1 : 2;
-    if (consecutiveCount >= maxConsecutive) {
+    if (!randomConsecutive) {
+      randomConsecutive = getRandomNumber(3, maxConsecutive);
+      boastConfig.randomConsecutive = randomConsecutive;
+      MY_setValue("boastConfig", boastConfig);
+    }
+    if (consecutiveCount >= randomConsecutive) {
       randomNumber = previousNumber === 1 ? 2 : 1; // 切换到另一个数字
     }
     return randomNumber;
   }
   function saveBoastRandomNumber(randomNumber) {
     let boastConfig = MY_getValue("boastConfig", {});
-    let { previousNumber, consecutiveCount, previousAry = [] } = boastConfig;
+    let {
+      previousNumber,
+      consecutiveCount,
+      randomConsecutive,
+      previousAry = [],
+    } = boastConfig;
 
     if (randomNumber === previousNumber) {
       consecutiveCount++;
     } else {
+      randomConsecutive = getRandomNumber(3, publishBoastMaxConsecutive);
       consecutiveCount = 1;
     }
     previousNumber = randomNumber;
     previousAry.push(randomNumber);
 
     boastConfig.previousNumber = previousNumber;
+    boastConfig.randomConsecutive = randomConsecutive;
     boastConfig.consecutiveCount = consecutiveCount;
     boastConfig.previousAry = previousAry.slice(-10);
     MY_setValue("boastConfig", boastConfig);
