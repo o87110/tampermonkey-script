@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.3.9
+// @version      3.3.10
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -114,6 +114,8 @@
     autoPublishBoastStrategy: 1,
     // 自动发牛初始值，默认500
     autoPublishBoastInitialValue: 500,
+    // 查询指定页数或者id方式：1简略，2详细
+    searchBoastLogType: 1,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -180,6 +182,7 @@
     isAutoPublishBoast,
     autoPublishBoastStrategy,
     autoPublishBoastInitialValue,
+    searchBoastLogType,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1471,6 +1474,13 @@
               </div>
             </li>
             <li>
+              <span>查询吹牛日志方式</span>
+              <select data-key="searchBoastLogType" id="searchBoastLogType">
+                <option value="1">简略</option>
+                <option value="2">详细</option>
+              </select>
+            </li>
+            <li>
               <span>批量发牛金额</span>
               <input 
                 type="number" 
@@ -1805,6 +1815,8 @@
                 "isAutoPublishBoast",
                 "autoPublishBoastStrategy",
                 "autoPublishBoastInitialValue",
+                "isReplaceHistoryHref",
+                "searchBoastLogType",
               ],
               dataKey,
             });
@@ -3406,17 +3418,19 @@
             parseInt(todayFirstId) || 5
           );
           // 888663
-          let isId = number.length > 5;
-          if (number.length > 5) {
-            setItem("todayFirstId", number);
-          }
-
           if (!/^\d+$/.test(number)) {
             isClick = false;
             return;
           }
+
+          let isId = number?.length > 5;
+          if (number.length > 5) {
+            setItem("todayFirstId", number);
+          }
+
           number = parseInt(number);
           if (number <= 0) {
+            isClick = false;
             return;
           }
           // if (number > 10) {
@@ -3453,28 +3467,45 @@
           let tempDiv = document.createElement("div");
           tempDiv.innerHTML = innerHTML;
           console.log(tempDiv);
-          let res = await handleData(tempDiv, true, isId ? number : 0);
 
-          let {
-            total,
-            tzSelect1,
-            tzSelect2,
-            tzSelect1Win,
-            tzSelect2Win,
-            tzWin,
-            tzWinRate,
-            yzSelect1,
-            yzSelect2,
-            yzSelect1Win,
-            yzSelect2Win,
-            tzSelectString,
-            tzSelectDomString,
-            yzSelectString,
-            tzMoney,
-            yzMoney,
-          } = res;
-          alert(
-            `
+          if (Number(searchBoastLogType) === 1) {
+            // 简略模式
+            let res = await getMyBoastData(tempDiv, isId ? number : 0);
+            let { total, isFinished, lastIsWin, moneyChange, win, winRate } =
+              res;
+            alert(
+              `
+              ====${
+                isId ? "今日" : `最近${number}页`
+              }发吹牛总条数：${total}===\n
+              发吹牛赢的次数：${win}，胜率：${winRate}\n
+              ${moneyChange > 0 ? "赢了" : "输了"}${Math.abs(moneyChange)}妖精\n
+              `
+            );
+          } else {
+            // 详细模式
+            let res = await handleData(tempDiv, true, isId ? number : 0);
+
+            let {
+              total,
+              tzSelect1,
+              tzSelect2,
+              tzSelect1Win,
+              tzSelect2Win,
+              tzWin,
+              tzWinRate,
+              yzSelect1,
+              yzSelect2,
+              yzSelect1Win,
+              yzSelect2Win,
+              tzSelectString,
+              tzSelectDomString,
+              yzSelectString,
+              tzMoney,
+              yzMoney,
+            } = res;
+            alert(
+              `
             ====${isId ? "今日" : `最近${number}页`}发吹牛总条数：${total}===\n
             发吹牛选1的次数：${tzSelect1}，选2的次数：${tzSelect2}\n
             实际发吹牛选1赢的概率：${(tzSelect1Win / total).toFixed(
@@ -3484,8 +3515,8 @@
               2
             )}，选2赢的概率：${(tzSelect2 / total).toFixed(2)}\n
             发吹牛赢的次数：${tzWin}，胜率：${tzWinRate}，${
-              tzMoney > 0 ? "赢了" : "输了"
-            }${Math.abs(tzMoney)}妖精\n
+                tzMoney > 0 ? "赢了" : "输了"
+              }${Math.abs(tzMoney)}妖精\n
             ====${isId ? "今日" : `最近${number}页`}吹牛总条数：${total}====\n
             吃吹牛选1的次数：${yzSelect1}，选2的次数：${yzSelect2}\n
             实际吃吹牛实际选1赢的概率：${(yzSelect1Win / total).toFixed(
@@ -3495,12 +3526,14 @@
               2
             )}，选2赢的概率：${((total - yzSelect2) / total).toFixed(2)}\n
             吃吹牛赢的次数：${total - tzWin}，吃吹牛的胜率：${(
-              1 - tzWinRate
-            ).toFixed(2)}，${yzMoney > 0 ? "赢了" : "输了"}${Math.abs(
-              yzMoney
-            )}妖精
+                1 - tzWinRate
+              ).toFixed(2)}，${yzMoney > 0 ? "赢了" : "输了"}${Math.abs(
+                yzMoney
+              )}妖精
             `
-          );
+            );
+          }
+
           isClick = false;
         }
       });
@@ -3681,27 +3714,30 @@
         );
       }
     }
-    async function getMyBoastData(url) {
+    async function getMyBoastData(tempDiv, endId = 0) {
       let list;
       // url =
       //   "https://yaohuo.me/games/chuiniu/book_list.aspx?type=0&siteid=1000&classid=0&touserid=&lpage=&getTotal=887265&page=8";
-      if (!url) {
-        let btn = document.querySelector(
+      if (!tempDiv) {
+        tempDiv = tempDiv || document;
+        let btn = tempDiv.querySelector(
           "a[href^='/games/chuiniu/book_list.aspx']"
         );
         if (btn.innerText !== "我的大话") {
           return {
             isFinished: false,
+            moneyChange: 0,
           };
         }
-        url = btn.href;
+        let url = btn.href;
+
+        let res = await fetchData(url);
+        let match = /<body>([\s\S]*?)<\/body>/.exec(res);
+        let bodyString = match?.[0];
+        tempDiv = document.createElement("div");
+        tempDiv.innerHTML = bodyString;
       }
 
-      let res = await fetchData(url);
-      let match = /<body>([\s\S]*?)<\/body>/.exec(res);
-      let bodyString = match?.[0];
-      let tempDiv = document.createElement("div");
-      tempDiv.innerHTML = bodyString;
       list = tempDiv.querySelectorAll(
         "a[href^='/games/chuiniu/book_view.aspx'], a[href^='/games/chuiniu/doit.aspx']"
       );
@@ -3709,14 +3745,22 @@
       // let statusAry = [];
       // let moneyAry = [];
       let count = 1;
+      let total = 0;
       let lastIsWin = false;
       let isFirstWin = false;
       let isFinished = true;
       let moneyChange = 0;
+      let win = 0;
       for (let index = 0; index < list.length; index++) {
         const item = list[index];
         let id = item.innerText;
         let innerText = item.parentElement.innerText;
+        if (endId && parseInt(endId) > parseInt(id)) {
+          break;
+        }
+
+        total++;
+
         if (innerText.includes("进行中")) {
           isFinished = false;
           // return {
@@ -3737,12 +3781,17 @@
               lastIsWin = true;
             }
             isFirstWin = true;
+            win++;
             moneyChange += Number(money * 0.9);
           }
         }
       }
       moneyChange = moneyChange.toFixed(2);
+      let winRate = (win / total).toFixed(2);
       return {
+        total,
+        win,
+        winRate,
         isFinished,
         lastIsWin,
         moneyChange,
