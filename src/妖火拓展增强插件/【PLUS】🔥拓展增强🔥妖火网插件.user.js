@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.3.10
+// @version      3.3.11
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -116,6 +116,8 @@
     autoPublishBoastInitialValue: 500,
     // 查询指定页数或者id方式：1简略，2详细
     searchBoastLogType: 1,
+    // 发牛最大连续次数：如1111则为连续4次，设置4则第5次必为2，不建议设置过小，也不建议设置过大
+    publishBoastMaxConsecutive: 6,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -183,6 +185,7 @@
     autoPublishBoastStrategy,
     autoPublishBoastInitialValue,
     searchBoastLogType,
+    publishBoastMaxConsecutive,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1492,6 +1495,18 @@
               >
             </li>
             <li>
+              <span>发牛最大连续次数：<i class="range-num">${publishBoastMaxConsecutive}</i>次</span>
+              <input
+                type="range"
+                id="publishBoastMaxConsecutive"
+                data-key="publishBoastMaxConsecutive"
+                min="${3}"
+                value="${publishBoastMaxConsecutive}"
+                max="${10}"
+                step="${1}"
+              />
+            </li>
+            <li>
               <span>自动吃吹牛</span>
               <div class="switch">
                 <input type="checkbox" id="isAutoEatBoast" data-key="isAutoEatBoast" />
@@ -1528,7 +1543,7 @@
               </div>
             </li>
             <li>
-              <span>自动发吹牛策略</span>
+              <span class="preview-strategy-btn"><a>自动发吹牛策略</a></span>
               <select data-key="autoPublishBoastStrategy" id="autoPublishBoastStrategy">
                 <option value="1">策略1最近两次之和</option>
                 <option value="2">策略2最近一次两倍</option>
@@ -1542,8 +1557,8 @@
                 data-key="autoPublishBoastInitialValue"
                 min="${500}"
                 value="${autoPublishBoastInitialValue}"
-                max="${5000}"
-                step="${500}"
+                max="${3000}"
+                step="${100}"
               />
             </li>
             <li class="yaohuo-wrap-title">
@@ -1817,6 +1832,7 @@
                 "autoPublishBoastInitialValue",
                 "isReplaceHistoryHref",
                 "searchBoastLogType",
+                "publishBoastMaxConsecutive",
               ],
               dataKey,
             });
@@ -1854,6 +1870,7 @@
             $(item).on("change", function (event) {
               autoShowImageToken(item, dataKey);
             });
+            previewStrategy(dataKey);
             autoShowImageToken(item, dataKey);
           } else {
             setValue(dataKey, item.value);
@@ -1898,6 +1915,30 @@
           break;
       }
     });
+    function previewStrategy(dataKey) {
+      if (dataKey === "autoPublishBoastStrategy") {
+        $(".preview-strategy-btn").click(() => {
+          let autoPublishBoastInitialValue = $(
+            "#autoPublishBoastInitialValue"
+          ).prop("value");
+          let autoPublishBoastStrategy = $("#autoPublishBoastStrategy").prop(
+            "value"
+          );
+          // console.log(autoPublishBoastInitialValue, autoPublishBoastStrategy);
+          if (Number(autoPublishBoastStrategy) === 1) {
+            alert(
+              generateSequenceByAdd(autoPublishBoastInitialValue).join("、")
+            );
+          } else {
+            alert(
+              generateSequenceByMultiply(autoPublishBoastInitialValue).join(
+                "、"
+              )
+            );
+          }
+        });
+      }
+    }
     function autoShowImageToken(item, dataKey) {
       if (dataKey === "imageBedType") {
         let config = {
@@ -3050,30 +3091,27 @@
   function getBoastRandomNum() {
     // 发牛答案 publishAnswer1Rate
     // 吃牛答案 eatAnswer1Rate
-    // let randomNum = Math.random() < publishAnswer1Rate ? 1 : 2;
-    return generateRandomNumber(publishAnswer1Rate, 3);
-    /**
-     *
-     * @param {*} probability 概率
-     * @param {*} maxConsecutive 最大连续数
-     * @returns 返回生成后的随机数
-     */
-    function generateRandomNumber(probability, maxConsecutive) {
-      let boastConfig = MY_getValue("boastConfig", {});
-      let {
-        previousNumber,
-        consecutiveCount = 1,
-        previousAry = [],
-      } = boastConfig;
+    return generateRandomNumber(publishAnswer1Rate, publishBoastMaxConsecutive);
+  }
+  /**
+   *
+   * @param {*} probability 概率
+   * @param {*} maxConsecutive 最大连续数
+   * @returns 返回生成后的随机数
+   */
+  function generateRandomNumber(probability, maxConsecutive) {
+    let boastConfig = MY_getValue("boastConfig", {});
+    let {
+      previousNumber,
+      consecutiveCount = 1,
+      previousAry = [],
+    } = boastConfig;
 
-      let randomNumber = Math.random() < probability ? 1 : 2;
-
-      if (consecutiveCount >= maxConsecutive) {
-        randomNumber = randomNumber === 1 ? 2 : 1; // 切换到另一个数字
-      }
-
-      return randomNumber;
+    let randomNumber = Math.random() < probability ? 1 : 2;
+    if (consecutiveCount >= maxConsecutive) {
+      randomNumber = previousNumber === 1 ? 2 : 1; // 切换到另一个数字
     }
+    return randomNumber;
   }
   function saveBoastRandomNumber(randomNumber) {
     let boastConfig = MY_getValue("boastConfig", {});
@@ -3091,7 +3129,7 @@
     boastConfig.consecutiveCount = consecutiveCount;
     boastConfig.previousAry = previousAry.slice(-10);
     MY_setValue("boastConfig", boastConfig);
-    return randomNumber
+    return randomNumber;
   }
   // 处理吹牛
   async function handleBoast() {
@@ -3330,7 +3368,8 @@
       let select = document.querySelector("select");
       let answer1Rate = publishAnswer1Rate;
       console.log(`发布吹牛答案1的概率：${answer1Rate}`);
-      let randomNum = Math.random() < answer1Rate ? 2 : 1;
+      // let randomNum = Math.random() < answer1Rate ? 2 : 1;
+      let randomNum = getBoastRandomNum();
       let isAutoEat = window.location.search.includes("open=new");
       if (document.title === "公开挑战") {
         if (select) {
@@ -3345,6 +3384,14 @@
               location.href = "/games/chuiniu/index.aspx";
             }, 5000);
           }
+          // 保存发布的值
+          submit.addEventListener(
+            "click",
+            () => {
+              saveBoastRandomNumber(randomNum);
+            },
+            true
+          );
 
           select.value = randomNum;
 
@@ -3355,7 +3402,8 @@
 
           $(".random-number-btn").click((e) => {
             // 发布多发2少发1
-            let randomNum = Math.random() < answer1Rate ? 2 : 1;
+            randomNum = Math.random() < answer1Rate ? 2 : 1;
+            // let randomNum = getBoastRandomNum();
             select.value = randomNum;
           });
           // iframe里或者自动发肉就提交
@@ -3906,7 +3954,7 @@
    * @returns 返回第几回合的金额
    */
   function generateSequenceByAdd(initialValue = 500, n = 10) {
-    let result = [initialValue];
+    let result = [parseFloat(initialValue)];
 
     if (n === 1) {
       return result;
@@ -3915,7 +3963,7 @@
     result.push(initialValue <= 1000 ? initialValue * 2 : initialValue * 1.5);
 
     for (let i = 2; i < n; i++) {
-      let nextValue = result[i - 1] + result[i - 2];
+      let nextValue = parseFloat(result[i - 1]) + parseFloat(result[i - 2]);
       result.push(nextValue);
     }
 
@@ -3927,7 +3975,7 @@
    * @returns 返回第几回合的金额
    */
   function generateSequenceByMultiply(initialValue = 500, n = 10) {
-    let result = [initialValue];
+    let result = [parseFloat(initialValue)];
 
     result.push(initialValue <= 1000 ? initialValue * 2 : initialValue * 1.5);
 
