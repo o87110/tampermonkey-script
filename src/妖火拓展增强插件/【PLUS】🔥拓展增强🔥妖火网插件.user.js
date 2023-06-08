@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.4.3
+// @version      3.4.4
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -21,6 +21,9 @@
 
   // 策略2倍数
   let multiplyRate = [3, 2, 2, 2];
+  // 手续费方式：1为只计算最后一次，2为累加全部的手续费
+  let commissionType = 2;
+
   let settingData = {
     // 是否显示站内图标
     isShowSettingIcon: true,
@@ -4153,13 +4156,28 @@
     }
   }
   function getNextMoney(n, isAddCommission = false) {
-    let number =
-      Number(autoPublishBoastStrategy) === 1
-        ? generateSequenceByAdd(autoPublishBoastInitialValue, n)[n - 1]
-        : generateSequenceByMultiply(autoPublishBoastInitialValue, n)[n - 1];
+    let ary = [];
+    let number;
+    if (Number(autoPublishBoastStrategy) === 1) {
+      ary = generateSequenceByAdd(autoPublishBoastInitialValue, n);
+    } else {
+      ary = generateSequenceByMultiply(autoPublishBoastInitialValue, n);
+    }
+    number = ary[n - 1];
+
+    function getCommissionCount(ary, n) {
+      if (commissionType == 1) {
+        return number * 0.1;
+      }
+      let commissionCount = ary.slice(1).reduce((prev, cur) => {
+        return prev + cur * 0.1;
+      }, 0);
+      return commissionCount;
+    }
+    let CommissionCount = getCommissionCount(ary, n);
     // 指定前几把增加手续费
     return isAddCommission && n <= addCommissionCount
-      ? Math.floor(number / 0.9)
+      ? Math.floor(number + CommissionCount)
       : number;
   }
   /**
