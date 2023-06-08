@@ -124,6 +124,8 @@
     strategy1RecoveryCount: 3,
     // 发牛手续费次数
     addCommissionCount: 3,
+    // 上一把赢了就结束
+    lastWinIsEnd: false,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -195,6 +197,8 @@
     autoPublishBoastInterval,
     strategy1RecoveryCount,
     addCommissionCount,
+
+    lastWinIsEnd,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1552,6 +1556,13 @@
               </div>
             </li>
             <li>
+              <span>上把赢就停止发牛</span>
+              <div class="switch">
+                <input type="checkbox" id="lastWinIsEnd" data-key="lastWinIsEnd" />
+                <label for="lastWinIsEnd"></label>
+              </div>
+            </li>
+            <li>
               <span class="preview-strategy-btn"><a>自动发吹牛策略</a></span>
               <select data-key="autoPublishBoastStrategy" id="autoPublishBoastStrategy">
                 <option value="1">策略1最近两次之和</option>
@@ -1868,6 +1879,7 @@
                 "publishBoastMaxConsecutive",
                 "strategy1RecoveryCount",
                 "addCommissionCount",
+                "lastWinIsEnd",
               ],
               dataKey,
             });
@@ -1883,6 +1895,7 @@
                 "autoPublishBoastInitialValue",
                 "strategy1RecoveryCount",
                 "addCommissionCount",
+                "lastWinIsEnd",
               ],
               dataKey,
             });
@@ -3259,6 +3272,10 @@
       // 是否开启自动发牛
       if (isAutoPublishBoast) {
         let nextBoastData = await getMyBoastData();
+        if (nextBoastData.lastIsWin && lastWinIsEnd) {
+          console.log("上把赢了停止发牛");
+          return;
+        }
         if (!timer) {
           autoPublishBoastInterval = nextBoastData.isFinished
             ? parseInt(autoPublishBoastInterval) - 25
@@ -3283,6 +3300,7 @@
         if (new Date().getHours() < 7 && nextBoastData.lastIsWin) {
           return;
         }
+
         if (nextBoastData.isFinished) {
           setItem("publishNumber", "0");
 
