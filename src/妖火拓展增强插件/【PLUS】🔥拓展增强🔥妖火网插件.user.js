@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.3.13
+// @version      3.3.14
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -120,6 +120,8 @@
     searchBoastLogType: 1,
     // 发牛最大连续次数：如1111则为连续4次，设置4则第5次必为2，不建议设置过小，也不建议设置过大
     publishBoastMaxConsecutive: 6,
+    // 策略1设置几把回本
+    strategy1RecoveryCount: 3,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -189,6 +191,7 @@
     searchBoastLogType,
     publishBoastMaxConsecutive,
     autoPublishBoastInterval,
+    strategy1RecoveryCount,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1564,6 +1567,18 @@
                 step="${100}"
               />
             </li>
+            <li>
+              <span>策略1回本次数：<i class="range-num">${strategy1RecoveryCount}</i></span>
+              <input
+                type="range"
+                id="strategy1RecoveryCount"
+                data-key="strategy1RecoveryCount"
+                min="${3}"
+                value="${strategy1RecoveryCount}"
+                max="${10}"
+                step="${1}"
+              />
+            </li>
             <li class="yaohuo-wrap-title">
               <hr class="title-line title-line-left" />
               <b>吃肉设置</b>
@@ -1836,6 +1851,7 @@
                 "isReplaceHistoryHref",
                 "searchBoastLogType",
                 "publishBoastMaxConsecutive",
+                "strategy1RecoveryCount",
               ],
               dataKey,
             });
@@ -1849,6 +1865,7 @@
               childIdAry: [
                 "autoPublishBoastStrategy",
                 "autoPublishBoastInitialValue",
+                "strategy1RecoveryCount",
               ],
               dataKey,
             });
@@ -3999,6 +4016,10 @@
 
     for (let i = 2; i < n; i++) {
       let nextValue = parseFloat(result[i - 1]) + parseFloat(result[i - 2]);
+      if (i < strategy1RecoveryCount && i > 2) {
+        const previousValue = result[i - 1];
+        nextValue = previousValue * 2;
+      }
       result.push(nextValue);
     }
 
