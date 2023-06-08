@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.4.0
+// @version      3.4.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -123,7 +123,7 @@
     // 策略1设置几把回本
     strategy1RecoveryCount: 3,
     // 发牛手续费次数
-    addCommissionCount: 3,
+    addCommissionCount: 0,
     // 上一把赢了就结束
     lastWinIsEnd: false,
   };
@@ -1599,7 +1599,7 @@
                 type="range"
                 id="addCommissionCount"
                 data-key="addCommissionCount"
-                min="${3}"
+                min="${0}"
                 value="${addCommissionCount}"
                 max="${10}"
                 step="${1}"
@@ -3272,10 +3272,6 @@
       // 是否开启自动发牛
       if (isAutoPublishBoast) {
         let nextBoastData = await getMyBoastData();
-        if (nextBoastData.lastIsWin && lastWinIsEnd) {
-          console.log("上把赢了停止发牛");
-          return;
-        }
         if (!timer) {
           autoPublishBoastInterval = nextBoastData.isFinished
             ? parseInt(autoPublishBoastInterval) - 25
@@ -3298,6 +3294,10 @@
         console.log("nextBoastData", nextBoastData);
         // 小于7点不发牛
         if (new Date().getHours() < 7 && nextBoastData.lastIsWin) {
+          return;
+        }
+        if (nextBoastData.lastIsWin && lastWinIsEnd) {
+          console.log("上把赢了停止发牛");
           return;
         }
 
@@ -4050,6 +4050,7 @@
       Number(autoPublishBoastStrategy) === 1
         ? generateSequenceByAdd(autoPublishBoastInitialValue, n)[n - 1]
         : generateSequenceByMultiply(autoPublishBoastInitialValue, n)[n - 1];
+    // 指定前几把增加手续费
     return isAddCommission && n <= addCommissionCount
       ? Math.floor(number / 0.9)
       : number;
@@ -4059,7 +4060,7 @@
    * @param {number} n 第几回合
    * @returns 返回第几回合的金额
    */
-  function generateSequenceByAdd(
+  /* function generateSequenceByAdd(
     initialValue = 500,
     n = 10,
     strategy1Count = strategy1RecoveryCount
@@ -4070,13 +4071,38 @@
       return result;
     }
 
-    result.push(initialValue <= 1000 ? initialValue * 2 : initialValue * 1.5);
+    result.push(initialValue <= 1000 ? initialValue * 3 : initialValue * 2.5);
 
     for (let i = 2; i < n; i++) {
       let nextValue = parseFloat(result[i - 1]) + parseFloat(result[i - 2]);
       if (i < strategy1Count && i > 2) {
         const previousValue = result[i - 1];
         nextValue = previousValue * 2;
+      }
+      result.push(nextValue);
+    }
+
+    return result;
+  } */
+  function generateSequenceByAdd(
+    initialValue = 500,
+    n = 10,
+    strategy1Count = strategy1RecoveryCount
+  ) {
+    if (initialValue >= 1000 && strategy1Count > 3) {
+      strategy1Count = 3;
+    }
+    let result = [parseFloat(initialValue)];
+    let rate = [3, 2.5, 2.1];
+    if (n === 1) {
+      return result;
+    }
+    result.push(initialValue * rate[0]);
+    for (let i = 2; i < n; i++) {
+      let nextValue = parseFloat(result[i - 1]) + parseFloat(result[i - 2]);
+      const previousValue = result[i - 1];
+      if (rate[i - 1] && strategy1Count > i) {
+        nextValue = previousValue * rate[i - 1];
       }
       result.push(nextValue);
     }
@@ -4090,10 +4116,10 @@
    */
   function generateSequenceByMultiply(initialValue = 500, n = 10) {
     let result = [parseFloat(initialValue)];
+    let rate = [3, 2.5, 2];
+    result.push(initialValue * rate[0]);
 
-    result.push(initialValue <= 1000 ? initialValue * 2 : initialValue * 1.5);
-
-    result.push(result[result.length - 1] + result[result.length - 2]);
+    result.push(result[result.length - 1] * rate[1]);
 
     if (n <= 3) {
       return result.slice(0, n);
