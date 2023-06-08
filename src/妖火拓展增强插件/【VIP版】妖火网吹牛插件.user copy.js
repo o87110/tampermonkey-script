@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【VIP版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      1.1.0
+// @version      1.1.1
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -97,6 +97,15 @@
         submit.click();
       }
     }
+  }
+  /**
+   * 生成指定范围内的随机整数
+   * @param {number} min - 随机数范围的最小值
+   * @param {number} max - 随机数范围的最大值
+   * @returns {number} - 生成的随机整数
+   */
+  function getRandomNumber(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
   }
   function getBoastRandomNum() {
     // 发牛答案 publishAnswer1Rate
