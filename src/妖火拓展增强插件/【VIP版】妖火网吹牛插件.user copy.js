@@ -257,7 +257,7 @@
           setItem("publishNumber", "0");
 
           let href = publishBoastBtn.href;
-          let nextMoney = nextBoastData.money || 500;
+          let nextMoney = nextBoastData.nextMoney || 500;
           // setItem("nextMoney", nextMoney);
           let newHref = href.includes("?")
             ? `${href}&open=new&publishMoney=${nextMoney}`
