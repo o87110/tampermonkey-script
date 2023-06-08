@@ -1944,17 +1944,27 @@
           let autoPublishBoastStrategy = $("#autoPublishBoastStrategy").prop(
             "value"
           );
-          // console.log(autoPublishBoastInitialValue, autoPublishBoastStrategy);
-          if (Number(autoPublishBoastStrategy) === 1) {
-            alert(
-              generateSequenceByAdd(autoPublishBoastInitialValue).join("、")
-            );
+          let strategy1RecoveryCount = $("#strategy1RecoveryCount").prop(
+            "value"
+          );
+          let ary1 = generateSequenceByAdd(
+            autoPublishBoastInitialValue,
+            10,
+            strategy1RecoveryCount
+          );
+          let ary2 = generateSequenceByMultiply(
+            autoPublishBoastInitialValue,
+            10,
+            strategy1RecoveryCount
+          );
+          if (!isMobile()) {
+            console.log(ary1, ary2);
           } else {
-            alert(
-              generateSequenceByMultiply(autoPublishBoastInitialValue).join(
-                "、"
-              )
-            );
+            if (Number(autoPublishBoastStrategy) === 1) {
+              alert(ary1.join("、"));
+            } else {
+              alert(ary2.join("、"));
+            }
           }
         });
       }
@@ -4005,7 +4015,11 @@
    * @param {number} n 第几回合
    * @returns 返回第几回合的金额
    */
-  function generateSequenceByAdd(initialValue = 500, n = 10) {
+  function generateSequenceByAdd(
+    initialValue = 500,
+    n = 10,
+    strategy1Count = strategy1RecoveryCount
+  ) {
     let result = [parseFloat(initialValue)];
 
     if (n === 1) {
@@ -4016,7 +4030,7 @@
 
     for (let i = 2; i < n; i++) {
       let nextValue = parseFloat(result[i - 1]) + parseFloat(result[i - 2]);
-      if (i < strategy1RecoveryCount && i > 2) {
+      if (i < strategy1Count && i > 2) {
         const previousValue = result[i - 1];
         nextValue = previousValue * 2;
       }
