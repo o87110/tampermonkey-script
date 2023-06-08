@@ -19,6 +19,8 @@
   let $, jQuery;
   $ = jQuery = myJquery();
 
+  // 策略2倍数
+  let multiplyRate = [3, 2, 2, 2];
   let settingData = {
     // 是否显示站内图标
     isShowSettingIcon: true,
@@ -126,8 +128,10 @@
     addCommissionCount: 0,
     // 上一把赢了就结束
     lastWinIsEnd: false,
-    // 策略2倍数
-    multiplyRate: [3, 2.5, 2.1, 2],
+    // 赢多少把结束
+    winEndNumber: 10,
+    // 赢多少妖精结束
+    winEndMoney: 20000,
     // 策略2后续默认倍数: 2
     strategy2DefaultRate: 2,
   };
@@ -203,6 +207,8 @@
     addCommissionCount,
 
     lastWinIsEnd,
+    winEndNumber,
+    winEndMoney,
     strategy2DefaultRate,
   } = yaohuo_userData;
 
@@ -1561,11 +1567,35 @@
               </div>
             </li>
             <li>
-              <span>上把赢就停止发牛</span>
+              <span>赢了就停止发牛</span>
               <div class="switch">
                 <input type="checkbox" id="lastWinIsEnd" data-key="lastWinIsEnd" />
                 <label for="lastWinIsEnd"></label>
               </div>
+            </li>
+            <li>
+              <span>赢多少把停止发牛：<a class="clear-win-data-btn">清除数据</a></span>
+              <input 
+                style="width:100px"
+                type="number" 
+                id="winEndNumber"
+                data-key="winEndNumber"
+                min="${1}"
+                step="${10}"
+                value="${winEndNumber}"
+              >
+            </li>
+            <li>
+              <span>赢多少妖精停止发牛：<a class="clear-win-data-btn">清除数据</a></span>
+              <input 
+                style="width:100px"
+                type="number" 
+                id="winEndMoney"
+                data-key="winEndMoney"
+                min="${500}"
+                step="${100}"
+                value="${winEndMoney}"
+              >
             </li>
             <li>
               <span class="preview-strategy-btn"><a>自动发吹牛策略</a></span>
@@ -1898,6 +1928,8 @@
                 "addCommissionCount",
                 "lastWinIsEnd",
                 "strategy2DefaultRate",
+                "winEndNumber",
+                "winEndMoney",
               ],
               dataKey,
             });
@@ -1909,11 +1941,13 @@
             autoShowElement({
               fatherIdAry: ["isAutoPublishBoast"],
               childIdAry: [
-                "autoPublishBoastStrategy",
-                "autoPublishBoastInitialValue",
-                "strategy1RecoveryCount",
+                // "autoPublishBoastStrategy",
+                // "autoPublishBoastInitialValue",
+                // "strategy1RecoveryCount",
                 "addCommissionCount",
-                "lastWinIsEnd",
+                // "lastWinIsEnd",
+                // "winEndNumber",
+                // "winEndMoney",
                 "strategy2DefaultRate",
               ],
               dataKey,
@@ -1957,6 +1991,7 @@
                 item.value = "500";
               }
             });
+            clearWinData(dataKey);
           } else {
             setValue(dataKey, item.value);
           }
@@ -1984,6 +2019,16 @@
           break;
       }
     });
+
+    function clearWinData(dataKey) {
+      if (["winEndMoney", "winEndNumber"].includes(dataKey)) {
+        $(".clear-win-data-btn").click(() => {
+          MY_setValue("winIdData", []);
+          MY_setValue("boastPlayGameObject", {});
+          MY_setValue("currentLatestId", null);
+        });
+      }
+    }
     function previewStrategy(dataKey) {
       if (dataKey === "autoPublishBoastStrategy") {
         $(".preview-strategy-btn").click(() => {
@@ -3292,6 +3337,22 @@
       // 是否开启自动发牛
       if (isAutoPublishBoast) {
         let nextBoastData = await getMyBoastData();
+        // winEndNumber winEndNumberData
+        let winIdData = MY_getValue("winIdData", []);
+        let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
+        if (nextBoastData.lastIsWin && lastWinIsEnd) {
+          console.log("上把赢了停止发牛");
+          return;
+        }
+        if (winIdData.length >= winEndNumber) {
+          console.log(`赢了${winEndNumber}次，自动停止`);
+          return;
+        }
+        if (boastPlayGameObject.total >= winEndMoney) {
+          console.log(`赢了${boastPlayGameObject.total}妖精，自动停止`);
+          return;
+        }
+
         if (!timer) {
           autoPublishBoastInterval = nextBoastData.isFinished
             ? parseInt(autoPublishBoastInterval) - 25
@@ -3314,10 +3375,6 @@
         console.log("nextBoastData", nextBoastData);
         // 小于7点不发牛
         if (new Date().getHours() < 7 && nextBoastData.lastIsWin) {
-          return;
-        }
-        if (nextBoastData.lastIsWin && lastWinIsEnd) {
-          console.log("上把赢了停止发牛");
           return;
         }
 
@@ -3966,6 +4023,7 @@
       let isFinished = true;
       let moneyChange = 0;
       let win = 0;
+      let currentLatestId = MY_getValue("currentLatestId", null);
       for (let index = 0; index < list.length; index++) {
         const item = list[index];
         let id = item.innerText;
@@ -3975,6 +4033,13 @@
         }
 
         total++;
+        // 记录上一次的id
+
+        if (index === 0) {
+          if (!currentLatestId) {
+            MY_setValue("currentLatestId", id);
+          }
+        }
 
         if (innerText.includes("进行中")) {
           isFinished = false;
@@ -3998,6 +4063,28 @@
             isFirstWin = true;
             win++;
             moneyChange += Number(money * 0.9);
+            let currentLatestId = MY_getValue("currentLatestId", null);
+            if (currentLatestId && currentLatestId < id) {
+              let winIdData = MY_getValue("winIdData", []);
+              let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
+              let { storage = {}, total } = boastPlayGameObject || {};
+              if (!storage[id]) {
+                storage[id] = moneyChange;
+                total = Object.values(storage).reduce((prev, cur) => {
+                  return Math.ceil(prev + cur);
+                }, 0);
+                boastPlayGameObject = {
+                  storage,
+                  total,
+                };
+                MY_setValue("boastPlayGameObject", boastPlayGameObject);
+              }
+
+              if (!winIdData.includes(id)) {
+                winIdData.push(id);
+                MY_setValue("winIdData", winIdData);
+              }
+            }
           }
         }
       }
@@ -4140,7 +4227,7 @@
     defaultRate = strategy2DefaultRate
   ) {
     let result = [parseFloat(initialValue)];
-    let multiplyRate = [3, 2.5, 2.1, 2];
+    multiplyRate = multiplyRate || [3, 2.5, 2.1, 2];
 
     for (let i = 1; i < n; i++) {
       const previousValue = result[i - 1];
