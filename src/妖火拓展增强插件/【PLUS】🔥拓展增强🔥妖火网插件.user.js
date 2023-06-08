@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.4.1
+// @version      3.4.2
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -126,6 +126,10 @@
     addCommissionCount: 0,
     // 上一把赢了就结束
     lastWinIsEnd: false,
+    // 策略2倍数
+    multiplyRate: [3, 2.5, 2.1, 2],
+    // 策略2后续默认倍数: 2
+    strategy1DefaultRate: 2,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -199,6 +203,7 @@
     addCommissionCount,
 
     lastWinIsEnd,
+    strategy1DefaultRate,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1594,6 +1599,18 @@
               />
             </li>
             <li>
+              <span>策略2默认倍数：<i class="range-num">${strategy1DefaultRate}</i></span>
+              <input
+                type="range"
+                id="strategy1DefaultRate"
+                data-key="strategy1DefaultRate"
+                min="${2}"
+                value="${strategy1DefaultRate}"
+                max="${3}"
+                step="${0.1}"
+              />
+            </li>
+            <li>
               <span>发牛增加手续费次数：<i class="range-num">${addCommissionCount}</i></span>
               <input
                 type="range"
@@ -1601,7 +1618,7 @@
                 data-key="addCommissionCount"
                 min="${0}"
                 value="${addCommissionCount}"
-                max="${10}"
+                max="${15}"
                 step="${1}"
               />
             </li>
@@ -1880,6 +1897,7 @@
                 "strategy1RecoveryCount",
                 "addCommissionCount",
                 "lastWinIsEnd",
+                "strategy1DefaultRate",
               ],
               dataKey,
             });
@@ -1896,6 +1914,7 @@
                 "strategy1RecoveryCount",
                 "addCommissionCount",
                 "lastWinIsEnd",
+                "strategy1DefaultRate",
               ],
               dataKey,
             });
@@ -3170,7 +3189,7 @@
 
     let randomNumber = Math.random() < probability ? 1 : 2;
     if (!randomConsecutive) {
-      randomConsecutive = getRandomNumber(3, maxConsecutive);
+      randomConsecutive = getRandomNumber(2, maxConsecutive);
       boastConfig.randomConsecutive = randomConsecutive;
       MY_setValue("boastConfig", boastConfig);
     }
@@ -3191,7 +3210,7 @@
     if (randomNumber === previousNumber) {
       consecutiveCount++;
     } else {
-      randomConsecutive = getRandomNumber(3, publishBoastMaxConsecutive);
+      randomConsecutive = getRandomNumber(2, publishBoastMaxConsecutive);
       consecutiveCount = 1;
     }
     previousNumber = randomNumber;
@@ -4116,18 +4135,12 @@
    */
   function generateSequenceByMultiply(initialValue = 500, n = 10) {
     let result = [parseFloat(initialValue)];
-    let rate = [3, 2.5, 2];
-    result.push(initialValue * rate[0]);
+    let multiplyRate = [3, 2.5, 2.1, 2];
 
-    result.push(result[result.length - 1] * rate[1]);
-
-    if (n <= 3) {
-      return result.slice(0, n);
-    }
-
-    for (let i = 3; i < n; i++) {
+    for (let i = 1; i < n; i++) {
       const previousValue = result[i - 1];
-      const currentValue = previousValue * 2;
+      const currentValue =
+        previousValue * (multiplyRate[i - 1] || strategy1DefaultRate);
       result.push(currentValue);
     }
 

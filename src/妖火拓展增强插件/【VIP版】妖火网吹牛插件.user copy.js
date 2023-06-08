@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【VIP版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      1.1.3
+// @version      1.1.4
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -19,36 +19,56 @@
 
   // 设置密码，玩吹牛时隔段时间会要求输密码，填入可自动输入密码并确认
   let websitePassword = "";
+
   // 是否是自动吃牛：true为是：false为否
   let isAutoEatBoast = false;
+
   // 赌注妖精大于则不自动吃
   let eatBoastMaxNum = 500;
+
   // 自身妖精小于则不自动吃
   let eatBoastMaxMoney = 100000;
+
   // 批量发牛金额，
   let batchPublishBoastMoney = 500;
+
   // 发吹牛答案1的概率，如果设置0.6代表60%选1,40%选2
   let publishAnswer1Rate = 0.5;
+
   // 吃吹牛答案1的概率，如果设置0.6代表60%选1,40%选2
   let eatAnswer1Rate = 0.5;
+
   // 统计指定页数据按钮 查询指定页数或者id方式：1简略，2详细
   // 推荐使用1速度更快，主要查输赢了多少妖精
   // 使用方式：填写页数或者截止的id，比如填8则从当前页开始查询8页的数据
   // 如果填写id，比如统计今日妖精变动，去我的大话里面找到今天第一条发妖精的id比如填890717
   // 会统计最近的到这条id的记录，吃牛也是同样的可以统计，统计别人的同理
   let searchBoastLogType = 1;
+
   // 是否自动发吹牛：true为是：false为否
   let isAutoPublishBoast = false;
+
   // 发牛最大连续次数：如1111则为连续4次，设置4则第5次必为2，不建议设置过小，也不建议设置过大
   let publishBoastMaxConsecutive = 8;
+
   // 自动发牛的时间间隔 无需修改，会根据是否有人吃牛动态调整时间
   let autoPublishBoastInterval = MY_getValue("autoPublishBoastInterval", 30);
+
   // 自动发布吹牛策略：1、2；本金少（几十万）推荐用策略1，本金多（几百万几千万）推荐策略2
   // 1为加法策略，下一次金额为最近两次之和，例如：500, 1000, 1500, 2500, 4000, 6500, 10500
   // 2为乘积策略，下一次金额为上一次的两倍，例如：500, 1000, 1500, 3000, 6000, 12000, 24000
   let autoPublishBoastStrategy = 1;
+
   // 自动发牛初始值，默认500，不建议初始值过高：可设置500,1000,1500,2000等等
   let autoPublishBoastInitialValue = 500;
+
+  // 发牛手续费次数；上一把输了下一把则加上手续费，赢了则不加，0代表不计算手续费，10代表10把内计算手续费，如果想要每次输了下一把都计算手续费填个很大的数字就行，比如20
+  let addCommissionCount = 0;
+
+  // 策略2倍数，代表从第二把开始的倍数，往后依次增加可以自定义修改，可以增加倍数比如：[3, 2.8, 2.6, 2.4, 2.2]等等，如果后续没写的话默认就用下面的后续默认倍数
+  let multiplyRate = [3, 2.5, 2.1, 2];
+  // 策略2后续默认倍数: 2,如果只设置了 [3, 2.5, 2.1, 2]，那么后续都是2倍，相当于 [3, 2.5, 2.1, 2, 2, 2, 2.....]
+  let strategy1DefaultRate = 2;
   /* 
     策略1：加法策略，下一次金额为最近两次之和；不同初始值，连输后下一把对应的赌注: 
     (500初始值)  [500, 1000, 1500, 2500, 4000, 6500, 10500, 17000, 27500, 44500]
@@ -129,7 +149,7 @@
 
     let randomNumber = Math.random() < probability ? 1 : 2;
     if (!randomConsecutive) {
-      randomConsecutive = getRandomNumber(3, maxConsecutive);
+      randomConsecutive = getRandomNumber(2, maxConsecutive);
       boastConfig.randomConsecutive = randomConsecutive;
       MY_setValue("boastConfig", boastConfig);
     }
@@ -150,7 +170,7 @@
     if (randomNumber === previousNumber) {
       consecutiveCount++;
     } else {
-      randomConsecutive = getRandomNumber(3, publishBoastMaxConsecutive);
+      randomConsecutive = getRandomNumber(2, publishBoastMaxConsecutive);
       consecutiveCount = 1;
     }
     previousNumber = randomNumber;
@@ -923,7 +943,7 @@
         isFinished,
         lastIsWin,
         moneyChange,
-        nextMoney: getNextMoney(count),
+        nextMoney: getNextMoney(count, !lastIsWin),
       };
     }
     function handleAddSearch() {
@@ -977,13 +997,18 @@
       return id;
     }
   }
-  function getNextMoney(n) {
+  function getNextMoney(n, isAddCommission = false) {
     autoPublishBoastStrategy = isNaN(autoPublishBoastStrategy)
       ? 500
       : autoPublishBoastStrategy;
-    return Number(autoPublishBoastStrategy) === 1
-      ? generateSequenceByAdd(autoPublishBoastInitialValue, n)[n - 1]
-      : generateSequenceByMultiply(autoPublishBoastInitialValue, n)[n - 1];
+    let number =
+      Number(autoPublishBoastStrategy) === 1
+        ? generateSequenceByAdd(autoPublishBoastInitialValue, n)[n - 1]
+        : generateSequenceByMultiply(autoPublishBoastInitialValue, n)[n - 1];
+    // 指定前几把增加手续费
+    return isAddCommission && n <= addCommissionCount
+      ? Math.floor(number / 0.9)
+      : number;
   }
   /**
    * 策略1：下一次金额为最近两次之和
@@ -1013,18 +1038,14 @@
    */
   function generateSequenceByMultiply(initialValue = 500, n = 10) {
     let result = [parseFloat(initialValue)];
-
-    result.push(initialValue <= 1000 ? initialValue * 2 : initialValue * 1.5);
-
-    result.push(result[result.length - 1] + result[result.length - 2]);
-
-    if (n <= 3) {
-      return result.slice(0, n);
+    if (!multiplyRate && !multiplyRate.length) {
+      multiplyRate = [3, 2.5, 2.1, 2];
     }
 
-    for (let i = 3; i < n; i++) {
+    for (let i = 1; i < n; i++) {
       const previousValue = result[i - 1];
-      const currentValue = previousValue * 2;
+      const currentValue =
+        previousValue * (multiplyRate[i - 1] || strategy1DefaultRate || 2);
       result.push(currentValue);
     }
 
