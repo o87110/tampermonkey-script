@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【VIP版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      1.1.1
+// @version      1.1.2
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -348,6 +348,8 @@
               tzSelectString,
               yzSelectString,
               tzSelectDomString,
+              tzMoney,
+              yzMoney,
             } = res;
             document.querySelector(".subTitleTips").innerHTML = `
               <p>发牛者过去${total}条中，选择了：${tzSelectDomString}，答案一：${tzSelect1}次，选择答案二：${tzSelect2}次</p>
@@ -359,6 +361,11 @@
               <b style="color:${tzSelect1 < tzSelect2 ? "red" : "unset"}">${(
               tzSelect2 / total || 0
             ).toFixed(2)}</b></p>
+            <p>
+              发吹牛<b style="color:${tzMoney >= 0 ? "red" : "green"}">${
+              tzMoney > 0 ? "赢了" : "输了"
+            }</b>${Math.abs(tzMoney)}妖精\n
+              </p>
             `;
 
             answer1Rate = tzSelect1 / total;
