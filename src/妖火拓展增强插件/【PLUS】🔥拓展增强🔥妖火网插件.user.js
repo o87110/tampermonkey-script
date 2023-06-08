@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.3.15
+// @version      3.4.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -122,6 +122,8 @@
     publishBoastMaxConsecutive: 6,
     // 策略1设置几把回本
     strategy1RecoveryCount: 3,
+    // 发牛手续费次数
+    addCommissionCount: 3,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -192,6 +194,7 @@
     publishBoastMaxConsecutive,
     autoPublishBoastInterval,
     strategy1RecoveryCount,
+    addCommissionCount,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1579,6 +1582,18 @@
                 step="${1}"
               />
             </li>
+            <li>
+              <span>发牛增加手续费次数：<i class="range-num">${addCommissionCount}</i></span>
+              <input
+                type="range"
+                id="addCommissionCount"
+                data-key="addCommissionCount"
+                min="${3}"
+                value="${addCommissionCount}"
+                max="${10}"
+                step="${1}"
+              />
+            </li>
             <li class="yaohuo-wrap-title">
               <hr class="title-line title-line-left" />
               <b>吃肉设置</b>
@@ -1852,6 +1867,7 @@
                 "searchBoastLogType",
                 "publishBoastMaxConsecutive",
                 "strategy1RecoveryCount",
+                "addCommissionCount",
               ],
               dataKey,
             });
@@ -1866,6 +1882,7 @@
                 "autoPublishBoastStrategy",
                 "autoPublishBoastInitialValue",
                 "strategy1RecoveryCount",
+                "addCommissionCount",
               ],
               dataKey,
             });
@@ -3955,7 +3972,7 @@
         isFinished,
         lastIsWin,
         moneyChange,
-        nextMoney: getNextMoney(count),
+        nextMoney: getNextMoney(count, !lastIsWin),
       };
     }
 
@@ -4010,10 +4027,14 @@
       return id;
     }
   }
-  function getNextMoney(n) {
-    return Number(autoPublishBoastStrategy) === 1
-      ? generateSequenceByAdd(autoPublishBoastInitialValue, n)[n - 1]
-      : generateSequenceByMultiply(autoPublishBoastInitialValue, n)[n - 1];
+  function getNextMoney(n, isAddCommission = false) {
+    let number =
+      Number(autoPublishBoastStrategy) === 1
+        ? generateSequenceByAdd(autoPublishBoastInitialValue, n)[n - 1]
+        : generateSequenceByMultiply(autoPublishBoastInitialValue, n)[n - 1];
+    return isAddCommission && n <= addCommissionCount
+      ? Math.floor(number / 0.9)
+      : number;
   }
   /**
    * 策略1：下一次金额为最近两次之和
