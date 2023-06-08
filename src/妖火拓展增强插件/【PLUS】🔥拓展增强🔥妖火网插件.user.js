@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.3.12
+// @version      3.3.13
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -108,6 +108,7 @@
 
     // 是否自动发吹牛：true为是：false为否
     isAutoPublishBoast: false,
+    // 自动发牛的时间间隔
     autoPublishBoastInterval: 30,
     // 自动发布吹牛策略：1、2
     // 1为加法策略，下一次金额为最近两次之和，例如：500, 1000, 1500, 2500, 4000, 6500, 10500
@@ -3538,7 +3539,7 @@
             "请输入要查询页数或者截止的id：",
             parseInt(todayFirstId) || 5
           );
-          // 888663
+
           if (!/^\d+$/.test(number)) {
             isClick = false;
             return;
@@ -3551,6 +3552,11 @@
 
           number = parseInt(number);
           if (number <= 0) {
+            isClick = false;
+            return;
+          }
+          if (number > 50 && number < 100000) {
+            alert("输入的页数或者id不对，页数需小于50页，id需大于100000");
             isClick = false;
             return;
           }
@@ -3582,6 +3588,10 @@
             );
             innerHTML += bodyString;
             if (isId && bodyString.includes(number)) {
+              break;
+            }
+            // 大于50页说明传的数据有问题,直接退出
+            if (index > 50 * 15) {
               break;
             }
           }
@@ -3836,9 +3846,6 @@
       }
     }
     async function getMyBoastData(tempDiv, endId = 0) {
-      let list;
-      // url =
-      //   "https://yaohuo.me/games/chuiniu/book_list.aspx?type=0&siteid=1000&classid=0&touserid=&lpage=&getTotal=887265&page=8";
       if (!tempDiv) {
         tempDiv = tempDiv || document;
         let btn = tempDiv.querySelector(
@@ -3859,7 +3866,7 @@
         tempDiv.innerHTML = bodyString;
       }
 
-      list = tempDiv.querySelectorAll(
+      let list = tempDiv.querySelectorAll(
         "a[href^='/games/chuiniu/book_view.aspx'], a[href^='/games/chuiniu/doit.aspx']"
       );
       // let boastData = getItem("boastData");
