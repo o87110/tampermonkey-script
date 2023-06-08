@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.4.2
+// @version      3.4.3
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -129,7 +129,7 @@
     // 策略2倍数
     multiplyRate: [3, 2.5, 2.1, 2],
     // 策略2后续默认倍数: 2
-    strategy1DefaultRate: 2,
+    strategy2DefaultRate: 2,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -203,7 +203,7 @@
     addCommissionCount,
 
     lastWinIsEnd,
-    strategy1DefaultRate,
+    strategy2DefaultRate,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1599,14 +1599,14 @@
               />
             </li>
             <li>
-              <span>策略2默认倍数：<i class="range-num">${strategy1DefaultRate}</i></span>
+              <span>策略2默认倍数：<i class="range-num">${strategy2DefaultRate}</i></span>
               <input
                 type="range"
-                id="strategy1DefaultRate"
-                data-key="strategy1DefaultRate"
+                id="strategy2DefaultRate"
+                data-key="strategy2DefaultRate"
                 min="${2}"
-                value="${strategy1DefaultRate}"
-                max="${3}"
+                value="${strategy2DefaultRate}"
+                max="${2.5}"
                 step="${0.1}"
               />
             </li>
@@ -1897,7 +1897,7 @@
                 "strategy1RecoveryCount",
                 "addCommissionCount",
                 "lastWinIsEnd",
-                "strategy1DefaultRate",
+                "strategy2DefaultRate",
               ],
               dataKey,
             });
@@ -1914,7 +1914,7 @@
                 "strategy1RecoveryCount",
                 "addCommissionCount",
                 "lastWinIsEnd",
-                "strategy1DefaultRate",
+                "strategy2DefaultRate",
               ],
               dataKey,
             });
@@ -1996,6 +1996,7 @@
           let strategy1RecoveryCount = $("#strategy1RecoveryCount").prop(
             "value"
           );
+          let strategy2DefaultRate = $("#strategy2DefaultRate").prop("value");
           let ary1 = generateSequenceByAdd(
             autoPublishBoastInitialValue,
             10,
@@ -2004,7 +2005,7 @@
           let ary2 = generateSequenceByMultiply(
             autoPublishBoastInitialValue,
             10,
-            strategy1RecoveryCount
+            strategy2DefaultRate
           );
           if (!isMobile()) {
             console.log(ary1, ary2);
@@ -4112,7 +4113,7 @@
       strategy1Count = 3;
     }
     let result = [parseFloat(initialValue)];
-    let rate = [3, 2.5, 2.1];
+    let rate = [3, 2.5, 2.1, 2];
     if (n === 1) {
       return result;
     }
@@ -4133,14 +4134,18 @@
    * @param {number} n 第几回合
    * @returns 返回第几回合的金额
    */
-  function generateSequenceByMultiply(initialValue = 500, n = 10) {
+  function generateSequenceByMultiply(
+    initialValue = 500,
+    n = 10,
+    defaultRate = strategy2DefaultRate
+  ) {
     let result = [parseFloat(initialValue)];
     let multiplyRate = [3, 2.5, 2.1, 2];
 
     for (let i = 1; i < n; i++) {
       const previousValue = result[i - 1];
       const currentValue =
-        previousValue * (multiplyRate[i - 1] || strategy1DefaultRate);
+        previousValue * (multiplyRate[i - 1] || defaultRate || 2);
       result.push(currentValue);
     }
 

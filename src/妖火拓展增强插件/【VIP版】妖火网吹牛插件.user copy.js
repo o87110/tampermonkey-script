@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【VIP版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      1.1.4
+// @version      1.1.5
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -68,7 +68,7 @@
   // 策略2倍数，代表从第二把开始的倍数，往后依次增加可以自定义修改，可以增加倍数比如：[3, 2.8, 2.6, 2.4, 2.2]等等，如果后续没写的话默认就用下面的后续默认倍数
   let multiplyRate = [3, 2.5, 2.1, 2];
   // 策略2后续默认倍数: 2,如果只设置了 [3, 2.5, 2.1, 2]，那么后续都是2倍，相当于 [3, 2.5, 2.1, 2, 2, 2, 2.....]
-  let strategy1DefaultRate = 2;
+  let strategy2DefaultRate = 2;
   /* 
     策略1：加法策略，下一次金额为最近两次之和；不同初始值，连输后下一把对应的赌注: 
     (500初始值)  [500, 1000, 1500, 2500, 4000, 6500, 10500, 17000, 27500, 44500]
@@ -1045,7 +1045,7 @@
     for (let i = 1; i < n; i++) {
       const previousValue = result[i - 1];
       const currentValue =
-        previousValue * (multiplyRate[i - 1] || strategy1DefaultRate || 2);
+        previousValue * (multiplyRate[i - 1] || strategy2DefaultRate || 2);
       result.push(currentValue);
     }
 
