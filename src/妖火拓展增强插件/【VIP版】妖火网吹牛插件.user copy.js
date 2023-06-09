@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【VIP版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      1.1.8
+// @version      1.1.9
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -1055,7 +1055,7 @@
 
     for (let i = 1; i < n; i++) {
       const previousValue = result[i - 1];
-      const currentValue =
+      let currentValue =
         previousValue * (multiplyRate[i - 1] || strategy2DefaultRate || 2);
       if (commissionType == 2) {
         currentValue = Math.floor(currentValue / 0.9);
