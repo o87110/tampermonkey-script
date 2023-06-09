@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【VIP版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      1.1.7
+// @version      1.1.8
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -1013,20 +1013,9 @@
     }
     number = ary[n - 1];
 
-    function getCommissionCount(ary, n) {
-      if (commissionType == 1) {
-        return number / 0.9 - number;
-      }
-      let commissionCount = ary.slice(1).reduce((prev, cur) => {
-        return prev + (cur / 0.9 - cur);
-      }, 0);
-      return commissionCount;
-    }
-    let CommissionCount = getCommissionCount(ary, n);
-
     // 指定前几把增加手续费
-    return isAddCommission && n <= addCommissionCount
-      ? Math.floor(number + CommissionCount)
+    return isAddCommission && n <= addCommissionCount && commissionType == 1
+      ? Math.ceil(number / 0.9)
       : number;
   }
   /**
@@ -1045,6 +1034,9 @@
 
     for (let i = 2; i < n; i++) {
       let nextValue = parseFloat(result[i - 1]) + parseFloat(result[i - 2]);
+      if (commissionType == 2) {
+        currentValue = Math.floor(currentValue / 0.9);
+      }
       result.push(nextValue);
     }
 
@@ -1057,7 +1049,7 @@
    */
   function generateSequenceByMultiply(initialValue = 500, n = 10) {
     let result = [parseFloat(initialValue)];
-    if (!multiplyRate && !multiplyRate.length) {
+    if (!multiplyRate || !multiplyRate.length) {
       multiplyRate = [3, 2.5, 2.1, 2];
     }
 
@@ -1065,6 +1057,9 @@
       const previousValue = result[i - 1];
       const currentValue =
         previousValue * (multiplyRate[i - 1] || strategy2DefaultRate || 2);
+      if (commissionType == 2) {
+        currentValue = Math.floor(currentValue / 0.9);
+      }
       result.push(currentValue);
     }
 
