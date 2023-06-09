@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.4.5
+// @version      3.4.6
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -3881,7 +3881,7 @@
         if (item.parentElement.innerText.includes("进行中")) {
           continue;
         }
-        if (endId && parseInt(endId) > parseInt(id)) {
+        if (endId && parseInt(endId) >= parseInt(id)) {
           break;
         }
         // if (isReturnResult && total >= 10) {
@@ -4061,7 +4061,7 @@
         const item = list[index];
         let id = item.innerText;
         let innerText = item.parentElement.innerText;
-        if (endId && parseInt(endId) > parseInt(id)) {
+        if (endId && parseInt(endId) >= parseInt(id)) {
           break;
         }
 
@@ -4073,7 +4073,7 @@
             MY_setValue("currentLatestId", id);
           }
         }
-
+        currentLatestId = MY_getValue("currentLatestId", null);
         if (innerText.includes("进行中")) {
           isFinished = false;
           // return {
@@ -4096,7 +4096,6 @@
             isFirstWin = true;
             win++;
             moneyChange += Number(money * 0.9);
-            let currentLatestId = MY_getValue("currentLatestId", null);
             if (currentLatestId && currentLatestId < id) {
               let winIdData = MY_getValue("winIdData", []);
 
@@ -4106,19 +4105,22 @@
               }
             }
           }
-          let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
-          let { storage = {}, total } = boastPlayGameObject || {};
-          if (!storage[id]) {
-            storage[id] = status === "输了" ? -money : +money;
-            total = Object.values(storage).reduce((prev, cur) => {
-              return Math.ceil(prev + cur);
-            }, 0);
-            total = total > 0 ? Math.ceil(total * 0.9) : total;
-            boastPlayGameObject = {
-              storage,
-              total,
-            };
-            MY_setValue("boastPlayGameObject", boastPlayGameObject);
+          if (currentLatestId && currentLatestId < id) {
+            let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
+            let { storage = {}, total } = boastPlayGameObject || {};
+            if (!storage[id]) {
+              storage[id] = status === "输了" ? -money : +money;
+              total = Object.values(storage).reduce((prev, cur) => {
+                let money = cur > 0 ? cur * 0.9 : cur;
+                return Math.ceil(prev + money);
+              }, 0);
+              total = Math.ceil(total);
+              boastPlayGameObject = {
+                storage,
+                total,
+              };
+              MY_setValue("boastPlayGameObject", boastPlayGameObject);
+            }
           }
         }
       }
