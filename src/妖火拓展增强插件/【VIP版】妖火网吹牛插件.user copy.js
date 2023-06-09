@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【VIP版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      1.1.12
+// @version      1.1.13
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -37,6 +37,9 @@
 
   // 吃吹牛答案1的概率，如果设置0.6代表60%选1,40%选2
   let eatAnswer1Rate = 0.5;
+
+  // 动态胜率：1开启，0关闭
+  let isDynamicWinRate = 0;
 
   // 统计指定页数据按钮 查询指定页数或者id方式：1简略，2详细
   // 推荐使用1速度更快，主要查输赢了多少妖精
@@ -160,7 +163,12 @@
       consecutiveCount = 1,
       randomConsecutive,
       previousAry = [],
+      DynamicWinRate1 = publishAnswer1Rate,
     } = boastConfig;
+    // 如果开启了动态胜率就设置动态胜率
+    if (isDynamicWinRate) {
+      probability = DynamicWinRate1;
+    }
 
     let randomNumber = Math.random() < probability ? 1 : 2;
     if (!randomConsecutive) {
@@ -248,6 +256,19 @@
       let publishBoastBtn = document.querySelector(
         "a[href^='/games/chuiniu/add.aspx']"
       );
+      let refreshBtn = document.querySelector(
+        "a[href^='/games/chuiniu/index.aspx']"
+      );
+
+      // 处理刷新按钮
+      refreshBtn.addEventListener(
+        "click",
+        (e) => {
+          location.reload();
+          e.preventDefault();
+        },
+        true
+      );
 
       if (publishBoastBtn.innerText === "我要公开挑战") {
         // 添加批量按钮
@@ -291,9 +312,9 @@
         }
 
         // 小于7点不发牛
-        if (new Date().getHours() < 7 && nextBoastData.lastIsWin) {
-          return;
-        }
+        // if (new Date().getHours() < 7 && nextBoastData.lastIsWin) {
+        //   return;
+        // }
         if (nextBoastData.isFinished) {
           setItem("publishNumber", "0");
 
@@ -635,7 +656,8 @@
               ""
             );
             innerHTML += bodyString;
-            if (isId && bodyString.includes(number)) {
+
+            if (isId && handleCurrentPageIsContainsId(bodyString, number)) {
               break;
             }
             // 大于50页说明传的数据有问题,直接退出
@@ -686,7 +708,12 @@
             alert(
               `
             ====${isId ? "今日" : `最近${number}页`}发吹牛总条数：${total}===\n
-            发吹牛选1的次数：${tzSelect1}，选2的次数：${tzSelect2}\n
+            发吹牛选择：${tzSelectString}\n
+            发吹牛选1的次数：${tzSelect1}次 / ${(tzSelect1 / total).toFixed(
+                2
+              )}，选2的次数：${tzSelect2}次 / ${(tzSelect2 / total).toFixed(
+                2
+              )}\n
             实际发吹牛选1赢的概率：${(tzSelect1Win / total).toFixed(
               2
             )}，选2赢的概率：${(tzSelect2Win / total).toFixed(2)}\n
@@ -697,7 +724,12 @@
                 tzMoney > 0 ? "赢了" : "输了"
               }${Math.abs(tzMoney)}妖精\n
             ====${isId ? "今日" : `最近${number}页`}吹牛总条数：${total}====\n
-            吃吹牛选1的次数：${yzSelect1}，选2的次数：${yzSelect2}\n
+            吃吹牛选择：${yzSelectString}\n
+            吃吹牛选1的次数：${yzSelect1}次 / ${(yzSelect1 / total).toFixed(
+                2
+              )}，选2的次数：${yzSelect2}次 / ${(yzSelect2 / total).toFixed(
+                2
+              )}\n
             实际吃吹牛实际选1赢的概率：${(yzSelect1Win / total).toFixed(
               2
             )}，选2赢的概率：${(yzSelect2Win / total).toFixed(2)}\n
@@ -858,7 +890,9 @@
           `
           ====当前页发吹牛总条数：${total}===\n
           发吹牛选择：${tzSelectString}\n
-          发吹牛选1的次数：${tzSelect1}，选2的次数：${tzSelect2}\n
+          发吹牛选1的次数：${tzSelect1} / ${(tzSelect1 / total).toFixed(
+            2
+          )}，选2的次数：${tzSelect2} / ${(tzSelect2 / total).toFixed(2)}\n
           实际发吹牛选1赢的概率：${(tzSelect1Win / total).toFixed(
             2
           )}，选2赢的概率：${(tzSelect2Win / total).toFixed(2)}\n
@@ -870,7 +904,9 @@
           }${Math.abs(tzMoney)}妖精\n
           ====当前页吃吹牛总条数：${total}====\n
           吃吹牛选择：${yzSelectString}\n
-          吃吹牛选1的次数：${yzSelect1}，选2的次数：${yzSelect2}\n
+          吃吹牛选1的次数：${yzSelect1} / ${(yzSelect1 / total).toFixed(
+            2
+          )}，选2的次数：${yzSelect2} / ${(yzSelect2 / total).toFixed(2)}\n
           实际吃吹牛实际选1赢的概率：${(yzSelect1Win / total).toFixed(
             2
           )}，选2赢的概率：${(yzSelect2Win / total).toFixed(2)}\n
@@ -910,6 +946,17 @@
       let list = tempDiv.querySelectorAll(
         "a[href^='/games/chuiniu/book_view.aspx'], a[href^='/games/chuiniu/doit.aspx']"
       );
+      if (isDynamicWinRate) {
+        let { yzSelect2, total } = await handleData(tempDiv, true);
+        let rate1 = (yzSelect2 / total).toFixed(2);
+        // 动态策略最小0.35，最大0.65
+        rate1 = rate1 > 0.5 ? Math.min(rate1, 0.65) : Math.min(rate1, 0.35);
+
+        let boastConfig = MY_getValue("boastConfig", {});
+        boastConfig.DynamicWinRate1 = rate1;
+        MY_setValue("boastConfig", boastConfig);
+      }
+
       // let boastData = getItem("boastData");
       // let statusAry = [];
       // let moneyAry = [];

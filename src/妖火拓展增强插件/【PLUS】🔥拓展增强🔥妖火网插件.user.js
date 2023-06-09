@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.4.6
+// @version      3.4.7
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -24,7 +24,11 @@
   // 手续费方式：1为只计算最后一次，2为累加全部的手续费
   let commissionType = 2;
   // 初始 [5000, 1111, 1790]; [500,1111, 2400]; [555, 1278, 2700]
-  let defaultValueByCommission = [500, 1111, 2400];
+  let defaultValueByCommission = [500, 1000, 1800];
+  // 发牛最小连续次数
+  let publishBoastMinConsecutive = 1;
+  // 动态胜率：1开启，0关闭
+  let isDynamicWinRate = 0;
 
   let settingData = {
     // 是否显示站内图标
@@ -1573,7 +1577,7 @@
               </div>
             </li>
             <li>
-              <span>赢了就停止发牛</span>
+              <span>当前赢了就停止发牛</span>
               <div class="switch">
                 <input type="checkbox" id="lastWinIsEnd" data-key="lastWinIsEnd" />
                 <label for="lastWinIsEnd"></label>
@@ -3264,11 +3268,21 @@
       consecutiveCount = 1,
       randomConsecutive,
       previousAry = [],
+      DynamicWinRate1 = publishAnswer1Rate,
     } = boastConfig;
-
+    // 如果开启了动态胜率就设置动态胜率
+    if (isDynamicWinRate) {
+      probability = DynamicWinRate1;
+      console.log(
+        `设置了动态胜率DynamicWinRate1:${DynamicWinRate1},原本publishAnswer1Rate:${publishAnswer1Rate}`
+      );
+    }
     let randomNumber = Math.random() < probability ? 1 : 2;
     if (!randomConsecutive) {
-      randomConsecutive = getRandomNumber(2, maxConsecutive);
+      randomConsecutive = getRandomNumber(
+        publishBoastMinConsecutive,
+        maxConsecutive
+      );
       boastConfig.randomConsecutive = randomConsecutive;
       MY_setValue("boastConfig", boastConfig);
     }
@@ -3289,7 +3303,10 @@
     if (randomNumber === previousNumber) {
       consecutiveCount++;
     } else {
-      randomConsecutive = getRandomNumber(2, publishBoastMaxConsecutive);
+      randomConsecutive = getRandomNumber(
+        publishBoastMinConsecutive,
+        publishBoastMaxConsecutive
+      );
       consecutiveCount = 1;
     }
     previousNumber = randomNumber;
@@ -3345,6 +3362,19 @@
       let publishBoastBtn = document.querySelector(
         "a[href^='/games/chuiniu/add.aspx']"
       );
+      let refreshBtn = document.querySelector(
+        "a[href^='/games/chuiniu/index.aspx']"
+      );
+
+      // 处理刷新按钮
+      refreshBtn.addEventListener(
+        "click",
+        (e) => {
+          location.reload();
+          e.preventDefault();
+        },
+        true
+      );
 
       if (publishBoastBtn.innerText === "我要公开挑战") {
         // 添加批量按钮
@@ -3374,7 +3404,7 @@
         let winIdData = MY_getValue("winIdData", []);
         let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
         if (nextBoastData.lastIsWin && lastWinIsEnd) {
-          console.log("上把赢了停止发牛");
+          console.log("当前赢了停止发牛");
           return;
         }
         if (winIdData.length >= winEndNumber) {
@@ -3632,7 +3662,7 @@
 
     // 查看记录
     if ("/games/chuiniu/book_list.aspx".includes(location.pathname)) {
-      if (!isMobile() && !timer) {
+      if (!isMobile() && !timer && isAutoPublishBoast) {
         timer = setInterval(function () {
           location.reload();
         }, 50 * 1000);
@@ -3764,7 +3794,8 @@
               ""
             );
             innerHTML += bodyString;
-            if (isId && bodyString.includes(number)) {
+
+            if (isId && handleCurrentPageIsContainsId(bodyString, number)) {
               break;
             }
             // 大于50页说明传的数据有问题,直接退出
@@ -3815,7 +3846,12 @@
             alert(
               `
             ====${isId ? "今日" : `最近${number}页`}发吹牛总条数：${total}===\n
-            发吹牛选1的次数：${tzSelect1}，选2的次数：${tzSelect2}\n
+            发吹牛选择：${tzSelectString}\n
+            发吹牛选1的次数：${tzSelect1}次 / ${(tzSelect1 / total).toFixed(
+                2
+              )}，选2的次数：${tzSelect2}次 / ${(tzSelect2 / total).toFixed(
+                2
+              )}\n
             实际发吹牛选1赢的概率：${(tzSelect1Win / total).toFixed(
               2
             )}，选2赢的概率：${(tzSelect2Win / total).toFixed(2)}\n
@@ -3826,7 +3862,12 @@
                 tzMoney > 0 ? "赢了" : "输了"
               }${Math.abs(tzMoney)}妖精\n
             ====${isId ? "今日" : `最近${number}页`}吹牛总条数：${total}====\n
-            吃吹牛选1的次数：${yzSelect1}，选2的次数：${yzSelect2}\n
+            吃吹牛选择：${yzSelectString}\n
+            吃吹牛选1的次数：${yzSelect1}次 / ${(yzSelect1 / total).toFixed(
+                2
+              )}，选2的次数：${yzSelect2}次 / ${(yzSelect2 / total).toFixed(
+                2
+              )}\n
             实际吃吹牛实际选1赢的概率：${(yzSelect1Win / total).toFixed(
               2
             )}，选2赢的概率：${(yzSelect2Win / total).toFixed(2)}\n
@@ -3846,6 +3887,19 @@
         }
       });
     }
+
+    function handleCurrentPageIsContainsId(htmlString, id) {
+      const regex = /&amp;id=(\d+)/g;
+
+      let match;
+      const ids = [];
+
+      while ((match = regex.exec(htmlString)) !== null) {
+        ids.push(match[1]);
+      }
+      return ids.some((item) => item <= id);
+    }
+
     async function handleData(
       dom = document,
       isReturnResult = false,
@@ -3994,7 +4048,9 @@
           `
           ====当前页发吹牛总条数：${total}===\n
           发吹牛选择：${tzSelectString}\n
-          发吹牛选1的次数：${tzSelect1}，选2的次数：${tzSelect2}\n
+          发吹牛选1的次数：${tzSelect1} / ${(tzSelect1 / total).toFixed(
+            2
+          )}，选2的次数：${tzSelect2} / ${(tzSelect2 / total).toFixed(2)}\n
           实际发吹牛选1赢的概率：${(tzSelect1Win / total).toFixed(
             2
           )}，选2赢的概率：${(tzSelect2Win / total).toFixed(2)}\n
@@ -4006,7 +4062,9 @@
           }${Math.abs(tzMoney)}妖精\n
           ====当前页吃吹牛总条数：${total}====\n
           吃吹牛选择：${yzSelectString}\n
-          吃吹牛选1的次数：${yzSelect1}，选2的次数：${yzSelect2}\n
+          吃吹牛选1的次数：${yzSelect1} / ${(yzSelect1 / total).toFixed(
+            2
+          )}，选2的次数：${yzSelect2} / ${(yzSelect2 / total).toFixed(2)}\n
           实际吃吹牛实际选1赢的概率：${(yzSelect1Win / total).toFixed(
             2
           )}，选2赢的概率：${(yzSelect2Win / total).toFixed(2)}\n
@@ -4046,6 +4104,18 @@
       let list = tempDiv.querySelectorAll(
         "a[href^='/games/chuiniu/book_view.aspx'], a[href^='/games/chuiniu/doit.aspx']"
       );
+      if (isDynamicWinRate) {
+        let { yzSelect2, total } = await handleData(tempDiv, true);
+        let rate1 = (yzSelect2 / total).toFixed(2);
+        // 动态策略最小0.35，最大0.65
+        rate1 = rate1 > 0.5 ? Math.min(rate1, 0.65) : Math.min(rate1, 0.35);
+
+        let boastConfig = MY_getValue("boastConfig", {});
+        boastConfig.DynamicWinRate1 = rate1;
+        MY_setValue("boastConfig", boastConfig);
+        console.log(`获取新的动态概率:${rate1}`);
+      }
+
       // let boastData = getItem("boastData");
       // let statusAry = [];
       // let moneyAry = [];
