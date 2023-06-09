@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【VIP版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      1.1.11
+// @version      1.1.12
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -48,7 +48,10 @@
   // 是否自动发吹牛：true为是：false为否
   let isAutoPublishBoast = false;
 
-  // 发牛最大连续次数：如1111则为连续4次，设置4则第5次必为2，不建议设置过小，也不建议设置过大
+  // 发牛最小连续次数
+  let publishBoastMinConsecutive = 1;
+  // 发牛最大连续次数
+  // 实际过程会从最小值-最大值，发牛每次赢了后都会在范围内随机生成一个连续数，如果生成的数字是4，如1111则为连续4次，则第5次不连续必为2，不建议设置过小，也不建议设置过大
   let publishBoastMaxConsecutive = 8;
 
   // 自动发牛的时间间隔 无需修改，会根据是否有人吃牛动态调整时间
@@ -128,6 +131,15 @@
    * @returns {number} - 生成的随机整数
    */
   function getRandomNumber(min, max) {
+    if (min > max) {
+      [max, min] = [min, max];
+    }
+    if (!min || isNaN(min)) {
+      min = 1;
+    }
+    if (!max || isNaN(max)) {
+      min = 10;
+    }
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
   function getBoastRandomNum() {
@@ -152,7 +164,10 @@
 
     let randomNumber = Math.random() < probability ? 1 : 2;
     if (!randomConsecutive) {
-      randomConsecutive = getRandomNumber(2, maxConsecutive);
+      randomConsecutive = getRandomNumber(
+        publishBoastMinConsecutive,
+        maxConsecutive
+      );
       boastConfig.randomConsecutive = randomConsecutive;
       MY_setValue("boastConfig", boastConfig);
     }
@@ -173,7 +188,10 @@
     if (randomNumber === previousNumber) {
       consecutiveCount++;
     } else {
-      randomConsecutive = getRandomNumber(2, publishBoastMaxConsecutive);
+      randomConsecutive = getRandomNumber(
+        publishBoastMinConsecutive,
+        publishBoastMaxConsecutive
+      );
       consecutiveCount = 1;
     }
     previousNumber = randomNumber;
