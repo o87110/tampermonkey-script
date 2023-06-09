@@ -4099,25 +4099,26 @@
             let currentLatestId = MY_getValue("currentLatestId", null);
             if (currentLatestId && currentLatestId < id) {
               let winIdData = MY_getValue("winIdData", []);
-              let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
-              let { storage = {}, total } = boastPlayGameObject || {};
-              if (!storage[id]) {
-                storage[id] = moneyChange;
-                total = Object.values(storage).reduce((prev, cur) => {
-                  return Math.ceil(prev + cur);
-                }, 0);
-                boastPlayGameObject = {
-                  storage,
-                  total,
-                };
-                MY_setValue("boastPlayGameObject", boastPlayGameObject);
-              }
 
               if (!winIdData.includes(id)) {
                 winIdData.push(id);
                 MY_setValue("winIdData", winIdData);
               }
             }
+          }
+          let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
+          let { storage = {}, total } = boastPlayGameObject || {};
+          if (!storage[id]) {
+            storage[id] = status === "输了" ? -money : +money;
+            total = Object.values(storage).reduce((prev, cur) => {
+              return Math.ceil(prev + cur);
+            }, 0);
+            total = total > 0 ? Math.ceil(total * 0.9) : total;
+            boastPlayGameObject = {
+              storage,
+              total,
+            };
+            MY_setValue("boastPlayGameObject", boastPlayGameObject);
           }
         }
       }
