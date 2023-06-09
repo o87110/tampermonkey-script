@@ -3881,7 +3881,7 @@
         if (item.parentElement.innerText.includes("进行中")) {
           continue;
         }
-        if (endId && parseInt(endId) >= parseInt(id)) {
+        if (endId && parseInt(endId) > parseInt(id)) {
           break;
         }
         // if (isReturnResult && total >= 10) {
@@ -4061,7 +4061,7 @@
         const item = list[index];
         let id = item.innerText;
         let innerText = item.parentElement.innerText;
-        if (endId && parseInt(endId) >= parseInt(id)) {
+        if (endId && parseInt(endId) > parseInt(id)) {
           break;
         }
 
