@@ -1015,7 +1015,7 @@
 
     // 指定前几把增加手续费
     return isAddCommission && n <= addCommissionCount && commissionType == 1
-      ? Math.ceil(number / 0.9)
+      ? Math.floor(number / 0.9)
       : number;
   }
   /**
