@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.4.8
+// @version      3.5.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -19,19 +19,19 @@
   let $, jQuery;
   $ = jQuery = myJquery();
 
+  // =====手动配置区域开始=====
+
   // 策略2倍数
   let multiplyRate = [3, 2, 2, 2];
-  // 手续费方式：1为只计算最后一次，2为累加全部的手续费
-  let commissionType = 2;
-  // 初始 [5000, 1111, 1790]; [500,1111, 2400]; [555, 1278, 2700]
+
+  // 策略3 前3项初始值 [500, 1111, 1790]; [500,1111, 2400]; [555, 1278, 2700]; [500, 1000, 1800]
+  // 策略3为前3项自定义初始值，后续按2倍计算，需要回本则单独开启手续费累加
   let defaultValueByCommission = [500, 1000, 1800];
+
   // 发牛最小连续次数
   let publishBoastMinConsecutive = 1;
-  // 动态胜率：1开启，0关闭
-  let isDynamicWinRate = 0;
-  // 是否半夜停止发牛，0-7不自动发牛
-  let isMidnightStopPublishBoast = true;
 
+  // =====手动配置区域结束=====
   let settingData = {
     // 是否显示站内图标
     isShowSettingIcon: true,
@@ -146,6 +146,12 @@
     winEndMoney: 20000,
     // 策略2后续默认倍数: 2
     strategy2DefaultRate: 2,
+    // 手续费方式：1为只计算最后一次，2为累加全部的手续费
+    commissionType: 2,
+    // 动态胜率：true开启，false关闭；会根据最近15条地方答案动态调整策略
+    isDynamicWinRate: false,
+    // 是否半夜停止发牛，0-7不自动发牛
+    isMidnightStopPublishBoast: true,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -222,6 +228,9 @@
     winEndNumber,
     winEndMoney,
     strategy2DefaultRate,
+    commissionType,
+    isDynamicWinRate,
+    isMidnightStopPublishBoast,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1230,6 +1239,7 @@
         border-radius: 5px;
         text-align: center;
         outline: 0;
+        margin-right: 0;
       }
 
       .yaohuo-wrap .switch {
@@ -1275,6 +1285,7 @@
         padding-right: 28px;
       }
       .yaohuo-wrap li input[type="number"] {
+        width: 130px;
         box-sizing: border-box;
         height: 30px;
       }
@@ -1506,6 +1517,13 @@
               />
             </li>
             <li>
+              <span>自动发牛答案动态概率</span>
+              <div class="switch">
+                <input type="checkbox" id="isDynamicWinRate" data-key="isDynamicWinRate" />
+                <label for="isDynamicWinRate"></label>
+              </div>
+            </li>
+            <li>
               <span>替换吹牛链接</span>
               <div class="switch">
                 <input type="checkbox" id="isReplaceHistoryHref" data-key="isReplaceHistoryHref" />
@@ -1579,6 +1597,13 @@
               </div>
             </li>
             <li>
+              <span>0-7点半夜停止发牛</span>
+              <div class="switch">
+                <input type="checkbox" id="isMidnightStopPublishBoast" data-key="isMidnightStopPublishBoast" />
+                <label for="isMidnightStopPublishBoast"></label>
+              </div>
+            </li>
+            <li>
               <span>当前赢了就停止发牛</span>
               <div class="switch">
                 <input type="checkbox" id="lastWinIsEnd" data-key="lastWinIsEnd" />
@@ -1586,7 +1611,7 @@
               </div>
             </li>
             <li>
-              <span>赢多少把停止发牛：<a class="clear-win-data-btn">清除数据</a></span>
+              <span>赢几局停发牛：<a class="clear-win-data-btn">清除</a></span>
               <input 
                 style="width:100px"
                 type="number" 
@@ -1598,7 +1623,7 @@
               >
             </li>
             <li>
-              <span>赢多少妖精停止发牛：<a class="clear-win-data-btn">清除数据</a></span>
+              <span>赢多少停发牛：<a class="clear-win-data-btn">清除</a></span>
               <input 
                 style="width:100px"
                 type="number" 
@@ -1610,7 +1635,7 @@
               >
             </li>
             <li>
-              <span class="preview-strategy-btn"><a>自动发吹牛策略</a></span>
+              <span class="preview-strategy-btn"><a>自动发牛策略</a></span>
               <select data-key="autoPublishBoastStrategy" id="autoPublishBoastStrategy">
                 <option value="1">策略1最近两次之和</option>
                 <option value="2">策略2最近一次两倍</option>
@@ -1637,7 +1662,7 @@
                 data-key="strategy1RecoveryCount"
                 min="${3}"
                 value="${strategy1RecoveryCount}"
-                max="${10}"
+                max="${15}"
                 step="${1}"
               />
             </li>
@@ -1654,16 +1679,23 @@
               />
             </li>
             <li>
-              <span>发牛增加手续费次数：<i class="range-num">${addCommissionCount}</i></span>
+              <span>发牛增加手续费：<i class="range-num">${addCommissionCount}</i>局</span>
               <input
                 type="range"
                 id="addCommissionCount"
                 data-key="addCommissionCount"
                 min="${0}"
                 value="${addCommissionCount}"
-                max="${15}"
+                max="${20}"
                 step="${1}"
               />
+            </li>
+            <li>
+              <span>手续费方式</span>
+              <select data-key="commissionType" id="commissionType">
+                <option value="1">只计算最后一次</option>
+                <option value="2">累加全部的手续费</option>
+              </select>
             </li>
             <li class="yaohuo-wrap-title">
               <hr class="title-line title-line-left" />
@@ -1943,6 +1975,9 @@
                 "strategy2DefaultRate",
                 "winEndNumber",
                 "winEndMoney",
+                "commissionType",
+                "isDynamicWinRate",
+                "isMidnightStopPublishBoast",
               ],
               dataKey,
             });
@@ -2057,15 +2092,15 @@
           let strategy2DefaultRate = $("#strategy2DefaultRate").prop("value");
           let ary1 = generateSequenceByAdd(
             autoPublishBoastInitialValue,
-            10,
+            15,
             strategy1RecoveryCount
           );
           let ary2 = generateSequenceByMultiply(
             autoPublishBoastInitialValue,
-            10,
+            15,
             strategy2DefaultRate
           );
-          let ary3 = generateSequenceByCommission(10);
+          let ary3 = generateSequenceByCommission(15);
           if (!isMobile()) {
             console.log({
               策略1: {
@@ -2084,17 +2119,23 @@
           } else {
             if (Number(autoPublishBoastStrategy) === 1) {
               alert(`
+                每局赌注：\n
                 ${ary1.join("、")}\n
+                每局净收益：\n
                 ${getWinMoneyByAry(ary1).join("、")}
               `);
             } else if (Number(autoPublishBoastStrategy) === 2) {
               alert(`
+              每局赌注：\n
                 ${ary2.join("、")}\n
+                每局净收益：\n
                 ${getWinMoneyByAry(ary2).join("、")}
               `);
             } else if (Number(autoPublishBoastStrategy) === 3) {
               alert(`
+              每局赌注：\n
                 ${ary3.join("、")}\n
+                每局净收益：\n
                 ${getWinMoneyByAry(ary3).join("、")}
               `);
             }
