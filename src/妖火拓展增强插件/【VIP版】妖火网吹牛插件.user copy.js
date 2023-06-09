@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【VIP版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      1.1.10
+// @version      1.1.11
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
