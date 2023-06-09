@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.4.4
+// @version      3.4.5
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -23,6 +23,8 @@
   let multiplyRate = [3, 2, 2, 2];
   // 手续费方式：1为只计算最后一次，2为累加全部的手续费
   let commissionType = 2;
+  // 初始 [5000, 1111, 1790]; [500,1111, 2400]; [555, 1278, 2700]
+  let defaultValueByCommission = [500, 1111, 2400];
 
   let settingData = {
     // 是否显示站内图标
@@ -118,7 +120,8 @@
     // 自动发布吹牛策略：1、2
     // 1为加法策略，下一次金额为最近两次之和，例如：500, 1000, 1500, 2500, 4000, 6500, 10500
     // 2为乘积策略，下一次金额为上一次的两倍，例如：500, 1000, 1500, 3000, 6000, 12000, 24000
-    autoPublishBoastStrategy: 1,
+    // 3为累加并赚去收益策略
+    autoPublishBoastStrategy: 3,
     // 自动发牛初始值，默认500
     autoPublishBoastInitialValue: 500,
     // 查询指定页数或者id方式：1简略，2详细
@@ -1605,6 +1608,7 @@
               <select data-key="autoPublishBoastStrategy" id="autoPublishBoastStrategy">
                 <option value="1">策略1最近两次之和</option>
                 <option value="2">策略2最近一次两倍</option>
+                <option value="3">策略3累加赚收益策略</option>
               </select>
             </li>
             <li>
@@ -2055,13 +2059,38 @@
             10,
             strategy2DefaultRate
           );
+          let ary3 = generateSequenceByCommission(10);
           if (!isMobile()) {
-            console.log(ary1, ary2);
+            console.log({
+              策略1: {
+                WinMoney: getWinMoneyByAry(ary1),
+                ary1,
+              },
+              策略2: {
+                WinMoney: getWinMoneyByAry(ary2),
+                ary2,
+              },
+              策略3: {
+                WinMoney: getWinMoneyByAry(ary3),
+                ary3,
+              },
+            });
           } else {
             if (Number(autoPublishBoastStrategy) === 1) {
-              alert(ary1.join("、"));
-            } else {
-              alert(ary2.join("、"));
+              alert(`
+                ${ary1.join("、")}\n
+                ${getWinMoneyByAry(ary1).join("、")}
+              `);
+            } else if (Number(autoPublishBoastStrategy) === 2) {
+              alert(`
+                ${ary2.join("、")}\n
+                ${getWinMoneyByAry(ary2).join("、")}
+              `);
+            } else if (Number(autoPublishBoastStrategy) === 3) {
+              alert(`
+                ${ary3.join("、")}\n
+                ${getWinMoneyByAry(ary3).join("、")}
+              `);
             }
           }
         });
@@ -2865,7 +2894,8 @@
         (e) => {
           // 取消提交
           if (!isAutoEatBbs && !colorReg.test(textarea.value)) {
-            if (isAddColorByCharacter) {
+            // 有ubb的不加
+            if (!reg.test(textarea.value) && isAddColorByCharacter) {
               textarea.value = getColorText(textarea.value);
             } else if (isAddColorByAll) {
               textarea.value = `[forecolor=${randomColor}]${textarea.value}[/forecolor]`;
@@ -4160,25 +4190,92 @@
     let number;
     if (Number(autoPublishBoastStrategy) === 1) {
       ary = generateSequenceByAdd(autoPublishBoastInitialValue, n);
-    } else {
+    } else if (Number(autoPublishBoastStrategy) === 2) {
       ary = generateSequenceByMultiply(autoPublishBoastInitialValue, n);
+    } else if (Number(autoPublishBoastStrategy) === 3) {
+      ary = generateSequenceByCommission(n);
     }
     number = ary[n - 1];
 
-    function getCommissionCount(ary, n) {
-      if (commissionType == 1) {
-        return number * 0.1;
-      }
-      let commissionCount = ary.slice(1).reduce((prev, cur) => {
-        return prev + cur * 0.1;
-      }, 0);
-      return commissionCount;
-    }
-    let CommissionCount = getCommissionCount(ary, n);
     // 指定前几把增加手续费
-    return isAddCommission && n <= addCommissionCount
-      ? Math.floor(number + CommissionCount)
+    return isAddCommission && n <= addCommissionCount && commissionType == 1
+      ? Math.floor(number / 0.9)
       : number;
+  }
+  function generateSequenceByCommission(n) {
+    let result = [500, 1111, 2000];
+    if (commissionType == 2) {
+      if (defaultValueByCommission && defaultValueByCommission.length) {
+        result = [...defaultValueByCommission];
+      } else {
+        result.push(1111, 1790);
+      }
+    } else {
+      result = [500, 1111, 2000];
+    }
+    for (let i = 3; i < n; i++) {
+      const previousValue = result[i - 1];
+      let nextValue = previousValue * 2;
+      if (commissionType == 2) {
+        nextValue = Math.floor(nextValue / 0.9);
+      }
+      result.push(nextValue);
+    }
+
+    result = result.slice(0, n);
+
+    return result;
+  }
+  function getWinMoneyByAry(arr) {
+    let WinMoney = [];
+    for (let i = 0; i < arr.length; i++) {
+      WinMoney.push(getWinMoney(arr.slice(0, i + 1)));
+    }
+    return WinMoney;
+    function getWinMoney(arr) {
+      let money = arr[arr.length - 1] * 0.9;
+      for (let i = arr.length - 2; i >= 0; i--) {
+        money -= arr[i];
+      }
+      return Math.ceil(money);
+    }
+  }
+  // 获取策略赢的
+  function getWinMoneyByFn(n = 10, defalutValue = [500, 1111, 1790]) {
+    let arr = generateSequenceByCommission(n, 2);
+    let WinMoney = [];
+    for (let i = 0; i < arr.length; i++) {
+      WinMoney.push(getWinMoney(arr.slice(0, i + 1)));
+    }
+    return {
+      arr,
+      WinMoney,
+    };
+    function generateSequenceByCommission(n = 10, commissionType = 2) {
+      let result = [500];
+      if (commissionType == 2) {
+        result = [...defalutValue];
+      } else {
+        result.push(1111, 2000);
+      }
+      for (let i = 3; i < n; i++) {
+        const previousValue = result[i - 1];
+        nextValue = previousValue * 2;
+        if (commissionType == 2) {
+          nextValue = Math.floor(nextValue / 0.9);
+        }
+        result.push(nextValue);
+      }
+      result = result.slice(0, n);
+      return result;
+    }
+    function getWinMoney(arr) {
+      let money = arr[arr.length - 1] * 0.9;
+      for (let i = arr.length - 2; i >= 0; i--) {
+        money -= arr[i];
+      }
+      return Math.ceil(money);
+    }
   }
   /**
    * 策略1：下一次金额为最近两次之和
@@ -4245,13 +4342,15 @@
     defaultRate = strategy2DefaultRate
   ) {
     let result = [parseFloat(initialValue)];
-    multiplyRate = multiplyRate || [3, 2.5, 2.1, 2];
+    multiplyRate = multiplyRate || [2];
 
     for (let i = 1; i < n; i++) {
       const previousValue = result[i - 1];
-      const currentValue =
-        previousValue * (multiplyRate[i - 1] || defaultRate || 2);
-      result.push(currentValue);
+      let nextValue = previousValue * (multiplyRate[i - 1] || defaultRate || 2);
+      if (commissionType == 2) {
+        nextValue = Math.floor(nextValue / 0.9);
+      }
+      result.push(nextValue);
     }
 
     return result;
