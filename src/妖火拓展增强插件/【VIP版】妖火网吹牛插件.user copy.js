@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【VIP版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      1.1.5
+// @version      1.1.6
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -64,6 +64,9 @@
 
   // 发牛手续费次数；上一把输了下一把则加上手续费，赢了则不加，0代表不计算手续费，10代表10把内计算手续费，如果想要每次输了下一把都计算手续费填个很大的数字就行，比如20
   let addCommissionCount = 0;
+
+  // 手续费方式：1为只计算最后一次，2为累加全部的手续费
+  let commissionType = 2;
 
   // 策略2倍数，代表从第二把开始的倍数，往后依次增加可以自定义修改，可以增加倍数比如：[3, 2.8, 2.6, 2.4, 2.2]等等，如果后续没写的话默认就用下面的后续默认倍数
   let multiplyRate = [3, 2.5, 2.1, 2];
@@ -1001,13 +1004,29 @@
     autoPublishBoastStrategy = isNaN(autoPublishBoastStrategy)
       ? 500
       : autoPublishBoastStrategy;
-    let number =
-      Number(autoPublishBoastStrategy) === 1
-        ? generateSequenceByAdd(autoPublishBoastInitialValue, n)[n - 1]
-        : generateSequenceByMultiply(autoPublishBoastInitialValue, n)[n - 1];
+    let ary = [];
+    let number;
+    if (Number(autoPublishBoastStrategy) === 1) {
+      ary = generateSequenceByAdd(autoPublishBoastInitialValue, n);
+    } else {
+      ary = generateSequenceByMultiply(autoPublishBoastInitialValue, n);
+    }
+    number = ary[n - 1];
+
+    function getCommissionCount(ary, n) {
+      if (commissionType == 1) {
+        return number * 0.1;
+      }
+      let commissionCount = ary.slice(1).reduce((prev, cur) => {
+        return prev + cur * 0.1;
+      }, 0);
+      return commissionCount;
+    }
+    let CommissionCount = getCommissionCount(ary, n);
+
     // 指定前几把增加手续费
     return isAddCommission && n <= addCommissionCount
-      ? Math.floor(number / 0.9)
+      ? Math.floor(number + CommissionCount)
       : number;
   }
   /**
