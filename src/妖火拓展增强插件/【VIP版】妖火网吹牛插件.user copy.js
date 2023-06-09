@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【VIP版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      1.1.9
+// @version      1.1.10
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -1035,7 +1035,7 @@
     for (let i = 2; i < n; i++) {
       let nextValue = parseFloat(result[i - 1]) + parseFloat(result[i - 2]);
       if (commissionType == 2) {
-        currentValue = Math.floor(currentValue / 0.9);
+        nextValue = Math.floor(nextValue / 0.9);
       }
       result.push(nextValue);
     }
@@ -1055,12 +1055,12 @@
 
     for (let i = 1; i < n; i++) {
       const previousValue = result[i - 1];
-      let currentValue =
+      let nextValue =
         previousValue * (multiplyRate[i - 1] || strategy2DefaultRate || 2);
       if (commissionType == 2) {
-        currentValue = Math.floor(currentValue / 0.9);
+        nextValue = Math.floor(nextValue / 0.9);
       }
-      result.push(currentValue);
+      result.push(nextValue);
     }
 
     return result;
