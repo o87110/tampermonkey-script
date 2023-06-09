@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【VIP版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      1.1.6
+// @version      1.1.7
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -1015,10 +1015,10 @@
 
     function getCommissionCount(ary, n) {
       if (commissionType == 1) {
-        return number * 0.1;
+        return number / 0.9 - number;
       }
       let commissionCount = ary.slice(1).reduce((prev, cur) => {
-        return prev + cur * 0.1;
+        return prev + (cur / 0.9 - cur);
       }, 0);
       return commissionCount;
     }
