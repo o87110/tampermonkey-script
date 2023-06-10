@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.5.0
+// @version      3.5.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -21,17 +21,8 @@
 
   // =====手动配置区域开始=====
 
-  // 策略2倍数
-  let multiplyRate = [3, 2, 2, 2];
-
-  // 策略3 前3项初始值 [500, 1111, 1790]; [500,1111, 2400]; [555, 1278, 2700]; [500, 1000, 1800]
-  // 策略3为前3项自定义初始值，后续按2倍计算，需要回本则单独开启手续费累加
-  let defaultValueByCommission = [500, 1000, 1800];
-
-  // 发牛最小连续次数
-  let publishBoastMinConsecutive = 1;
-
   // =====手动配置区域结束=====
+
   let settingData = {
     // 是否显示站内图标
     isShowSettingIcon: true,
@@ -132,6 +123,8 @@
     autoPublishBoastInitialValue: 500,
     // 查询指定页数或者id方式：1简略，2详细
     searchBoastLogType: 1,
+    // 发牛最小连续次数
+    publishBoastMinConsecutive: 1,
     // 发牛最大连续次数：如1111则为连续4次，设置4则第5次必为2，不建议设置过小，也不建议设置过大
     publishBoastMaxConsecutive: 6,
     // 策略1设置几把回本
@@ -152,6 +145,13 @@
     isDynamicWinRate: false,
     // 是否半夜停止发牛，0-7不自动发牛
     isMidnightStopPublishBoast: true,
+    // 策略2倍数
+    multiplyRateString: "3,2,2,2",
+    multiplyRate: [3, 2, 2, 2],
+    // 策略3为前3项自定义初始值，后续按2倍计算，需要回本则单独开启手续费累加
+    //  [500, 1111, 1790]; [500,1111, 2400]; [555, 1278, 2700]; [500, 1000, 1800]
+    defaultValueByCommissionString: "500,1000,1800",
+    defaultValueByCommission: [500, 1000, 1800],
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -219,6 +219,7 @@
     autoPublishBoastStrategy,
     autoPublishBoastInitialValue,
     searchBoastLogType,
+    publishBoastMinConsecutive,
     publishBoastMaxConsecutive,
     autoPublishBoastInterval,
     strategy1RecoveryCount,
@@ -231,6 +232,10 @@
     commissionType,
     isDynamicWinRate,
     isMidnightStopPublishBoast,
+    multiplyRate,
+    multiplyRateString,
+    defaultValueByCommission,
+    defaultValueByCommissionString,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1549,6 +1554,18 @@
               >
             </li>
             <li>
+              <span>发牛最小连续次数：<i class="range-num">${publishBoastMinConsecutive}</i>次</span>
+              <input
+                type="range"
+                id="publishBoastMinConsecutive"
+                data-key="publishBoastMinConsecutive"
+                min="${3}"
+                value="${publishBoastMinConsecutive}"
+                max="${10}"
+                step="${1}"
+              />
+            </li>
+            <li>
               <span>发牛最大连续次数：<i class="range-num">${publishBoastMaxConsecutive}</i>次</span>
               <input
                 type="range"
@@ -1676,6 +1693,22 @@
                 value="${strategy2DefaultRate}"
                 max="${2.5}"
                 step="${0.1}"
+              />
+            </li>
+            <li>
+              <span>策略2指定倍数</span>
+              <input
+                id="multiplyRateString"
+                data-key="multiplyRateString"
+                value="${multiplyRateString}"
+              />
+            </li>
+            <li>
+              <span>策略3指定前3项</span>
+              <input
+                id="defaultValueByCommissionString"
+                data-key="defaultValueByCommissionString"
+                value="${defaultValueByCommissionString}"
               />
             </li>
             <li>
@@ -1968,6 +2001,7 @@
                 "autoPublishBoastInitialValue",
                 "isReplaceHistoryHref",
                 "searchBoastLogType",
+                "publishBoastMinConsecutive",
                 "publishBoastMaxConsecutive",
                 "strategy1RecoveryCount",
                 "addCommissionCount",
@@ -2058,6 +2092,50 @@
           }
           break;
 
+        /* 
+        text multiplyRateString
+        text defaultValueByCommissionString
+        */
+        case "text":
+          if (status === "edit") {
+            item.value = getValue(dataKey, "");
+            if (
+              ["multiplyRateString", "defaultValueByCommissionString"].includes(
+                dataKey
+              )
+            ) {
+              let previousValue = ""; // 存储上一个输入的值
+              $(item).on("input", function (event) {
+                let value = event.target.value;
+                // /^\d+(?:\s*,\s*\d+)*$/
+                // /^\s*\d+(?:\s*,\s*\d+)*\s*,?\s*$/
+                //
+                // /^\s*\d+(?:,\s*\d+)*,?\s*$/
+                if (
+                  !value ||
+                  /^\s*\d+(?:\.\d+)?(?:,\s*\d+(?:\.\d+)?)*,?\s*$/.test(value)
+                ) {
+                  item.value = value;
+                  previousValue = value;
+                } else {
+                  item.value = previousValue;
+                }
+              });
+            }
+          } else {
+            if (dataKey === "multiplyRateString") {
+              let ary = item.value.split(",").map((item) => parseFloat(item));
+              console.log(`处理完成multiplyRate：${ary}`);
+              setValue("multiplyRate", ary);
+            }
+            if (dataKey === "defaultValueByCommissionString") {
+              let ary = item.value.split(",").map((item) => parseFloat(item));
+              console.log(`处理完成multiplyRate：${ary}`);
+              setValue("defaultValueByCommission", ary);
+            }
+            setValue(dataKey, item.value);
+          }
+          break;
         default:
           if (status === "edit") {
             item.value = getValue(dataKey, "");
@@ -2191,9 +2269,41 @@
     let openUploadImageBed = $("#isUploadImage").prop("checked");
     let imageBedType = $("#imageBedType").prop("value");
     let meetToken = $("#meetToken").prop("value");
+    let publishBoastMinConsecutive = $("#publishBoastMinConsecutive").prop(
+      "value"
+    );
+    let publishBoastMaxConsecutive = $("#publishBoastMaxConsecutive").prop(
+      "value"
+    );
+    let multiplyRateString = $("#multiplyRateString").prop("value");
+    let defaultValueByCommissionString = $(
+      "#defaultValueByCommissionString"
+    ).prop("value");
 
     if (openUploadImageBed && imageBedType === "遇见图床" && !meetToken) {
       alert("遇见图床必须填写token");
+      return false;
+    }
+    if (publishBoastMinConsecutive > publishBoastMaxConsecutive) {
+      alert("发牛最小连续输必须小于等于最大连续数");
+      return false;
+    }
+
+    if (
+      !/^\s*\d+(?:\.\d+)?(?:,\s*\d+(?:\.\d+)?){2}\s*$/.test(
+        defaultValueByCommissionString
+      )
+    ) {
+      alert(
+        "策略3指定前3项数输入格式有误，必须输入3项并且用英文逗号隔开，比如：500,1000,1500"
+      );
+      return false;
+    }
+
+    if (!/^\s*\d+(?:\.\d+)?(?:,\s*\d+(?:\.\d+)?)*$/.test(multiplyRateString)) {
+      alert(
+        "策略2指定倍数输入格式有误，必须输入数字，如果有多个用英文逗号隔开，比如：3,2,2，也可以只输入一个数字，代表全用和这个倍数"
+      );
       return false;
     }
     return true;
@@ -3450,11 +3560,11 @@
           console.log("当前赢了停止发牛");
           return;
         }
-        if (winIdData.length >= winEndNumber) {
+        if (winEndNumber && winIdData.length >= winEndNumber) {
           console.log(`赢了${winEndNumber}次，自动停止`);
           return;
         }
-        if (boastPlayGameObject.total >= winEndMoney) {
+        if (winEndMoney && boastPlayGameObject.total >= winEndMoney) {
           console.log(`赢了${boastPlayGameObject.total}妖精，自动停止`);
           return;
         }
