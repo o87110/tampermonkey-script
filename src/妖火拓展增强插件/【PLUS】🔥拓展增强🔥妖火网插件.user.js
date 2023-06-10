@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.5.5
+// @version      3.5.7
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1641,7 +1641,7 @@
                 id="winEndNumber"
                 data-key="winEndNumber"
                 min="${1}"
-                step="${10}"
+                step="${5}"
                 value="${winEndNumber}"
               >
             </li>
@@ -1663,6 +1663,7 @@
                 <option value="1">策略1最近两次之和</option>
                 <option value="2">策略2最近一次两倍</option>
                 <option value="3">策略3累加赚收益策略</option>
+                <option value="4">策略4自定义每把数值</option>
               </select>
             </li>
             <li>
@@ -2026,6 +2027,9 @@
                 "commissionType",
                 "isDynamicWinRate",
                 "isMidnightStopPublishBoast",
+                "multiplyRateString",
+                "defaultValueByCommissionString",
+                "defaultValueByStrategy4String",
               ],
               dataKey,
             });
@@ -2089,6 +2093,14 @@
             });
             clearWinData(dataKey);
           } else {
+            if (
+              (dataKey === "winEndNumber" && winEndNumber != item.value) ||
+              (dataKey === "winEndMoney" && winEndMoney != item.value)
+            ) {
+              MY_setValue("winIdData", []);
+              MY_setValue("boastPlayGameObject", {});
+              MY_setValue("currentLatestId", null);
+            }
             setValue(dataKey, item.value);
           }
           break;
@@ -2188,6 +2200,14 @@
             "value"
           );
           let strategy2DefaultRate = $("#strategy2DefaultRate").prop("value");
+          let defaultValueByStrategy4String = $(
+            "#defaultValueByStrategy4String"
+          ).prop("value");
+          let defaultValueByStrategy4 = defaultValueByStrategy4String
+            .split(",")
+            .filter((item) => item)
+            .map((item) => parseFloat(item));
+
           let ary1 = generateSequenceByAdd(
             autoPublishBoastInitialValue,
             15,
@@ -2199,7 +2219,7 @@
             strategy2DefaultRate
           );
           let ary3 = generateSequenceByCommission(15);
-          let ary4 = generateSequenceByStrategy4(15);
+          let ary4 = generateSequenceByStrategy4(15, defaultValueByStrategy4);
           if (!isMobile()) {
             console.log({
               策略1: {
@@ -2362,6 +2382,7 @@
     if (!checkSaveSetting()) {
       return;
     }
+    // winEndNumber winEndMoney
     setSettingInputEvent("save");
     $("body").removeClass("overflow-hidden-scroll");
     $(".yaohuo-modal-mask").hide();
@@ -3603,11 +3624,19 @@
           "a[href^='/games/chuiniu/book_list.aspx']"
         );
         let myBoastHistoryHref = MY_getValue("myBoastHistoryHref", "");
+        // 记录我的大话链接
         if (btn.innerText === "我的大话" && !myBoastHistoryHref) {
           myBoastHistoryHref = btn.href;
           MY_setValue("myBoastHistoryHref", myBoastHistoryHref);
         }
         let nextBoastData = await getMyBoastData();
+        let { loseMoney, nextMoney } = nextBoastData;
+        if (parseFloat(nextMoney) > loseMoney * 3) {
+          alert(
+            "检测到下一把赌注金额与最近连输的金额之和差异过大，已自动停止发吹牛"
+          );
+          return;
+        }
         // winEndNumber winEndNumberData
         let winIdData = MY_getValue("winIdData", []);
         let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
@@ -4365,6 +4394,7 @@
       let isFinished = true;
       let moneyChange = 0;
       let win = 0;
+      let loseMoney = 0;
       let currentLatestId = MY_getValue("currentLatestId", null);
       for (let index = 0; index < list.length; index++) {
         const item = list[index];
@@ -4396,6 +4426,7 @@
           if (status === "输了") {
             if (!isFirstWin) {
               count++;
+              loseMoney -= Number(money);
             }
             moneyChange -= Number(money);
           } else {
@@ -4443,6 +4474,7 @@
         lastIsWin,
         moneyChange,
         nextMoney: getNextMoney(count, !lastIsWin),
+        loseMoney,
       };
     }
 
