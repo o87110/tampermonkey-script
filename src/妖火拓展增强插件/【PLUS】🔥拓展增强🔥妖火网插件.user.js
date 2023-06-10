@@ -124,7 +124,7 @@
     // 查询指定页数或者id方式：1简略，2详细
     searchBoastLogType: 1,
     // 发牛最小连续次数
-    publishBoastMinConsecutive: 1,
+    publishBoastMinConsecutive: 3,
     // 发牛最大连续次数：如1111则为连续4次，设置4则第5次必为2，不建议设置过小，也不建议设置过大
     publishBoastMaxConsecutive: 6,
     // 策略1设置几把回本
@@ -1576,7 +1576,7 @@
                 type="range"
                 id="publishBoastMinConsecutive"
                 data-key="publishBoastMinConsecutive"
-                min="${3}"
+                min="${1}"
                 value="${publishBoastMinConsecutive}"
                 max="${10}"
                 step="${1}"
