@@ -155,6 +155,8 @@
     // 策略4默认值
     defaultValueByStrategy4String: "500,500,500,500",
     defaultValueByStrategy4: [500, 500, 500, 500],
+    // 下一把金额异常处理方式：1停止，2从第局开始发
+    nextMoneyAbnormalProcessingMethod: 1,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -242,6 +244,8 @@
 
     defaultValueByStrategy4,
     defaultValueByStrategy4String,
+
+    nextMoneyAbnormalProcessingMethod,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1549,6 +1553,13 @@
               </select>
             </li>
             <li>
+              <span>下把赌注异常处理方式</span>
+              <select data-key="nextMoneyAbnormalProcessingMethod" id="nextMoneyAbnormalProcessingMethod">
+                <option value="1">停止自动发牛</option>
+                <option value="2">自动发牛从第一把开始</option>
+              </select>
+            </li>
+            <li>
               <span>批量发牛金额</span>
               <input 
                 type="number" 
@@ -2030,6 +2041,7 @@
                 "multiplyRateString",
                 "defaultValueByCommissionString",
                 "defaultValueByStrategy4String",
+                "nextMoneyAbnormalProcessingMethod",
               ],
               dataKey,
             });
@@ -3631,10 +3643,15 @@
         }
         let nextBoastData = await getMyBoastData();
         let { loseMoney, nextMoney } = nextBoastData;
-        if (parseFloat(nextMoney) > loseMoney * 3) {
-          alert(
-            "检测到下一把赌注金额与最近连输的金额之和差异过大，已自动停止发吹牛"
-          );
+        if (loseMoney && parseFloat(nextMoney) > loseMoney * 3) {
+          if (nextMoneyAbnormalProcessingMethod == 1) {
+            alert(
+              "检测到下一把赌注金额与最近连输的金额之和差异过大，已自动停止发吹牛"
+            );
+            return;
+          } else if (nextMoneyAbnormalProcessingMethod == 2) {
+            nextMoney = getNextMoney(1, true);
+          }
           return;
         }
         // winEndNumber winEndNumberData
@@ -3687,7 +3704,7 @@
           setItem("publishNumber", "0");
 
           let href = publishBoastBtn.href;
-          let nextMoney = nextBoastData.nextMoney || 500;
+          nextMoney = nextMoney || 500;
           // setItem("nextMoney", nextMoney);
           let newHref = href.includes("?")
             ? `${href}&open=new&publishMoney=${nextMoney}`
