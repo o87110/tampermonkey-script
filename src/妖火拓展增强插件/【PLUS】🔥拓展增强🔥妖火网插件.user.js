@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.5.7
+// @version      3.5.8
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -2215,7 +2215,16 @@
           let defaultValueByStrategy4String = $(
             "#defaultValueByStrategy4String"
           ).prop("value");
+
           let defaultValueByStrategy4 = defaultValueByStrategy4String
+            .split(",")
+            .filter((item) => item)
+            .map((item) => parseFloat(item));
+
+          let defaultValueByCommissionString = $(
+            "#defaultValueByCommissionString"
+          ).prop("value");
+          let defaultValueByCommission = defaultValueByCommissionString
             .split(",")
             .filter((item) => item)
             .map((item) => parseFloat(item));
@@ -2230,7 +2239,7 @@
             15,
             strategy2DefaultRate
           );
-          let ary3 = generateSequenceByCommission(15);
+          let ary3 = generateSequenceByCommission(15, defaultValueByCommission);
           let ary4 = generateSequenceByStrategy4(15, defaultValueByStrategy4);
           if (!isMobile()) {
             console.log({
@@ -4565,11 +4574,14 @@
       ? Math.floor(number / 0.9)
       : number;
   }
-  function generateSequenceByCommission(n) {
+  function generateSequenceByCommission(
+    n,
+    defaultValue = defaultValueByCommission
+  ) {
     let result = [500, 1111, 2000];
     if (commissionType == 2) {
-      if (defaultValueByCommission && defaultValueByCommission.length) {
-        result = [...defaultValueByCommission];
+      if (defaultValue && defaultValue.length) {
+        result = [...defaultValue];
       } else {
         result.push(1111, 1790);
       }
