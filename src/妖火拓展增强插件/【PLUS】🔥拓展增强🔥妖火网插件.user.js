@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.5.3
+// @version      3.5.4
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -3550,6 +3550,15 @@
 
       // 是否开启自动发牛
       if (isAutoPublishBoast) {
+        // 我的大话链接
+        let btn = document.querySelector(
+          "a[href^='/games/chuiniu/book_list.aspx']"
+        );
+        let myBoastHistoryHref = MY_getValue("myBoastHistoryHref", "");
+        if (btn.innerText === "我的大话" && !myBoastHistoryHref) {
+          myBoastHistoryHref = btn.href;
+          MY_setValue("myBoastHistoryHref", myBoastHistoryHref);
+        }
         let nextBoastData = await getMyBoastData();
         // winEndNumber winEndNumberData
         let winIdData = MY_getValue("winIdData", []);
@@ -3595,8 +3604,9 @@
         ) {
           return;
         }
-        nextBoastData = await getMyBoastData();
-        if (nextBoastData.isFinished) {
+        // nextBoastData = await getMyBoastData();
+
+        if (nextBoastData.isFinished && getMyBoastIsFinished()) {
           setItem("publishNumber", "0");
 
           let href = publishBoastBtn.href;
@@ -3765,6 +3775,10 @@
             let publishMoney = getUrlParameters().publishMoney;
             number.value = publishMoney || batchPublishBoastMoney || 500;
           }
+          if (isAutoPublishBoast && !getMyBoastIsFinished()) {
+            location.href = "/games/chuiniu/index.aspx";
+            return;
+          }
           if (isAutoPublishBoast && !isAutoEat) {
             setTimeout(() => {
               location.href = "/games/chuiniu/index.aspx";
@@ -3809,7 +3823,7 @@
                 setItem("publishNumber", publishNumber - 1);
                 location.href = "/games/chuiniu/add.aspx?open=new";
               }
-            }, 500);
+            }, 1000);
           }
         }
       }
@@ -3848,6 +3862,28 @@
           `<a href="/games/chuiniu/doit.aspx?siteid=1000&classid=0&id=${id}">一键跳转</a>`
         );
       }
+    }
+    // 获取是否完成
+    async function getMyBoastIsFinished() {
+      let myBoastHistoryHref = MY_getValue("myBoastHistoryHref", "");
+      if (!myBoastHistoryHref) {
+        console.log("myBoastHistoryHref为空");
+        return false;
+      }
+      let res = await fetchData(myBoastHistoryHref);
+      let match = /<body>([\s\S]*?)<\/body>/.exec(res);
+      let bodyString = match?.[0];
+      bodyString = bodyString.replace(
+        /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+        ""
+      );
+
+      let tempDiv = document.createElement("div");
+      tempDiv.innerHTML = bodyString;
+      let nextBoastData = await getMyBoastData(tempDiv);
+      console.log(nextBoastData);
+
+      return nextBoastData.isFinished;
     }
     async function handleStatistics(isReturnResult = false) {
       let title = document.querySelector(".title");
