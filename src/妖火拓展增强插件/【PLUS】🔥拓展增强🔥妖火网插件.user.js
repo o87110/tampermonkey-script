@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.5.4
+// @version      3.5.5
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -152,6 +152,9 @@
     //  [500, 1111, 1790]; [500,1111, 2400]; [555, 1278, 2700]; [500, 1000, 1800]
     defaultValueByCommissionString: "500,1000,1800",
     defaultValueByCommission: [500, 1000, 1800],
+    // 策略4默认值
+    defaultValueByStrategy4String: "500,500,500,500",
+    defaultValueByStrategy4: [500, 500, 500, 500],
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -236,6 +239,9 @@
     multiplyRateString,
     defaultValueByCommission,
     defaultValueByCommissionString,
+
+    defaultValueByStrategy4,
+    defaultValueByStrategy4String,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1712,6 +1718,14 @@
               />
             </li>
             <li>
+              <span>策略4指定每一项</span>
+              <input
+                id="defaultValueByStrategy4String"
+                data-key="defaultValueByStrategy4String"
+                value="${defaultValueByStrategy4String}"
+              />
+            </li>
+            <li>
               <span>发牛增加手续费：<i class="range-num">${addCommissionCount}</i>局</span>
               <input
                 type="range"
@@ -2100,9 +2114,11 @@
           if (status === "edit") {
             item.value = getValue(dataKey, "");
             if (
-              ["multiplyRateString", "defaultValueByCommissionString"].includes(
-                dataKey
-              )
+              [
+                "multiplyRateString",
+                "defaultValueByCommissionString",
+                "defaultValueByStrategy4String",
+              ].includes(dataKey)
             ) {
               let previousValue = ""; // 存储上一个输入的值
               $(item).on("input", function (event) {
@@ -2127,9 +2143,15 @@
               let ary = item.value.split(",").map((item) => parseFloat(item));
               setValue("multiplyRate", ary);
             }
-            if (dataKey === "defaultValueByCommissionString") {
+            if (
+              [
+                "defaultValueByStrategy4String",
+                "defaultValueByCommissionString",
+              ].includes(dataKey)
+            ) {
               let ary = item.value.split(",").map((item) => parseFloat(item));
-              setValue("defaultValueByCommission", ary);
+              let key = dataKey.replace("String", "");
+              setValue(key, ary);
             }
             setValue(dataKey, item.value);
           }
@@ -2177,6 +2199,7 @@
             strategy2DefaultRate
           );
           let ary3 = generateSequenceByCommission(15);
+          let ary4 = generateSequenceByStrategy4(15);
           if (!isMobile()) {
             console.log({
               策略1: {
@@ -2190,6 +2213,10 @@
               策略3: {
                 WinMoney: getWinMoneyByAry(ary3),
                 ary3,
+              },
+              策略4: {
+                WinMoney: getWinMoneyByAry(ary4),
+                ary4,
               },
             });
           } else {
@@ -2213,6 +2240,13 @@
                 ${ary3.join("、")}\n
                 每局净收益：\n
                 ${getWinMoneyByAry(ary3).join("、")}
+              `);
+            } else if (Number(autoPublishBoastStrategy) === 4) {
+              alert(`
+              每局赌注：\n
+                ${ary4.join("、")}\n
+                每局净收益：\n
+                ${getWinMoneyByAry(ary4).join("、")}
               `);
             }
           }
@@ -2277,6 +2311,9 @@
     let defaultValueByCommissionString = $(
       "#defaultValueByCommissionString"
     ).prop("value");
+    let defaultValueByStrategy4String = $(
+      "#defaultValueByStrategy4String"
+    ).prop("value");
 
     if (openUploadImageBed && imageBedType === "遇见图床" && !meetToken) {
       alert("遇见图床必须填写token");
@@ -2294,6 +2331,17 @@
     ) {
       alert(
         "策略3指定前3项数输入格式有误，必须输入3项并且用英文逗号隔开，比如：500,1000,1500"
+      );
+      return false;
+    }
+
+    if (
+      !/^\s*\d+(?:\.\d+)?(?:,\s*\d+(?:\.\d+)?)*$/.test(
+        defaultValueByStrategy4String
+      )
+    ) {
+      alert(
+        "策略4指定每项金额输入格式有误，必须输数字，如果有多个用英文逗号隔开，，比如：500,1000,1500"
       );
       return false;
     }
@@ -4458,6 +4506,8 @@
       ary = generateSequenceByMultiply(autoPublishBoastInitialValue, n);
     } else if (Number(autoPublishBoastStrategy) === 3) {
       ary = generateSequenceByCommission(n);
+    } else if (Number(autoPublishBoastStrategy) === 4) {
+      ary = generateSequenceByStrategy4(n);
     }
     number = ary[n - 1];
 
@@ -4489,6 +4539,20 @@
     result = result.slice(0, n);
 
     return result;
+  }
+  function generateSequenceByStrategy4(
+    n,
+    defaultStrategy4 = defaultValueByStrategy4
+  ) {
+    let arr = [...defaultStrategy4];
+    function repeatArray(arr, length) {
+      const repeatedArr = [];
+      while (repeatedArr.length < length) {
+        repeatedArr.push(...arr);
+      }
+      return repeatedArr.slice(0, length);
+    }
+    return repeatArray(arr, n);
   }
   function getWinMoneyByAry(arr) {
     let WinMoney = [];
