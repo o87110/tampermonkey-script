@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.5.12
+// @version      3.6.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -2246,18 +2246,22 @@
               策略1: {
                 WinMoney: getWinMoneyByAry(ary1),
                 ary1,
+                totalAry1: getTotalAry(ary1),
               },
               策略2: {
                 WinMoney: getWinMoneyByAry(ary2),
                 ary2,
+                totalAry2: getTotalAry(ary2),
               },
               策略3: {
                 WinMoney: getWinMoneyByAry(ary3),
                 ary3,
+                totalAry3: getTotalAry(ary3),
               },
               策略4: {
                 WinMoney: getWinMoneyByAry(ary4),
                 ary4,
+                totalAry4: getTotalAry(ary4),
               },
             });
           } else {
@@ -2265,27 +2269,35 @@
               alert(`
                 每局赌注：\n
                 ${ary1.join("、")}\n
+                每局累加赌注：\n
+                ${getTotalAry(ary1).join("、")}\n
                 每局净收益：\n
                 ${getWinMoneyByAry(ary1).join("、")}
               `);
             } else if (Number(autoPublishBoastStrategy) === 2) {
               alert(`
-              每局赌注：\n
+                每局赌注：\n
                 ${ary2.join("、")}\n
+                每局累加赌注：\n
+                ${getTotalAry(ary2).join("、")}\n
                 每局净收益：\n
                 ${getWinMoneyByAry(ary2).join("、")}
               `);
             } else if (Number(autoPublishBoastStrategy) === 3) {
               alert(`
-              每局赌注：\n
+                每局赌注：\n
                 ${ary3.join("、")}\n
+                每局累加赌注：\n
+                ${getTotalAry(ary3).join("、")}\n
                 每局净收益：\n
                 ${getWinMoneyByAry(ary3).join("、")}
               `);
             } else if (Number(autoPublishBoastStrategy) === 4) {
               alert(`
-              每局赌注：\n
+                每局赌注：\n
                 ${ary4.join("、")}\n
+                每局累加赌注：\n
+                ${getTotalAry(ary4).join("、")}\n
                 每局净收益：\n
                 ${getWinMoneyByAry(ary4).join("、")}
               `);
@@ -4645,6 +4657,15 @@
       return repeatedArr.slice(0, length);
     }
     return repeatArray(arr, n);
+  }
+  function getTotalAry(ary) {
+    let newAry = ary.map((item, index, arr) => getSum(arr.slice(0, index + 1)));
+    return newAry;
+    function getSum(arr) {
+      return arr.reduce((prev, cur) => {
+        return Math.ceil(prev + cur);
+      }, 0);
+    }
   }
   function getWinMoneyByAry(arr) {
     let WinMoney = [];
