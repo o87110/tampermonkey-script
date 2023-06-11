@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.5.10
+// @version      3.5.11
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -3607,6 +3607,14 @@
         "a[href^='/games/chuiniu/index.aspx']"
       );
 
+      refreshBtn.insertAdjacentHTML(
+        "afterend",
+        `<div class="boast-index-tips-wrap" style="margin:0;text-decoration: underline;">
+          <span class="boast-index-tips"></span>
+          <span class="boast-index-rate"></span>
+        </div>`
+      );
+
       // 处理刷新按钮
       refreshBtn.addEventListener(
         "click",
@@ -3654,8 +3662,11 @@
         let { loseMoney, nextMoney } = nextBoastData;
         if (loseMoney && parseFloat(nextMoney) > loseMoney * 3) {
           if (nextMoneyAbnormalProcessingMethod == 1) {
+            $(".boast-index-tips").text(
+              "提示：检测到下一把赌注金额与最近连输的金额之和差异过大，已自动停止发吹牛"
+            );
             alert(
-              "检测到下一把赌注金额与最近连输的金额之和差异过大，已自动停止发吹牛"
+              "提示：检测到下一把赌注金额与最近连输的金额之和差异过大，已自动停止发吹牛"
             );
             return;
           } else if (nextMoneyAbnormalProcessingMethod == 2) {
@@ -3667,15 +3678,20 @@
         let winIdData = MY_getValue("winIdData", []);
         let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
         if (nextBoastData.lastIsWin && lastWinIsEnd) {
-          console.log("当前赢了停止发牛");
+          $(".boast-index-tips").text("提示：当前赢了停止发牛");
+          console.log("提示：当前赢了停止发牛");
           return;
         }
         if (winEndNumber && winIdData.length >= winEndNumber) {
-          console.log(`赢了${winEndNumber}次，自动停止`);
+          $(".boast-index-tips").text(`提示：赢了${winEndNumber}次，自动停止`);
+          console.log(`提示：赢了${winEndNumber}次，自动停止`);
           return;
         }
         if (winEndMoney && boastPlayGameObject.total >= winEndMoney) {
-          console.log(`赢了${boastPlayGameObject.total}妖精，自动停止`);
+          $(".boast-index-tips").text(
+            `提示：赢了${boastPlayGameObject.total}妖精，自动停止`
+          );
+          console.log(`提示：赢了${boastPlayGameObject.total}妖精，自动停止`);
           return;
         }
 
@@ -3705,6 +3721,7 @@
           new Date().getHours() < 7 &&
           nextBoastData.lastIsWin
         ) {
+          $(".boast-index-tips").text(`提示：0-7点停止发牛`);
           return;
         }
         // nextBoastData = await getMyBoastData();
@@ -3721,8 +3738,11 @@
           // console.log("跳转到自动发肉页面", newHref);
           location.href = newHref;
         } else {
+          $(".boast-index-tips").text("提示：当前有进行中的吹牛，等待下次发");
           console.log("当前未完成不发牛");
         }
+      } else {
+        $(".boast-index-tips").text("提示：当前已关闭自动发牛");
       }
       // 是否开启自动吃牛
       if (isAutoEatBoast) {
@@ -4401,12 +4421,19 @@
       if (isDynamicWinRate) {
         let { yzSelect2, total } = await handleData(tempDiv, true);
         let rate1 = (yzSelect2 / total).toFixed(2);
+        console.log(`动态概率初始值:${rate1}`);
         // 动态策略最小0.35，最大0.65
-        rate1 = rate1 > 0.5 ? Math.min(rate1, 0.65) : Math.min(rate1, 0.35);
+        rate1 = rate1 > 0.5 ? Math.min(rate1, 0.65) : Math.max(rate1, 0.35);
 
         let boastConfig = MY_getValue("boastConfig", {});
         boastConfig.DynamicWinRate1 = rate1;
         MY_setValue("boastConfig", boastConfig);
+
+        if ($(".boast-index-rate").length) {
+          $(".boast-index-rate").text(
+            `，当前已开启动态概率，当前答案1为：${rate1}`
+          );
+        }
         console.log(`获取新的动态概率:${rate1}`);
       }
 
