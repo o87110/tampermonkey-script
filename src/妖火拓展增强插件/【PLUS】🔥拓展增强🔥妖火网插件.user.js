@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.5.11
+// @version      3.5.12
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -3724,7 +3724,11 @@
           $(".boast-index-tips").text(`提示：0-7点停止发牛`);
           return;
         }
-        // nextBoastData = await getMyBoastData();
+        if (isDynamicWinRate) {
+          $(".boast-index-rate").text(
+            `，答案1动态概率：${nextBoastData.rate1}`
+          );
+        }
 
         if (nextBoastData.isFinished && getMyBoastIsFinished()) {
           setItem("publishNumber", "0");
@@ -3738,11 +3742,11 @@
           // console.log("跳转到自动发肉页面", newHref);
           location.href = newHref;
         } else {
-          $(".boast-index-tips").text("提示：当前有进行中的吹牛，等待下次发");
+          $(".boast-index-tips").text("提示：未完成不发牛");
           console.log("当前未完成不发牛");
         }
       } else {
-        $(".boast-index-tips").text("提示：当前已关闭自动发牛");
+        $(".boast-index-tips").text("提示：已关闭自动发牛");
       }
       // 是否开启自动吃牛
       if (isAutoEatBoast) {
@@ -4418,9 +4422,10 @@
       let list = tempDiv.querySelectorAll(
         "a[href^='/games/chuiniu/book_view.aspx'], a[href^='/games/chuiniu/doit.aspx']"
       );
+      let rate1 = 0.5;
       if (isDynamicWinRate) {
         let { yzSelect2, total } = await handleData(tempDiv, true);
-        let rate1 = (yzSelect2 / total).toFixed(2);
+        rate1 = (yzSelect2 / total).toFixed(2);
         console.log(`动态概率初始值:${rate1}`);
         // 动态策略最小0.35，最大0.65
         rate1 = rate1 > 0.5 ? Math.min(rate1, 0.65) : Math.max(rate1, 0.35);
@@ -4429,11 +4434,9 @@
         boastConfig.DynamicWinRate1 = rate1;
         MY_setValue("boastConfig", boastConfig);
 
-        if ($(".boast-index-rate").length) {
-          $(".boast-index-rate").text(
-            `，当前已开启动态概率，当前答案1为：${rate1}`
-          );
-        }
+        // if ($(".boast-index-rate").length) {
+        //   $(".boast-index-rate").text(`，答案1动态概率：${rate1}`);
+        // }
         console.log(`获取新的动态概率:${rate1}`);
       }
 
@@ -4523,6 +4526,7 @@
         total,
         win,
         winRate,
+        rate1,
         isFinished,
         lastIsWin,
         moneyChange,
