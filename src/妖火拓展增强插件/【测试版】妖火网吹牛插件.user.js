@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【测试版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      0.3.3
+// @version      0.3.4
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -131,6 +131,7 @@
         $(".batch-publish-btn").click(() => {
           let number = prompt("请输入批量公开挑战的数量：");
           if (number && /^\d+$/.test(number)) {
+            number = parseFloat(number) > 10 ? 10 : number;
             setItem("publishNumber", number - 1);
             let href = publishBoastBtn.href;
             let newHref = href.includes("?")
