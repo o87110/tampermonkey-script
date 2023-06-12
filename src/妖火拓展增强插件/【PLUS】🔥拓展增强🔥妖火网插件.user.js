@@ -3772,7 +3772,7 @@
           );
         }
 
-        if (nextBoastData.isFinished && getMyBoastIsFinished()) {
+        if (nextBoastData.isFinished && (await getMyBoastIsFinished())) {
           setItem("publishNumber", "0");
 
           let href = publishBoastBtn.href;
@@ -3944,7 +3944,7 @@
             let publishMoney = getUrlParameters().publishMoney;
             number.value = publishMoney || batchPublishBoastMoney || 500;
           }
-          if (isAutoPublishBoast && !getMyBoastIsFinished()) {
+          if (isAutoPublishBoast && !(await getMyBoastIsFinished())) {
             location.href = "/games/chuiniu/index.aspx";
             return;
           }
