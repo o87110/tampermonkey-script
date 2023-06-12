@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.3.1
+// @version      3.4.0
 // @description  发帖ubb增强、回帖ubb增强、回帖表情增强、查看贴子显示用户等级增强、手动吃肉增强、自动加载更多帖子、自动加载更多回复、一键自动上传图床、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -35,6 +35,10 @@
   let settingData = {
     // 是否显示站内图标
     isShowSettingIcon: true,
+    // 是否关闭站内勋章
+    isCloseMedal: false,
+    // 站内密码
+    websitePassword: "",
     // 是否开启自动吃肉，手动进去肉帖自动吃肉
     isAutoEat: false,
     // 帖子里是否显示用户等级
@@ -120,6 +124,9 @@
     inkToken,
     meetToken,
     speedFreeToken,
+
+    websitePassword,
+    isCloseMedal,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -465,6 +472,10 @@
     handleWindowResize();
     // 添加站内设置按钮
     addSettingBtn();
+    // 自动填充密码并确认
+    handlePassword();
+    // 关闭勋章显示
+    handleCloseMedal();
     // 如果关闭了悬浮图标，在网站首页右上角添加插件设置入口
     handleAddSettingText();
     // 加载更多按钮点击事件监听
@@ -488,6 +499,35 @@
   })();
 
   // ==其他功能函数和方法==
+  function handleCloseMedal() {
+    if (/^\/bbs-.*\.html$/.test(window.location.pathname) && isCloseMedal) {
+      let medalImg = [...document.querySelectorAll(".subtitle img")].slice(
+        2,
+        -2
+      );
+      medalImg.forEach((item, index) => {
+        if (index === 0) {
+          item.insertAdjacentHTML(
+            "afterend",
+            `<a href="javascript:;">已关闭勋章显示</a>`
+          );
+        }
+        item.remove();
+      });
+    }
+  }
+  function handlePassword() {
+    let password = document.querySelector("input[type=password]");
+    let submit = document.querySelector("input[type=submit]");
+    if (document.title === "请输入密码") {
+      if (!password.value) {
+        password.value = websitePassword;
+      }
+      if (password.value) {
+        submit.click();
+      }
+    }
+  }
   function handleAddSettingText() {
     // 修改pc端滚动条样式
     if (!isMobile()) {
@@ -971,6 +1011,7 @@
         border-radius: 5px;
         text-align: center;
         outline: 0;
+        margin-right: 0;
       }
 
       .yaohuo-wrap .switch {
@@ -999,11 +1040,26 @@
         cursor: pointer;
       }
 
+      .yaohuo-wrap-title{
+        height: 38px !important;
+      }
+      .yaohuo-wrap-title .title-line {
+        margin: 0px;
+        border: none;
+        border-top: 1px dashed #dcdcdc;
+        width: 30%; /* 可根据需要调整宽度 */
+      }
+
       .yaohuo-wrap li .password-container input {
         width: 100%;
         box-sizing: border-box;
         height: 32px;
         padding-right: 28px;
+      }
+      .yaohuo-wrap li input[type="number"] {
+        width: 130px;
+        box-sizing: border-box;
+        height: 30px;
       }
 
       .yaohuo-wrap .switch label {
@@ -1038,9 +1094,8 @@
       .yaohuo-wrap .switch input:checked + label::before {
         transform: translateX(26px);
       }
-      .yaohuo-wrap hr{
-        margin-bottom: 5px;
-        margin-top: 5px;
+      .yaohuo-wrap hr {
+        margin:5px 0
       }
     `);
     let innerH = `
@@ -1048,6 +1103,11 @@
         <div class="yaohuo-wrap">
           <header>🔥拓展增强🔥妖火插件设置</header>
           <ul>
+            <li class="yaohuo-wrap-title">
+              <hr class="title-line title-line-left" />
+              <b>站内设置</b>
+              <hr class="title-line title-line-right" />
+            </li>
             <li>
               <span>显示站内设置图标</span>
               <div class="switch">
@@ -1067,7 +1127,46 @@
                 step="${5}"
               />
             </li>
-            <hr>
+            <li>
+              <span>站内密码设置</span>
+              <div class="password-container">
+                <input 
+                  type="password" 
+                  placeholder="自动填充密码并确认"
+                  id="websitePassword" 
+                  data-key="websitePassword"
+                  value="${websitePassword}"
+                />
+                <svg
+                  viewBox="64 64 896 896"
+                  focusable="false"
+                  data-icon="eye"
+                  width="20px"
+                  height="20px"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  class="toggle-password"
+                >
+                  <path
+                    d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 0 0 0 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
+                  ></path>
+                </svg>
+              </div>
+            </li>
+            <li>
+              <span>关闭勋章显示</span>
+              <div class="switch">
+                <input type="checkbox" id="isCloseMedal" data-key="isCloseMedal" />
+                <label for="isCloseMedal"></label>
+              </div>
+            </li>
+
+            <li class="yaohuo-wrap-title">
+              <hr class="title-line title-line-left" />
+              <b>图床设置</b>
+              <hr class="title-line title-line-right" />
+            </li>
+
             <li>
               <span>自动上传图床</span>
               <div class="switch">
@@ -1161,7 +1260,11 @@
                 </svg>
               </div>
             </li>
-            <hr>
+            <li class="yaohuo-wrap-title">
+              <hr class="title-line title-line-left" />
+              <b>吃肉设置</b>
+              <hr class="title-line title-line-right" />
+            </li>
             <li>
               <span>手动进贴吃肉</span>
               <div class="switch">
@@ -1181,7 +1284,11 @@
                 step="${1}"
               />
             </li>
-            <hr>
+            <li class="yaohuo-wrap-title">
+              <hr class="title-line title-line-left" />
+              <b>回帖设置</b>
+              <hr class="title-line title-line-right" />
+            </li>
             <li>
               <span>回帖表情增强</span>
               <div class="switch">
@@ -1211,7 +1318,11 @@
                 <label for="isUnfoldUbb"></label>
               </div>
             </li>
-            <hr>
+            <li class="yaohuo-wrap-title">
+              <hr class="title-line title-line-left" />
+              <b>发帖设置</b>
+              <hr class="title-line title-line-right" />
+            </li>
             <li>
               <span>发帖UBB增强</span>
               <div class="switch">
@@ -1219,7 +1330,11 @@
                 <label for="isAddNewPostUBB"></label>
               </div>
             </li>
-            <hr>
+            <li class="yaohuo-wrap-title">
+              <hr class="title-line title-line-left" />
+              <b>自动加载设置</b>
+              <hr class="title-line title-line-right" />
+            </li>
             <li>
               <span>自动加载下一页</span>
               <div class="switch">
@@ -1246,7 +1361,11 @@
                 step="${numStep}"
               />
             </li>
-            <hr>
+            <li class="yaohuo-wrap-title">
+              <hr class="title-line title-line-left" />
+              <b>显示帖子等级</b>
+              <hr class="title-line title-line-right" />
+            </li>
             <li>
               <span>贴子显示等级</span>
               <div class="switch">

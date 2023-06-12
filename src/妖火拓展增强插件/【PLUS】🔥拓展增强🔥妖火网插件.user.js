@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.6.0
+// @version      3.7.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -26,6 +26,8 @@
   let settingData = {
     // 是否显示站内图标
     isShowSettingIcon: true,
+    // 是否关闭站内勋章
+    isCloseMedal: false,
     // 是否开启自动吃肉，手动进去肉帖自动吃肉
     isAutoEat: false,
     // 是否开启全自动吃肉，会自动进入肉帖自动吃肉
@@ -246,6 +248,8 @@
     defaultValueByStrategy4String,
 
     nextMoneyAbnormalProcessingMethod,
+
+    isCloseMedal,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -598,6 +602,8 @@
     handlePassword();
     // 添加站内设置按钮
     addSettingBtn();
+    // 关闭勋章显示
+    handleCloseMedal();
     // 如果关闭了悬浮图标，在网站首页右上角添加插件设置入口
     handleAddSettingText();
     // 注册油猴脚本设置
@@ -630,6 +636,23 @@
   })();
 
   // ==其他功能函数和方法==
+  function handleCloseMedal() {
+    if (/^\/bbs-.*\.html$/.test(window.location.pathname) && isCloseMedal) {
+      let medalImg = [...document.querySelectorAll(".subtitle img")].slice(
+        2,
+        -2
+      );
+      medalImg.forEach((item, index) => {
+        if (index === 0) {
+          item.insertAdjacentHTML(
+            "afterend",
+            `<a href="javascript:;">已关闭勋章显示</a>`
+          );
+        }
+        item.remove();
+      });
+    }
+  }
   function handlePassword() {
     let password = document.querySelector("input[type=password]");
     let submit = document.querySelector("input[type=submit]");
@@ -1371,6 +1394,13 @@
               />
             </li>
             <li>
+              <span>关闭勋章显示</span>
+              <div class="switch">
+                <input type="checkbox" id="isCloseMedal" data-key="isCloseMedal" />
+                <label for="isCloseMedal"></label>
+              </div>
+            </li>
+            <li>
               <span>站内密码设置</span>
               <div class="password-container">
                 <input 
@@ -1863,7 +1893,7 @@
                 data-key="colorByCharacterRate"
                 min="${0}"
                 value="${colorByCharacterRate}"
-                max="${1}"
+                max="${0.1}"
                 step="${0.01}"
               />
             </li>
@@ -1875,7 +1905,7 @@
                 data-key="colorByAllRate"
                 min="${0}"
                 value="${colorByAllRate}"
-                max="${1}"
+                max="${0.2}"
                 step="${0.01}"
               />
             </li>
@@ -3489,7 +3519,7 @@
   // 处理404页面跳回新帖页面
   function handleNotFoundPage() {
     if (notFoundPage.includes(window.location.pathname)) {
-      history.go(-2);
+      history.go(-1);
       // let year = new Date().getFullYear();
       // location.href = `/bbs/book_list.aspx?gettotal=${year}&action=new`;
     }
