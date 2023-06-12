@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.7.0
+// @version      3.7.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1661,7 +1661,7 @@
               </div>
             </li>
             <li>
-              <span>0-7点半夜停止发牛</span>
+              <span>0-9点停止发牛</span>
               <div class="switch">
                 <input type="checkbox" id="isMidnightStopPublishBoast" data-key="isMidnightStopPublishBoast" />
                 <label for="isMidnightStopPublishBoast"></label>
@@ -3760,10 +3760,10 @@
         // 小于7点不发牛
         if (
           isMidnightStopPublishBoast &&
-          new Date().getHours() < 7 &&
+          new Date().getHours() < 9 &&
           nextBoastData.lastIsWin
         ) {
-          $(".boast-index-tips").text(`提示：0-7点停止发牛`);
+          $(".boast-index-tips").text(`提示：0-9点停止发牛`);
           return;
         }
         if (isDynamicWinRate) {
