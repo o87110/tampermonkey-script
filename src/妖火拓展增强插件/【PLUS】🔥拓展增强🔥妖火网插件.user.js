@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.7.1
+// @version      3.7.2
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1893,7 +1893,7 @@
                 data-key="colorByCharacterRate"
                 min="${0}"
                 value="${colorByCharacterRate}"
-                max="${0.1}"
+                max="${0.2}"
                 step="${0.01}"
               />
             </li>
@@ -5065,14 +5065,14 @@
         let ubb2 = `[forecolor=${randomColor}]${
           selectText || "颜色文字，随机颜色"
         }[/forecolor]`;
-        // if (
-        //   selectText &&
-        //   confirm(
-        //     "检测到当前选择了很多文字，是否给每个字符加随机颜色，否则只为整个字符加颜色"
-        //   )
-        // ) {
-        //   ubb2 = getColorText(selectText);
-        // }
+        if (
+          selectText &&
+          confirm(
+            "检测到当前选择了很多文字，是否给每个字符加随机颜色，否则只为整句话加颜色"
+          )
+        ) {
+          ubb2 = getColorText(selectText);
+        }
         e.preventDefault();
         insertText(textarea, ubb2, 12);
       } else if (ary.includes(id)) {
