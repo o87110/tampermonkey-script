@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.7.2
+// @version      3.8.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -3182,16 +3182,45 @@
           // 取消提交
           if (!isAutoEatBbs && !colorReg.test(textarea.value)) {
             // 有ubb的不加
-            if (!reg.test(textarea.value) && isAddColorByCharacter) {
-              textarea.value = getColorText(textarea.value);
+            if (isAddColorByCharacter) {
+              textarea.value = getColorText(textarea.value, false);
             } else if (isAddColorByAll) {
               textarea.value = `[forecolor=${randomColor}]${textarea.value}[/forecolor]`;
+              // textarea.value = getColorText(textarea.value, true);
             }
           }
         },
         true
       );
     }
+  }
+  /**
+   * 获取非ubb的字符串
+   * @param {*} text 需要处理的字符串
+   * @returns 返回排除了ubb的文字数组
+   */
+  function extractNonMatches(text) {
+    const pattern =
+      /\[(\w+)=?([^\]]+)?\]([\s\S]*?)\[\/\1\]|\[(\w+)\]|\/\/\/(?!\/)/g;
+    const matches = text.match(pattern) || [];
+    const nonMatches = [];
+    let currentIndex = 0;
+
+    for (const match of matches) {
+      const matchIndex = text.indexOf(match, currentIndex);
+      const nonMatchText = text.substring(currentIndex, matchIndex).trim();
+      if (nonMatchText !== "") {
+        nonMatches.push(nonMatchText);
+      }
+      currentIndex = matchIndex + match.length;
+    }
+
+    const remainingText = text.substring(currentIndex).trim();
+    if (remainingText !== "") {
+      nonMatches.push(remainingText);
+    }
+
+    return nonMatches;
   }
   /**
    * 返回指定亮度范围的颜色
@@ -5065,13 +5094,14 @@
         let ubb2 = `[forecolor=${randomColor}]${
           selectText || "颜色文字，随机颜色"
         }[/forecolor]`;
+
         if (
           selectText &&
           confirm(
             "检测到当前选择了很多文字，是否给每个字符加随机颜色，否则只为整句话加颜色"
           )
         ) {
-          ubb2 = getColorText(selectText);
+          ubb2 = getColorText(selectText, false);
         }
         e.preventDefault();
         insertText(textarea, ubb2, 12);
@@ -5105,17 +5135,38 @@
       }
     });
   }
-  function getColorText(text = "") {
-    let str = "";
-    for (let char of text) {
-      let randomColor = getColorWithinBrightnessRange();
-      if (!/\s/.test(char)) {
-        str += `[forecolor=${randomColor}]${char}[/forecolor]`;
-      } else {
-        str += char;
-      }
+  /**
+   *
+   * @param {*} text 增加颜色的文字
+   * @param {*} addByAll true为整句增加，false为每次字符增加
+   * @returns
+   */
+  function getColorText(text = "", addByAll = true) {
+    let newStr = text;
+    // 获取ubb之外的文字
+    let matchAry = extractNonMatches(text);
+    let randomColor = getColorWithinBrightnessRange();
+    for (const txt of matchAry) {
+      let colorTxt = addColor(txt);
+      newStr = newStr.replace(txt, colorTxt);
     }
-    return str;
+    return newStr;
+    function addColor(txt) {
+      let str = "";
+      if (addByAll) {
+        return `[forecolor=${randomColor}]${txt}[/forecolor]`;
+      }
+      for (let char of txt) {
+        let randomColor = getColorWithinBrightnessRange();
+        // 不匹配空白字符
+        if (!/\s/.test(char)) {
+          str += `[forecolor=${randomColor}]${char}[/forecolor]`;
+        } else {
+          str += char;
+        }
+      }
+      return str;
+    }
   }
   function getSelectText(textarea) {
     let startPos = textarea.selectionStart;
