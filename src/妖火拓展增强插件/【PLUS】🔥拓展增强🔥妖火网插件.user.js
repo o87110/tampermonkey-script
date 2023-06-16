@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.9.1
+// @version      3.9.2
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -145,6 +145,8 @@
     commissionType: 2,
     // 动态胜率：true开启，false关闭；会根据最近15条地方答案动态调整策略
     isDynamicWinRate: false,
+    // 10次后才开启动态胜率
+    dynamicWinRateAfter10times: false,
     // 是否半夜停止发牛，0-7不自动发牛
     isMidnightStopPublishBoast: true,
     // 策略2倍数
@@ -238,6 +240,7 @@
     strategy2DefaultRate,
     commissionType,
     isDynamicWinRate,
+    dynamicWinRateAfter10times,
     isMidnightStopPublishBoast,
     multiplyRate,
     multiplyRateString,
@@ -1599,6 +1602,13 @@
               </div>
             </li>
             <li>
+              <span>动态概率10局后开启</span>
+              <div class="switch">
+                <input type="checkbox" id="dynamicWinRateAfter10times" data-key="dynamicWinRateAfter10times" />
+                <label for="dynamicWinRateAfter10times"></label>
+              </div>
+            </li>
+            <li>
               <span>替换吹牛链接</span>
               <div class="switch">
                 <input type="checkbox" id="isReplaceHistoryHref" data-key="isReplaceHistoryHref" />
@@ -1923,7 +1933,7 @@
                 data-key="colorByCharacterRate"
                 min="${0}"
                 value="${colorByCharacterRate}"
-                max="${0.2}"
+                max="${0.1}"
                 step="${0.01}"
               />
             </li>
@@ -1935,7 +1945,7 @@
                 data-key="colorByAllRate"
                 min="${0}"
                 value="${colorByAllRate}"
-                max="${0.2}"
+                max="${0.1}"
                 step="${0.01}"
               />
             </li>
@@ -2097,6 +2107,7 @@
                 "winEndMoney",
                 "commissionType",
                 "isDynamicWinRate",
+                "dynamicWinRateAfter10times",
                 "isMidnightStopPublishBoast",
                 "multiplyRateString",
                 "defaultValueByCommissionString",
@@ -2253,9 +2264,18 @@
     function clearWinData(dataKey) {
       if (["winEndMoney", "winEndNumber"].includes(dataKey)) {
         $(".clear-win-data-btn").click(() => {
+          let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
           MY_setValue("winIdData", []);
-          MY_setValue("boastPlayGameObject", {});
+          MY_setValue(
+            "boastPlayGameObject",
+            Object.assign(boastPlayGameObject, {
+              storage: {},
+              total: 0,
+              failCount: 0,
+            })
+          );
           MY_setValue("currentLatestId", null);
+          MY_setValue("boastConfig", {});
         });
       }
     }
@@ -3759,6 +3779,9 @@
           myBoastHistoryHref = btn.href;
           MY_setValue("myBoastHistoryHref", myBoastHistoryHref);
         }
+        // 处理数据
+        handleClearBoastPlayData();
+
         let nextBoastData = await getMyBoastData();
         let { loseMoney, nextMoney } = nextBoastData;
         if (loseMoney && parseFloat(nextMoney) > loseMoney * 3) {
@@ -4091,6 +4114,19 @@
         );
       }
     }
+    // 每次发牛前处理数据
+    function handleClearBoastPlayData() {
+      let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
+      let { lastUpdateTime } = boastPlayGameObject;
+      // 超过1个小时就算上一次
+      let maxTime = 60 * 60 * 1000;
+      if (lastUpdateTime && new Date().getTime() - lastUpdateTime > maxTime) {
+        MY_setValue("winIdData", []);
+        MY_setValue("boastPlayGameObject", {});
+        MY_setValue("currentLatestId", null);
+        MY_setValue("boastConfig", {});
+      }
+    }
     // 获取是否完成
     async function getMyBoastIsFinished() {
       let myBoastHistoryHref = MY_getValue("myBoastHistoryHref", "");
@@ -4265,7 +4301,7 @@
             alert(
               `
             ====${isId ? "今日" : `最近${number}页`}发吹牛总条数：${total}===\n
-            发吹牛选择：${tzSelectString}\n
+            发吹牛选择：${tzSelectString.substring(0, 30)}\n
             发吹牛选1的次数：${tzSelect1}次 / ${(tzSelect1 / total).toFixed(
                 2
               )}，选2的次数：${tzSelect2}次 / ${(tzSelect2 / total).toFixed(
@@ -4281,7 +4317,7 @@
                 tzMoney > 0 ? "赢了" : "输了"
               }${Math.abs(tzMoney)}妖精\n
             ====${isId ? "今日" : `最近${number}页`}吹牛总条数：${total}====\n
-            吃吹牛选择：${yzSelectString}\n
+            吃吹牛选择：${yzSelectString.substring(0, 30)}\n
             吃吹牛选1的次数：${yzSelect1}次 / ${(yzSelect1 / total).toFixed(
                 2
               )}，选2的次数：${yzSelect2}次 / ${(yzSelect2 / total).toFixed(
@@ -4500,6 +4536,7 @@
       }
     }
     async function getMyBoastData(tempDiv, endId = 0) {
+      let isSearchByBeforePublishBoast = !tempDiv;
       if (!tempDiv) {
         tempDiv = tempDiv || document;
         let btn = tempDiv.querySelector(
@@ -4524,22 +4561,6 @@
         "a[href^='/games/chuiniu/book_view.aspx'], a[href^='/games/chuiniu/doit.aspx']"
       );
       let rate1 = 0.5;
-      if (isDynamicWinRate) {
-        let { yzSelect2, total } = await handleData(tempDiv, true);
-        rate1 = (yzSelect2 / total).toFixed(2);
-        console.log(`动态概率初始值:${rate1}`);
-        // 动态策略最小0.35，最大0.65
-        rate1 = rate1 > 0.5 ? Math.min(rate1, 0.65) : Math.max(rate1, 0.35);
-
-        let boastConfig = MY_getValue("boastConfig", {});
-        boastConfig.DynamicWinRate1 = rate1;
-        MY_setValue("boastConfig", boastConfig);
-
-        // if ($(".boast-index-rate").length) {
-        //   $(".boast-index-rate").text(`，答案1动态概率：${rate1}`);
-        // }
-        console.log(`获取新的动态概率:${rate1}`);
-      }
 
       // let boastData = getItem("boastData");
       // let statusAry = [];
@@ -4552,7 +4573,13 @@
       let moneyChange = 0;
       let win = 0;
       let loseMoney = 0;
+      // 存储当前自动发牛存储的id
       let currentLatestId = MY_getValue("currentLatestId", null);
+      // 上一次到这一次的连续失败次数
+      let failCount = 0;
+      // 上一次到这一次的总次数
+      let currentCount = 0;
+
       for (let index = 0; index < list.length; index++) {
         const item = list[index];
         let id = item.innerText;
@@ -4602,9 +4629,19 @@
               }
             }
           }
-          if (currentLatestId && currentLatestId < id) {
+          if (
+            currentLatestId &&
+            currentLatestId < id &&
+            isSearchByBeforePublishBoast
+          ) {
+            currentCount++;
+            // 统计本次失败的次数
+            if (status === "输了" && !isFirstWin) {
+              failCount++;
+            }
             let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
             let { storage = {}, total } = boastPlayGameObject || {};
+            let updateTime = new Date().getTime();
             if (!storage[id]) {
               storage[id] = status === "输了" ? -money : +money;
               total = Object.values(storage).reduce((prev, cur) => {
@@ -4616,10 +4653,32 @@
                 storage,
                 total,
               };
-              MY_setValue("boastPlayGameObject", boastPlayGameObject);
             }
+            boastPlayGameObject.failCount = failCount;
+            boastPlayGameObject.lastUpdateTime = updateTime;
+            MY_setValue("boastPlayGameObject", boastPlayGameObject);
           }
         }
+      }
+      if (isDynamicWinRate && isSearchByBeforePublishBoast) {
+        let { yzSelect2, total } = await handleData(tempDiv, true);
+        rate1 = (yzSelect2 / total).toFixed(2);
+        if (dynamicWinRateAfter10times && currentCount < 10) {
+          rate1 = publishAnswer1Rate;
+          console.log("当前小于10次用默认概率");
+        }
+        console.log(`动态概率初始值:${rate1}`);
+        // 动态策略最小0.35，最大0.65
+        rate1 = rate1 > 0.5 ? Math.min(rate1, 0.65) : Math.max(rate1, 0.35);
+
+        let boastConfig = MY_getValue("boastConfig", {});
+        boastConfig.DynamicWinRate1 = rate1;
+        MY_setValue("boastConfig", boastConfig);
+
+        // if ($(".boast-index-rate").length) {
+        //   $(".boast-index-rate").text(`，答案1动态概率：${rate1}`);
+        // }
+        console.log(`调整后新的动态概率:${rate1}`);
       }
       moneyChange = moneyChange.toFixed(2);
       let winRate = (win / total).toFixed(2);
