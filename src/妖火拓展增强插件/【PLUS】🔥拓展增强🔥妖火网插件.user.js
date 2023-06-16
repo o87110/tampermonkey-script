@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.9.5
+// @version      3.9.6
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -2931,8 +2931,8 @@
   }
   // 获取值
   function getItem(key, defaultValue = {}) {
-    if (["boastData", "autoEatList".includes(key)]) {
-      let list = MY_getValue(key, {});
+    if (["boastData", "autoEatList"].includes(key)) {
+      let list = MY_getValue(key, defaultValue);
       // 删除过期的肉帖
       deleteExpiredID(list, key);
       // 更新肉帖数据
@@ -4246,7 +4246,9 @@
       $(".statistics-btn-right").click(async () => {
         if (!isClick) {
           isClick = true;
-          let todayFirstId = getItem("todayFirstId", "0");
+          let todayFirstIdAry = getItem("todayFirstId", []);
+          let todayFirstId = todayFirstIdAry[todayFirstIdAry.length - 1];
+
           let number = prompt(
             "请输入要查询页数或者截止的id：",
             parseInt(todayFirstId) || 5
@@ -4259,7 +4261,10 @@
 
           let isId = number?.length > 5;
           if (number.length > 5) {
-            setItem("todayFirstId", number);
+            todayFirstIdAry.push(number);
+            todayFirstIdAry = todayFirstIdAry.slice(-10);
+
+            setItem("todayFirstId", todayFirstIdAry);
           }
 
           number = parseInt(number);
@@ -4726,7 +4731,17 @@
           rate1 = publishAnswer1Rate;
           console.log(`当前小于10次用默认概率:${publishAnswer1Rate}`);
         }
-        console.log(`动态概率初始值:${rate1}，计算局数:${total}`);
+        if (dynamicWinRateCount !== 15) {
+          let { yzSelect2: Select2ByAll, total: totalByAll } = await handleData(
+            tempDiv,
+            true
+          );
+          let rateAll = (Select2ByAll / totalByAll).toFixed(2);
+
+          console.log(`计算局数:${totalByAll},概率为${rateAll}`);
+        }
+
+        console.log(`计算局数:${total},动态概率初始值:${rate1}`);
         // 动态策略最小0.35，最大0.65
         rate1 = rate1 > 0.5 ? Math.min(rate1, 0.65) : Math.max(rate1, 0.35);
 
