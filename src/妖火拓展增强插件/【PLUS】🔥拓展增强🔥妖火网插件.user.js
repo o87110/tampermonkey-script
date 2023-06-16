@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.9.4
+// @version      3.9.5
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -147,6 +147,8 @@
     isDynamicWinRate: false,
     // 10次后才开启动态胜率
     dynamicWinRateAfter10times: false,
+    // 动态概率统计几局
+    dynamicWinRateCount: 15,
     // 是否半夜停止发牛，0-7不自动发牛
     isMidnightStopPublishBoast: true,
     // 策略2倍数
@@ -245,6 +247,7 @@
     commissionType,
     isDynamicWinRate,
     dynamicWinRateAfter10times,
+    dynamicWinRateCount,
     isMidnightStopPublishBoast,
     multiplyRate,
     multiplyRateString,
@@ -1614,6 +1617,18 @@
                 <input type="checkbox" id="dynamicWinRateAfter10times" data-key="dynamicWinRateAfter10times" />
                 <label for="dynamicWinRateAfter10times"></label>
               </div>
+            </li>
+            <li>
+              <span>动态概率计算几局：<i class="range-num">${dynamicWinRateCount}</i></span>
+              <input
+                type="range"
+                id="dynamicWinRateCount"
+                data-key="dynamicWinRateCount"
+                min="${5}"
+                value="${dynamicWinRateCount}"
+                max="${15}"
+                step="${1}"
+              />
             </li>
             <li>
               <span>替换吹牛链接</span>
@@ -4393,7 +4408,8 @@
     async function handleData(
       dom = document,
       isReturnResult = false,
-      endId = 0
+      endId = 0,
+      endCount
     ) {
       let list = dom.querySelectorAll(
         "a[href^='/games/chuiniu/book_view.aspx']"
@@ -4426,6 +4442,9 @@
           continue;
         }
         if (endId && parseInt(endId) > parseInt(id)) {
+          break;
+        }
+        if (endCount && total >= endCount) {
           break;
         }
         // if (isReturnResult && total >= 10) {
@@ -4696,13 +4715,18 @@
         }
       }
       if (isDynamicWinRate && isSearchByBeforePublishBoast) {
-        let { yzSelect2, total } = await handleData(tempDiv, true);
+        let { yzSelect2, total } = await handleData(
+          tempDiv,
+          true,
+          0,
+          dynamicWinRateCount
+        );
         rate1 = (yzSelect2 / total).toFixed(2);
         if (dynamicWinRateAfter10times && currentCount < 10) {
           rate1 = publishAnswer1Rate;
-          console.log("当前小于10次用默认概率");
+          console.log(`当前小于10次用默认概率:${publishAnswer1Rate}`);
         }
-        console.log(`动态概率初始值:${rate1}`);
+        console.log(`动态概率初始值:${rate1}，计算局数:${total}`);
         // 动态策略最小0.35，最大0.65
         rate1 = rate1 > 0.5 ? Math.min(rate1, 0.65) : Math.max(rate1, 0.35);
 
@@ -4713,7 +4737,7 @@
         // if ($(".boast-index-rate").length) {
         //   $(".boast-index-rate").text(`，答案1动态概率：${rate1}`);
         // }
-        console.log(`调整后新的动态概率:${rate1}`);
+        console.log(`调整后新的动态概率:${rate1}，计算局数:${total}`);
       }
       moneyChange = moneyChange.toFixed(2);
       let winRate = (win / total).toFixed(2);
