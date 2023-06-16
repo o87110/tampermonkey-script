@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.9.2
+// @version      3.9.3
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -161,6 +161,10 @@
     defaultValueByStrategy4: [500, 500, 500, 500],
     // 下一把金额异常处理方式：1停止，2从第局开始发
     nextMoneyAbnormalProcessingMethod: 1,
+    // 超时从第一局发牛
+    overtimeFromFirstRoundPublish: false,
+    // 超时的时间
+    autoPublishBoastTimeout: 24,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -253,6 +257,9 @@
     nextMoneyAbnormalProcessingMethod,
 
     isCloseMedal,
+
+    overtimeFromFirstRoundPublish,
+    autoPublishBoastTimeout,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1739,6 +1746,25 @@
               >
             </li>
             <li>
+              <span>超时从第一局发牛</span>
+              <div class="switch">
+                <input type="checkbox" id="overtimeFromFirstRoundPublish" data-key="overtimeFromFirstRoundPublish" />
+                <label for="overtimeFromFirstRoundPublish"></label>
+              </div>
+            </li>
+            <li>
+              <span>超时时间：<i class="range-num">${autoPublishBoastTimeout}</i>小时</span>
+              <input
+                type="range"
+                id="autoPublishBoastTimeout"
+                data-key="autoPublishBoastTimeout"
+                min="${1}"
+                value="${autoPublishBoastTimeout}"
+                max="${24}"
+                step="${1}"
+              />
+            </li>
+            <li>
               <span class="preview-strategy-btn"><a>自动发牛策略</a></span>
               <select data-key="autoPublishBoastStrategy" id="autoPublishBoastStrategy">
                 <option value="1">策略1最近两次之和</option>
@@ -2113,6 +2139,8 @@
                 "defaultValueByCommissionString",
                 "defaultValueByStrategy4String",
                 "nextMoneyAbnormalProcessingMethod",
+                "overtimeFromFirstRoundPublish",
+                "autoPublishBoastTimeout",
               ],
               dataKey,
             });
@@ -4114,13 +4142,20 @@
         );
       }
     }
-    // 每次发牛前处理数据
-    function handleClearBoastPlayData() {
+    function isTimeOut() {
       let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
       let { lastUpdateTime } = boastPlayGameObject;
-      // 超过1个小时就算上一次
-      let maxTime = 60 * 60 * 1000;
-      if (lastUpdateTime && new Date().getTime() - lastUpdateTime > maxTime) {
+      let timeout = autoPublishBoastTimeout || 24;
+      let maxTime = 60 * 60 * timeout * 1000;
+      return (
+        overtimeFromFirstRoundPublish &&
+        lastUpdateTime &&
+        new Date().getTime() - lastUpdateTime > maxTime
+      );
+    }
+    // 每次发牛前处理数据
+    function handleClearBoastPlayData() {
+      if (isTimeOut()) {
         MY_setValue("winIdData", []);
         MY_setValue("boastPlayGameObject", {});
         MY_setValue("currentLatestId", null);
@@ -4682,6 +4717,8 @@
       }
       moneyChange = moneyChange.toFixed(2);
       let winRate = (win / total).toFixed(2);
+      // 超时就从第一回合开始
+      count = isTimeOut() ? 1 : count;
       return {
         total,
         win,
