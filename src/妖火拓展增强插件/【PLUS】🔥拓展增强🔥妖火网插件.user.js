@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.9.8
+// @version      3.10.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -496,6 +496,116 @@
       name: "扇子",
     },
   ];
+  const cloverQuotationsList = [
+    {
+      url: "",
+      value: "老c语录",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/e89af0d64f53d.png",
+      value: "v50看看实力.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/57c1e816b3cdf.png",
+      value: "表妹微信发来.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/d08cebf987711.png",
+      value: "不撸白不撸.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/94e58dade8654.png",
+      value: "多发点爱看.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/700829a80da96.png",
+      value: "根本看不完.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/10c869e247545.png",
+      value: "很好用已分手.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/ff9df3da199aa.png",
+      value: "换个锤子.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/636a3de4d46db.png",
+      value: "活腻了吗.png",
+    },
+    {
+      url: "https://tucdn.wpon.cn/2023/06/19/6a85997497b12.png",
+      value: "裤子脱了就看这个.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/ef6a1529196b2.png",
+      value: "老c打开小号.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/0f975a4e4afa8.png",
+      value: "你女朋友真棒.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/b108d9c8b75ec.png",
+      value: "你飘了.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/28e806a6aaf1e.png",
+      value: "你是好人.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/0c6f7b04b5fe8.png",
+      value: "你怎么这么虚.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/412692840a3e3.png",
+      value: "色情和艺术有区别.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/ae6bdfb95b21d.png",
+      value: "社会上的事少打听.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/29639adf9711c.png",
+      value: "睡觉最好睁一只眼.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/74c1488cd27ea.png",
+      value: "我还没上车.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/298030c0b50a5.png",
+      value: "怎么可能认识妹子.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/611a09a1fc130.png",
+      value: "怎么天天发工资.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/1dfe9f6442dbe.png",
+      value: "渣男.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/f03e735100455.png",
+      value: "这个装不了了.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/e4c85cf64240d.png",
+      value: "这么爽吗.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/a740f831cb2ae.png",
+      value: "知道你有女朋友.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/c6f81cbd9ef4a.png",
+      value: "注意身体.png",
+    },
+    {
+      url: "https://pic.ziyuan.wang/2023/06/19/0ab0eecfc71b2.png",
+      value: "赚够3千万就收手.png",
+    },
+  ];
   // 批量添加事件数组
   let addEventAry = [
     {
@@ -659,6 +769,8 @@
     handleAddReplyUBB();
     // 增加回帖表情
     handleAddReplyFace();
+    // 添加老c语录
+    handleCloverQuotations();
     // 优化回帖
     handleReply();
     // 回帖增加随机颜色
@@ -3154,6 +3266,72 @@
       addEventAry.forEach((item) => {
         handleEventListener(item.id, textarea, item.ubb, item.offset);
       });
+    }
+  }
+  function handleCloverQuotations() {
+    let isAddCloverQuotations = true;
+    if (
+      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
+        viewPage.includes(window.location.pathname)) &&
+      isAddCloverQuotations
+    ) {
+      const textarea = document.querySelector(".retextarea");
+      const sendmsg = document.querySelector("select[name=sendmsg]");
+      // 添加表情展开按钮
+      sendmsg.insertAdjacentHTML(
+        "afterend",
+        `<select class="clover-quotations-wrap" style="width:120px">
+        </select>`
+      );
+      let cloverQuotationsWrap = document.querySelector(
+        ".clover-quotations-wrap"
+      );
+      let allFaceHtml = "";
+      for (const item of cloverQuotationsList) {
+        allFaceHtml += `
+        <option value="${item.url}">${item.value}</option>
+        `;
+      }
+      cloverQuotationsWrap.addEventListener("change", (e) => {
+        let diySrc = e.target.value;
+        if (diySrc) {
+          //把光标移到文本框最前面
+          textarea.focus();
+          textarea.setSelectionRange(0, 0);
+          insertText(textarea, `[img]${diySrc}[/img]`, 0);
+        }
+      });
+      cloverQuotationsWrap.innerHTML = allFaceHtml;
+
+      /* 
+      [img]https://pic.ziyuan.wang/2023/06/19/e89af0d64f53d.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/57c1e816b3cdf.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/d08cebf987711.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/94e58dade8654.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/700829a80da96.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/10c869e247545.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/ff9df3da199aa.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/636a3de4d46db.png[/img]
+      [img]https://tucdn.wpon.cn/2023/06/19/6a85997497b12.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/ef6a1529196b2.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/0f975a4e4afa8.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/b108d9c8b75ec.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/28e806a6aaf1e.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/0c6f7b04b5fe8.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/412692840a3e3.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/ae6bdfb95b21d.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/29639adf9711c.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/74c1488cd27ea.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/298030c0b50a5.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/611a09a1fc130.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/1dfe9f6442dbe.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/f03e735100455.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/e4c85cf64240d.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/a740f831cb2ae.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/c6f81cbd9ef4a.png[/img]
+      [img]https://pic.ziyuan.wang/2023/06/19/0ab0eecfc71b2.png[/img]
+      
+      */
     }
   }
   // 增加回帖表情
