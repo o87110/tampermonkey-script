@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.10.3
+// @version      3.10.4
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -167,9 +167,6 @@
     overtimeFromFirstRoundPublish: false,
     // 超时的时间
     autoPublishBoastTimeout: 24,
-
-    // 是否增加老c语录
-    isAddCloverQuotations: false,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -266,8 +263,6 @@
 
     overtimeFromFirstRoundPublish,
     autoPublishBoastTimeout,
-
-    isAddCloverQuotations,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -886,8 +881,6 @@
     handleAddReplyUBB();
     // 增加回帖表情
     handleAddReplyFace();
-    // 添加老c语录
-    handleCloverQuotations();
     // 优化回帖
     handleReply();
     // 回帖增加随机颜色
@@ -2185,14 +2178,6 @@
               <div class="switch">
                 <input type="checkbox" id="isUnfoldUbb" data-key="isUnfoldUbb" />
                 <label for="isUnfoldUbb"></label>
-              </div>
-            </li>
-            <hr>
-            <li>
-              <span>回帖老c语录</span>
-              <div class="switch">
-                <input type="checkbox" id="isAddCloverQuotations" data-key="isAddCloverQuotations" />
-                <label for="isAddCloverQuotations"></label>
               </div>
             </li>
             <hr>

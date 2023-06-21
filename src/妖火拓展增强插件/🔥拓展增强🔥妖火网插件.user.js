@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.6.1
+// @version      3.6.2
 // @description  发帖ubb增强、回帖ubb增强、回帖表情增强、查看贴子显示用户等级增强、手动吃肉增强、自动加载更多帖子、自动加载更多回复、一键自动上传图床、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -85,9 +85,6 @@
     inkToken: "",
     meetToken: "",
     speedFreeToken: "",
-
-    // 是否增加老c语录
-    isAddCloverQuotations: false,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -130,8 +127,6 @@
 
     websitePassword,
     isCloseMedal,
-
-    isAddCloverQuotations,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1577,14 +1572,6 @@
                 <label for="isUnfoldUbb"></label>
               </div>
             </li>
-            <hr>
-            <li>
-              <span>回帖老c语录</span>
-              <div class="switch">
-                <input type="checkbox" id="isAddCloverQuotations" data-key="isAddCloverQuotations" />
-                <label for="isAddCloverQuotations"></label>
-              </div>
-            </li>
             <li class="yaohuo-wrap-title">
               <hr class="title-line title-line-left" />
               <b>发帖设置</b>
@@ -2286,42 +2273,6 @@
       addEventAry.forEach((item) => {
         handleEventListener(item.id, textarea, item.ubb, item.offset);
       });
-    }
-  }
-  // 增加老c语录
-  function handleCloverQuotations() {
-    if (
-      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
-        viewPage.includes(window.location.pathname)) &&
-      isAddCloverQuotations
-    ) {
-      const textarea = document.querySelector(".retextarea");
-      const sendmsg = document.querySelector("select[name=sendmsg]");
-      // 添加表情展开按钮
-      sendmsg.insertAdjacentHTML(
-        "afterend",
-        `<select class="clover-quotations-wrap" style="width:120px">
-        </select>`
-      );
-      let cloverQuotationsWrap = document.querySelector(
-        ".clover-quotations-wrap"
-      );
-      let allFaceHtml = "<option value=''>老c语录</option>";
-      for (const item of cloverQuotationsList) {
-        allFaceHtml += `
-        <option value="${item.url}">${item.value}</option>
-        `;
-      }
-      cloverQuotationsWrap.addEventListener("change", (e) => {
-        let diySrc = e.target.value;
-        if (diySrc) {
-          //把光标移到文本框最前面
-          textarea.focus();
-          textarea.setSelectionRange(0, 0);
-          insertText(textarea, `[img]${diySrc}[/img]`, 0);
-        }
-      });
-      cloverQuotationsWrap.innerHTML = allFaceHtml;
     }
   }
   // 增加回帖表情
