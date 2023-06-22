@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.6.2
+// @version      3.6.3
 // @description  发帖ubb增强、回帖ubb增强、回帖表情增强、查看贴子显示用户等级增强、手动吃肉增强、自动加载更多帖子、自动加载更多回复、一键自动上传图床、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -736,8 +736,6 @@
     handleAddReplyUBB();
     // 增加回帖表情
     handleAddReplyFace();
-    // 添加老c语录
-    handleCloverQuotations();
     // 优化回帖
     handleReply();
     // 自动上传图床功能
