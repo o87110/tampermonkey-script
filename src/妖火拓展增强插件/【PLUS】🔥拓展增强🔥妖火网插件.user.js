@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.10.6
+// @version      3.11.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -167,6 +167,8 @@
     overtimeFromFirstRoundPublish: false,
     // 超时的时间
     autoPublishBoastTimeout: 24,
+
+    imageInsertPosition: "插入到开头",
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -263,6 +265,8 @@
 
     overtimeFromFirstRoundPublish,
     autoPublishBoastTimeout,
+
+    imageInsertPosition,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1703,6 +1707,14 @@
                 <input type="checkbox" id="isUploadImage" data-key="isUploadImage" />
                 <label for="isUploadImage"></label>
               </div>
+            </li>
+            <li>
+              <span>回帖图床插入位置</span>
+              <select data-key="imageInsertPosition" id="imageInsertPosition">
+                <option value="插入到开头">插入到开头</option>
+                <option value="插入到末尾">插入到末尾</option>
+                <option value="插入到光标位置">插入到光标位置</option>
+              </select>
             </li>
             <li>
               <span>图床设置</span>
@@ -3866,12 +3878,20 @@
               url = url.chaoneng;
             }
             if (url) {
-              // 如果是回帖页面把光标移到文本框最前面
-              if (isReplyPage) {
+              if (!isReplyPage) {
+                insertText(textArea, `[img]${url}[/img]`, 0);
+                return;
+              }
+              if (imageInsertPosition === "插入到开头") {
                 textArea.focus();
                 textArea.setSelectionRange(0, 0);
+              } else if (imageInsertPosition === "插入到末尾") {
+                textArea.focus();
+                textArea.setSelectionRange(
+                  textArea.value.length,
+                  textArea.value.length
+                );
               }
-
               insertText(textArea, `[img]${url}[/img]`, 0);
             }
           } else {
