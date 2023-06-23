@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.11.0
+// @version      3.11.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -167,6 +167,8 @@
     overtimeFromFirstRoundPublish: false,
     // 超时的时间
     autoPublishBoastTimeout: 24,
+    // 手动发吹牛自动叠加金额
+    isAutoAddMoney: false,
 
     imageInsertPosition: "插入到开头",
   };
@@ -267,6 +269,8 @@
     autoPublishBoastTimeout,
 
     imageInsertPosition,
+
+    isAutoAddMoney,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1897,6 +1901,13 @@
               >
             </li>
             <li>
+              <span>手动发吹牛自动叠加金额</span>
+              <div class="switch">
+                <input type="checkbox" id="isAutoAddMoney" data-key="isAutoAddMoney" />
+                <label for="isAutoAddMoney"></label>
+              </div>
+            </li>
+            <li>
               <span>发牛最小连续次数：<i class="range-num">${publishBoastMinConsecutive}</i>次</span>
               <input
                 type="range"
@@ -2391,6 +2402,7 @@
                 "overtimeFromFirstRoundPublish",
                 "autoPublishBoastTimeout",
                 "dynamicWinRateCount",
+                "isAutoAddMoney",
               ],
               dataKey,
             });
@@ -4102,6 +4114,17 @@
         true
       );
 
+      // 我的大话链接
+      let myBoastLogBtn = document.querySelector(
+        "a[href^='/games/chuiniu/book_list.aspx']"
+      );
+      let myBoastHistoryHref = MY_getValue("myBoastHistoryHref", "");
+      // 记录我的大话链接
+      if (myBoastLogBtn.innerText === "我的大话" && !myBoastHistoryHref) {
+        myBoastHistoryHref = myBoastLogBtn.href;
+        MY_setValue("myBoastHistoryHref", myBoastHistoryHref);
+      }
+
       if (publishBoastBtn.innerText === "我要公开挑战") {
         // 添加批量按钮
         publishBoastBtn.insertAdjacentHTML(
@@ -4114,8 +4137,8 @@
             setItem("publishNumber", number - 1);
             let href = publishBoastBtn.href;
             let newHref = href.includes("?")
-              ? `${href}&open=new`
-              : `${href}?open=new`;
+              ? `${href}&open=new&publishMoney=${batchPublishBoastMoney}`
+              : `${href}?open=new&publishMoney=${batchPublishBoastMoney}`;
             location.href = newHref;
           } else if (number) {
             alert("输入的格式不对，只能是大于0的数字");
@@ -4125,16 +4148,6 @@
 
       // 是否开启自动发牛
       if (isAutoPublishBoast) {
-        // 我的大话链接
-        let btn = document.querySelector(
-          "a[href^='/games/chuiniu/book_list.aspx']"
-        );
-        let myBoastHistoryHref = MY_getValue("myBoastHistoryHref", "");
-        // 记录我的大话链接
-        if (btn.innerText === "我的大话" && !myBoastHistoryHref) {
-          myBoastHistoryHref = btn.href;
-          MY_setValue("myBoastHistoryHref", myBoastHistoryHref);
-        }
         // 处理数据
         handleClearBoastPlayData();
 
@@ -4227,6 +4240,17 @@
         }
       } else {
         $(".boast-index-tips").text("提示：已关闭自动发牛");
+        let nextBoastData = await getMyBoastData();
+        let { loseMoney, nextMoney } = nextBoastData;
+
+        let href = publishBoastBtn.href;
+        nextMoney = nextMoney || 500;
+        // setItem("nextMoney", nextMoney);
+        let newHref = href.includes("?")
+          ? `${href}&publishMoney=${nextMoney}`
+          : `${href}?publishMoney=${nextMoney}`;
+        // console.log("跳转到自动发肉页面", newHref);
+        publishBoastBtn.href = newHref;
       }
       // 是否开启自动吃牛
       if (isAutoEatBoast) {
@@ -4376,16 +4400,24 @@
       let isAutoEat = window.location.search.includes("open=new");
       if (document.title === "公开挑战") {
         if (select) {
+          let publishMoney = getUrlParameters().publishMoney;
+
+          if (publishMoney) {
+            number.value = publishMoney || 500;
+          }
+
+          // 非自动发牛展示历史数据
           if (!isAutoEat) {
             setItem("publishNumber", "0");
-          } else {
-            let publishMoney = getUrlParameters().publishMoney;
-            number.value = publishMoney || batchPublishBoastMoney || 500;
+            await handleAddMyHistoryBoast();
           }
+
+          // 自动发牛未完成跳回首页
           if (isAutoPublishBoast && !(await getMyBoastIsFinished())) {
             location.href = "/games/chuiniu/index.aspx";
             return;
           }
+          // 自动发牛但是没标识跳回首页
           if (isAutoPublishBoast && !isAutoEat) {
             setTimeout(() => {
               location.href = "/games/chuiniu/index.aspx";
@@ -4468,6 +4500,93 @@
           "beforeend",
           `<a href="/games/chuiniu/doit.aspx?siteid=1000&classid=0&id=${id}">一键跳转</a>`
         );
+      }
+    }
+    async function handleAddMyHistoryBoast() {
+      let title = document.querySelector(".title");
+      title.insertAdjacentHTML(
+        "afterend",
+        `<div class="subTitleTips boast-card-style">
+        <span style="color:red">正在分析发牛历史数据请等待</span>
+        </div>`
+      );
+      let myBoastHistoryHref = MY_getValue("myBoastHistoryHref", "");
+      if (!myBoastHistoryHref) {
+        console.log("myBoastHistoryHref为空");
+        return false;
+      }
+      let res = await fetchData(myBoastHistoryHref);
+      let match = /<body>([\s\S]*?)<\/body>/.exec(res);
+      let bodyString = match?.[0];
+      bodyString = bodyString.replace(
+        /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+        ""
+      );
+      if (bodyString) {
+        let tempDiv = document.createElement("div");
+        tempDiv.innerHTML = bodyString;
+        let res = await handleData(tempDiv, true);
+        let {
+          total,
+          tzSelect1,
+          tzSelect2,
+          tzSelect1Win,
+          tzSelect2Win,
+          tzWin,
+          tzWinRate,
+          yzSelect1,
+          yzSelect2,
+          yzSelect1Win,
+          yzSelect2Win,
+          tzSelectString,
+          yzSelectString,
+          tzSelectDomString,
+          yzSelectDomString,
+          tzMoney,
+          yzMoney,
+        } = res;
+        document.querySelector(".subTitleTips").innerHTML = `
+          <p>发牛者过去${total}条中，选择了：${tzSelectDomString}，答案一：${tzSelect1}次/${(
+          tzSelect1 / total
+        ).toFixed(2)}，选择答案二：${tzSelect2}次/${(tzSelect2 / total).toFixed(
+          2
+        )}</p>
+          <p>吃牛者过去${total}条中，选择了：${yzSelectDomString}，答案一：${yzSelect1}次/${(
+          yzSelect1 / total
+        ).toFixed(2)}，选择答案二：${yzSelect2}次/${(yzSelect2 / total).toFixed(
+          2
+        )}</p>
+        <p>
+          发吹牛<b style="color:${tzMoney >= 0 ? "red" : "green"}">${
+          tzMoney > 0 ? "赢了" : "输了"
+        }</b>${Math.abs(tzMoney)}妖精
+          </p>
+        `;
+        /* 
+        <p>发牛发布1胜率：
+            <b style="color:${tzSelect1Win > tzSelect2Win ? "red" : "unset"}">
+            ${(tzSelect1Win / total).toFixed(2)}
+            </b>
+            ，发布2胜率：
+            <b style="color:${tzSelect1Win < tzSelect2Win ? "red" : "unset"}">
+            ${(tzSelect2Win / total).toFixed(2)}
+            </b>
+          </p>
+          <p>吃牛选择1胜率：
+            <b style="color:${yzSelect1Win > yzSelect2Win ? "red" : "unset"}">
+            ${(yzSelect1Win / total).toFixed(2)}
+            </b>
+            ，选择2胜率：
+            <b style="color:${yzSelect1Win < yzSelect2Win ? "red" : "unset"}">
+            ${(yzSelect2Win / total).toFixed(2)}
+            </b>
+          </p>
+          <p>
+          发吹牛<b style="color:${tzMoney >= 0 ? "red" : "green"}">${
+          tzMoney > 0 ? "赢了" : "输了"
+        }</b>${Math.abs(tzMoney)}妖精\n
+          </p>
+        */
       }
     }
     function isTimeOut() {
@@ -4751,6 +4870,7 @@
       let tzSelectString = "";
       let yzSelectString = "";
       let tzSelectDomString = "";
+      let yzSelectDomString = "";
       let tzMoney = 0;
       let yzMoney = 0;
 
@@ -4814,6 +4934,10 @@
           curData.battleStatus === "失败" ? "red" : "green"
         }">${curData.challengerAnswer}</b>`;
 
+        yzSelectDomString += `<b style="color:${
+          curData.battleStatus === "获胜" ? "red" : "green"
+        }">${curData.opponentAnswer}</b>`;
+
         total++;
 
         if (curData.battleStatus === "获胜") {
@@ -4869,6 +4993,7 @@
           yzSelect2Win,
           tzSelectString,
           tzSelectDomString,
+          yzSelectDomString,
           yzSelectString,
           tzMoney,
           yzMoney,
