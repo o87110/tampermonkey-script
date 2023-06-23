@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.11.1
+// @version      3.11.2
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -4076,7 +4076,6 @@
         margin: 5px; 
         background: #e5f3ee; 
         border-radius: 6px;
-        box-shadow: 0px 0px 1px 1px #ccc;
       }
     `);
     // 吹牛主页
@@ -4511,6 +4510,8 @@
         <span style="color:red">正在分析发牛历史数据请等待</span>
         </div>`
       );
+      document.querySelector(".boast-card-style").style.boxShadow =
+        "0px 0px 2px 1px #ccc";
       let myBoastHistoryHref = MY_getValue("myBoastHistoryHref", "");
       if (!myBoastHistoryHref) {
         console.log("myBoastHistoryHref为空");
