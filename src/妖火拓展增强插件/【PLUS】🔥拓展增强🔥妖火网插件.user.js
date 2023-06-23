@@ -4076,6 +4076,7 @@
         margin: 5px; 
         background: #e5f3ee; 
         border-radius: 6px;
+        box-shadow: 0px 0px 1px 1px #ccc;
       }
     `);
     // 吹牛主页
