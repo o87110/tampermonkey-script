@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.11.2
+// @version      3.12.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -288,10 +288,12 @@
     "/bbs/book_view_mod.aspx",
   ];
   const loadNextPage = [
-    /\/bbs\/book_re.aspx/,
-    /\/bbs\/book_list.aspx/,
-    /\/bbs\/list.aspx/,
+    /\/bbs\/book_re\.aspx/,
+    /\/bbs\/book_list\.aspx/,
+    /\/bbs\/list\.aspx/,
     /\/bbs-.*\.html/,
+    /\/bbs\/book_re_my\.aspx/, //我的回复页面
+    // /\/bbs\/book_list_log\.aspx/,  //动态页面
   ];
   // 404
   const notFoundPage = ["/404.htm"];
@@ -5561,29 +5563,34 @@
     );
     if (isPage && isLoadNextPage) {
       let nextBtn = null;
-      let nextPageWrap = document.querySelector(".bt2");
+      // let nextPageWrap = document.querySelectorAll(".bt2");
+      let nextPageWrap = [...document.querySelectorAll(".bt2")].findLast(
+        (item) => item.innerText === "下一页\n上一页"
+      );
+
       // 距离按钮最大多少就会触发
       let bottomMaxDistance = 250;
       if (loadNextPageType === "more" || !nextPageWrap) {
         nextBtn = document.querySelector("span[id$=show_tip]");
       } else {
         nextBtn = nextPageWrap.firstChild;
-        bottomMaxDistance = 150;
+        bottomMaxDistance = 30;
       }
       let A = nextBtn.getBoundingClientRect().bottom;
       let B = document.documentElement.clientHeight;
       // 获取当前列表的长度
       let newLength = getListLength();
-
       // 加载更多按钮距离距底部小于300px才开始加载
       // 没有加载完成前不会再次加载
       // 小于页面最大加载数量才会加载
+      // console.log(A - B);
       if (
         A <= B + bottomMaxDistance &&
         !isClickLoadMoreBtn &&
         newLength < maxLoadNum
       ) {
         nextBtn.click();
+
         // 放到加载更多按钮里面监听，此处不处理
         // isClickLoadMoreBtn = true;
         // isNewPage = false;
