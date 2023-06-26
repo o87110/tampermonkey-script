@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【测试版】妖火网吹牛插件
 // @namespace    https://yaohuo.me/
-// @version      0.3.4
+// @version      0.3.5
 // @description  吹牛插件
 // @author       龙少c(id:20469)开发
 // @match        *://yaohuo.me/*
@@ -633,7 +633,7 @@
   }
   // 获取值
   function getItem(key, defaultValue = {}) {
-    if (["boastData", "autoEatList".includes(key)]) {
+    if (["boastData", "autoEatList"].includes(key)) {
       let list = MY_getValue(key, {});
       // 删除过期的肉帖
       deleteExpiredID(list, key);
