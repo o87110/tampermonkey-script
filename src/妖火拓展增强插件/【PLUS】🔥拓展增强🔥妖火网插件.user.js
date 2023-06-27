@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.13.1
+// @version      3.13.2
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -4105,7 +4105,7 @@
           subTitle.insertAdjacentHTML(
             "afterend",
             `<div class="subTitleTips boast-card-style">
-            <span style="color:red">正在分析发牛者历史数据请等待，数据生成后会根据概率重新生成答案</span>
+            <span style="color:red">正在分析发牛者历史数据请等待</span>
             </div>`
           );
           let spaceUrl = document.querySelector(
@@ -4162,9 +4162,9 @@
             `;
 
             answer1Rate = tzSelect1 / total;
-            console.log(`重新计算，吃吹牛答案1的概率：${answer1Rate}`);
-            randomNum = Math.random() < answer1Rate ? 1 : 2;
-            select.value = randomNum;
+            // console.log(`重新计算，吃吹牛答案1的概率：${answer1Rate}`);
+            // randomNum = Math.random() < answer1Rate ? 1 : 2;
+            // select.value = randomNum;
           }
           $(".search-history-data").click(async () => {
             location.href = url;
@@ -4745,6 +4745,31 @@
 
         total++;
 
+        // console.log(
+        //   `\n发牛者:${tzMoney.toFixed(2)},当前${
+        //     curData.battleStatus === "获胜" ? "失败" : "获胜"
+        //   },${tzMoney.toFixed(2)}${
+        //     curData.battleStatus === "获胜"
+        //       ? ` - ${parseInt(curData.money)}`
+        //       : ` + ${parseInt(curData.money * 0.9)}`
+        //   } = ${
+        //     curData.battleStatus === "获胜"
+        //       ? (tzMoney - curData.money).toFixed(2)
+        //       : (tzMoney + curData.money * 0.9).toFixed(2)
+        //   }\n吃牛者:${yzMoney.toFixed(2)},当前${
+        //     curData.battleStatus
+        //   },${yzMoney.toFixed(2)}${
+        //     curData.battleStatus === "获胜"
+        //       ? ` + ${parseInt(curData.money * 0.9)}`
+        //       : ` - ${parseInt(curData.money)}`
+        //   } = ${
+        //     curData.battleStatus === "获胜"
+        //       ? (yzMoney + curData.money * 0.9).toFixed(2)
+        //       : (yzMoney - curData.money).toFixed(2)
+        //   }
+        //   `
+        // );
+
         if (curData.battleStatus === "获胜") {
           // 吃吹牛获胜、发吹牛失败
           if (curData.opponentAnswer == 1) {
@@ -4783,6 +4808,12 @@
       }
       tzMoney = tzMoney.toFixed(2);
       yzMoney = yzMoney.toFixed(2);
+      // console.log(
+      //   `
+      //   发牛者：${tzMoney}
+      //   吃牛者：${yzMoney}
+      //   `
+      // );
       if (isReturnResult) {
         return {
           total,
@@ -4925,6 +4956,7 @@
             isFirstWin = true;
             win++;
             moneyChange += Number(money * 0.9);
+
             if (currentLatestId && currentLatestId < id) {
               let winIdData = MY_getValue("winIdData", []);
 
@@ -4934,6 +4966,11 @@
               }
             }
           }
+          // console.log(
+          //   `这把${status}:${money}妖精，实际${
+          //     status === "输了" ? -money : money * 0.9
+          //   }，结余${moneyChange}`
+          // );
           if (
             currentLatestId &&
             currentLatestId < id &&
@@ -5120,9 +5157,10 @@
   ) {
     let arr = [...defaultStrategy4];
     function repeatArray(arr, length) {
-      const repeatedArr = [];
+      const repeatedArr = [...arr];
       while (repeatedArr.length < length) {
-        repeatedArr.push(...arr);
+        // repeatedArr.push(...arr);
+        repeatedArr.push(arr[arr.length - 1]);
       }
       return repeatedArr.slice(0, length);
     }
