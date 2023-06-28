@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.13.2
+// @version      3.14.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -173,6 +173,8 @@
     imageInsertPosition: "插入到开头",
     // 是否增加快捷回复
     isAddQuickReply: false,
+    // 关闭吹牛
+    isCloseBoast: false,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -275,6 +277,8 @@
     isAutoAddMoney,
 
     isAddQuickReply,
+
+    isCloseBoast,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1633,6 +1637,13 @@
               <hr class="title-line title-line-left" />
               <b>吹牛设置</b>
               <hr class="title-line title-line-right" />
+            </li>
+            <li>
+              <span>关闭吹牛</span>
+              <div class="switch">
+                <input type="checkbox" id="isCloseBoast" data-key="isCloseBoast" />
+                <label for="isCloseBoast"></label>
+              </div>
             </li>
             <li>
               <span>吹牛总开关</span>
@@ -3261,13 +3272,14 @@
         let text = e.target.value;
         if (text) {
           // 把光标移到文本框末尾
-          textarea.focus();
+          // textarea.focus();
           // textarea.setSelectionRange(0, 0);
-          textarea.setSelectionRange(
-            textarea.value.length,
-            textarea.value.length
-          );
-          insertText(textarea, text, 0);
+          // textarea.setSelectionRange(
+          //   textarea.value.length,
+          //   textarea.value.length
+          // );
+          textarea.value += text;
+          // insertText(textarea, text, 0);
           replyBtn.click();
         }
       });
@@ -3850,6 +3862,28 @@
     MY_setValue("boastConfig", boastConfig);
     return randomNumber;
   }
+  function handleCloseBoast() {
+    let boastPage = [
+      "/games/gamesindex.aspx",
+      "/games/chuiniu/index.aspx",
+      "/games/chuiniu/doit.aspx",
+      "/games/chuiniu/add.aspx",
+      "/games/chuiniu/book_list.aspx",
+      "/games/chuiniu/book_view.aspx",
+      "/games/chat/book_re.aspx",
+    ];
+    // 修改href和内容
+    if (location.pathname === "/") {
+      let gameBtn = document.querySelector("a[href='/games/gamesindex.aspx']");
+      let year = new Date().getFullYear();
+      gameBtn.href = `/bbs/book_list.aspx?gettotal=${year}&action=new`;
+      gameBtn.innerText = "新帖";
+    }
+
+    if (boastPage.includes(location.pathname)) {
+      location.href = "/";
+    }
+  }
   // 处理吹牛
   async function handleBoast() {
     let boastPage = [
@@ -3859,6 +3893,10 @@
       "/games/chuiniu/book_list.aspx",
       "/games/chuiniu/book_view.aspx",
     ];
+    if (isCloseBoast) {
+      handleCloseBoast();
+      return;
+    }
     if (!isOpenBoast || !boastPage.includes(location.pathname)) {
       return;
     }
