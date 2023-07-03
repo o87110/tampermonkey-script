@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.14.1
+// @version      3.15.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -525,6 +525,30 @@
       url: "https://i.ibb.co/nL32s9K/bz.gif",
       name: "巴掌",
     },
+    {
+      url: "https://i.ibb.co/12bpF7R/gz.gif",
+      name: "鼓掌",
+    },
+    {
+      url: "https://i.ibb.co/C7wyK9x/qz.gif",
+      name: "该死",
+    },
+    {
+      url: "https://i.ibb.co/NKZGsFh/xz.gif",
+      name: "红酒",
+    },
+    {
+      url: "https://i.ibb.co/QQRBQTT/kx.gif",
+      name: "开心",
+    },
+    {
+      url: "https://i.ibb.co/Z6jmV32/jz.gif",
+      name: "紧张",
+    },
+    {
+      url: "https://i.ibb.co/Bw8xYQP/kq2.gif",
+      name: "伤心2",
+    },
   ];
   const quickReplyList = [
     "感谢分享",
@@ -690,6 +714,12 @@
     "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #66ccff;border-radius: 10%;";
   // ==主代码执行==
   (function () {
+    window.onload = function () {
+      var script = document.createElement("script");
+      script.async = true;
+      script.src = "https://imgbb.com/upload.js";
+      document.head.appendChild(script);
+    };
     // 处理浏览器滚动条事件
     handleWindowScroll();
     // 处理窗口改变事件

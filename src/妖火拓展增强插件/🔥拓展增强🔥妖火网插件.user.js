@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.6.3
+// @version      3.7.0
 // @description  发帖ubb增强、回帖ubb增强、回帖表情增强、查看贴子显示用户等级增强、手动吃肉增强、自动加载更多帖子、自动加载更多回复、一键自动上传图床、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -370,6 +370,30 @@
     {
       url: "https://i.ibb.co/nL32s9K/bz.gif",
       name: "巴掌",
+    },
+    {
+      url: "https://i.ibb.co/12bpF7R/gz.gif",
+      name: "鼓掌",
+    },
+    {
+      url: "https://i.ibb.co/C7wyK9x/qz.gif",
+      name: "该死",
+    },
+    {
+      url: "https://i.ibb.co/NKZGsFh/xz.gif",
+      name: "红酒",
+    },
+    {
+      url: "https://i.ibb.co/QQRBQTT/kx.gif",
+      name: "开心",
+    },
+    {
+      url: "https://i.ibb.co/Z6jmV32/jz.gif",
+      name: "紧张",
+    },
+    {
+      url: "https://i.ibb.co/Bw8xYQP/kq2.gif",
+      name: "伤心2",
     },
   ];
   const cloverQuotationsList = [
