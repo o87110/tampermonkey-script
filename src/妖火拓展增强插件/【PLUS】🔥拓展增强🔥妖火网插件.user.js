@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.15.0
+// @version      3.15.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -714,12 +714,6 @@
     "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #66ccff;border-radius: 10%;";
   // ==主代码执行==
   (function () {
-    window.onload = function () {
-      var script = document.createElement("script");
-      script.async = true;
-      script.src = "https://imgbb.com/upload.js";
-      document.head.appendChild(script);
-    };
     // 处理浏览器滚动条事件
     handleWindowScroll();
     // 处理窗口改变事件
