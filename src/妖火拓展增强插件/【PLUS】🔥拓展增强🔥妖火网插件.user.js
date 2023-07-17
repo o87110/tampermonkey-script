@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.16.1
+// @version      3.17.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1602,6 +1602,7 @@
               <select data-key="imageBedType" id="imageBedType">
                 <option value="水墨图床">水墨图床</option>
                 <option value="极速图床">极速图床</option>
+                <option value="葫芦侠图床">葫芦侠图床</option>
               </select>
             </li>
             <li>
@@ -1613,19 +1614,6 @@
                   id="inkToken" 
                   data-key="inkToken"
                   value="${inkToken}"
-                />
-                ${getIcon("eyeIcon")}
-              </div>
-            </li>
-            <li>
-              <span><a href="https://www.hualigs.cn" target="_blank">遇见图床token</a></span>
-              <div class="password-container">
-                <input 
-                  type="password" 
-                  placeholder="为空则为游客上传"
-                  id="meetToken" 
-                  data-key="meetToken"
-                  value="${meetToken}"
                 />
                 ${getIcon("eyeIcon")}
               </div>
@@ -2536,7 +2524,6 @@
       if (dataKey === "imageBedType") {
         let config = {
           水墨图床: "#inkToken",
-          遇见图床: "#meetToken",
           极速图床: "#speedFreeToken",
         };
         Object.keys(config).forEach((name) => {
@@ -2594,10 +2581,10 @@
       "#defaultValueByStrategy4String"
     ).prop("value");
 
-    if (openUploadImageBed && imageBedType === "遇见图床" && !meetToken) {
-      alert("遇见图床必须填写token");
-      return false;
-    }
+    // if (openUploadImageBed && imageBedType === "遇见图床" && !meetToken) {
+    //   alert("遇见图床必须填写token");
+    //   return false;
+    // }
     if (publishBoastMinConsecutive > publishBoastMaxConsecutive) {
       alert("发牛最小连续输必须小于等于最大连续数");
       return false;
@@ -3687,10 +3674,9 @@
             name: "image",
             token: speedFreeToken || "",
           },
-          遇见图床: {
-            url: "https://www.hualigs.cn/api/upload",
-            name: "image",
-            token: meetToken,
+          葫芦侠图床: {
+            url: "https://api.suyanw.cn/huluxia/upload.php",
+            name: "file",
           },
         };
         let {
@@ -3703,9 +3689,7 @@
         formData.append(uploadName, file);
         try {
           let response;
-          if (imageBedType === "遇见图床") {
-            formData.append("token", meetToken);
-            formData.append("apiType", "chaoneng");
+          if (imageBedType === "葫芦侠图床") {
             response = await fetch(uploadUrl, {
               method: "POST",
               body: formData,
@@ -3721,16 +3705,15 @@
           }
 
           const res = await response.json();
-          let {
-            code,
-            data: { url },
-            msg,
-          } = res;
 
-          if (code === 200 || code === 0) {
-            if (imageBedType === "遇见图床") {
-              url = url.chaoneng;
+          let { code, url, data, msg } = res;
+
+          if (code === 200 || code === 0 || url) {
+            // 处理葫芦侠图床直接取url，其他取data.url
+            if (!url) {
+              url = data.url;
             }
+
             if (url) {
               if (!isReplyPage) {
                 insertText(textArea, `[img]${url}[/img]`, 0);

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.7.1
+// @version      3.8.0
 // @description  发帖ubb增强、回帖ubb增强、回帖表情增强、查看贴子显示用户等级增强、手动吃肉增强、自动加载更多帖子、自动加载更多回复、一键自动上传图床、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1182,6 +1182,26 @@
       }
     });
   }
+  function getIcon(icon, tips) {
+    let iconConfig = {
+      tipIcon: `<svg t="1688708359358" onclick="alert('${tips}')" class="icon tip-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1472" width="16" height="16"><path d="M512 1024c-281.6 0-512-230.4-512-512s230.4-512 512-512 512 230.4 512 512S793.6 1024 512 1024zM512 64C262.4 64 64 262.4 64 512s198.4 448 448 448 448-198.4 448-448S761.6 64 512 64z" fill="#3D3D3D" p-id="1473"></path><path d="M614.4 313.6c25.6 25.6 38.4 51.2 38.4 89.6 0 32-6.4 57.6-25.6 76.8C627.2 492.8 608 505.6 576 531.2 563.2 544 556.8 556.8 550.4 563.2c0 6.4-6.4 12.8-6.4 25.6 0 19.2-19.2 32-32 32l0 0c-19.2 0-38.4-19.2-32-38.4 0-12.8 6.4-25.6 6.4-32 6.4-19.2 32-44.8 70.4-76.8l12.8-12.8c12.8-12.8 19.2-32 19.2-44.8 0-19.2-6.4-38.4-19.2-51.2C556.8 345.6 537.6 339.2 512 339.2c-32 0-51.2 6.4-64 25.6C441.6 371.2 435.2 384 435.2 403.2c0 19.2-19.2 32-32 32l0 0c-19.2 0-38.4-19.2-32-44.8C377.6 358.4 390.4 339.2 403.2 320c25.6-25.6 64-38.4 108.8-38.4C556.8 281.6 595.2 288 614.4 313.6zM537.6 665.6c6.4 6.4 12.8 19.2 12.8 32 0 12.8-6.4 25.6-12.8 32-12.8 6.4-19.2 12.8-32 12.8-12.8 0-25.6-6.4-32-12.8-6.4-6.4-12.8-19.2-12.8-32 0-12.8 6.4-25.6 12.8-32 6.4-6.4 19.2-12.8 32-12.8C518.4 652.8 531.2 659.2 537.6 665.6z" fill="#3D3D3D" p-id="1474"></path></svg>`,
+      eyeIcon: `<svg
+      viewBox="64 64 896 896"
+      focusable="false"
+      data-icon="eye"
+      width="20px"
+      height="20px"
+      fill="currentColor"
+      aria-hidden="true"
+      class="toggle-password"
+    >
+      <path
+        d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 0 0 0 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
+      ></path>
+    </svg>`,
+    };
+    return iconConfig[icon];
+  }
   function setMenu() {
     // 避免重复添加
     if ($(".yaohuo-modal-mask").length) {
@@ -1270,6 +1290,11 @@
         justify-content: space-between;
         align-items: center;
         height: 44px;
+      }
+      .yaohuo-wrap li .tip-icon{
+        vertical-align: text-top;
+        margin-left: 5px;
+        cursor: pointer;
       }
       .yaohuo-wrap li input[type="range"] {
         width: 130px;
@@ -1413,20 +1438,8 @@
                   data-key="websitePassword"
                   value="${websitePassword}"
                 />
-                <svg
-                  viewBox="64 64 896 896"
-                  focusable="false"
-                  data-icon="eye"
-                  width="20px"
-                  height="20px"
-                  fill="currentColor"
-                  aria-hidden="true"
-                  class="toggle-password"
-                >
-                  <path
-                    d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 0 0 0 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
-                  ></path>
-                </svg>
+                ${getIcon("eyeIcon")}
+                
               </div>
             </li>
             <li>
@@ -1455,6 +1468,7 @@
               <select data-key="imageBedType" id="imageBedType">
                 <option value="水墨图床">水墨图床</option>
                 <option value="极速图床">极速图床</option>
+                <option value="葫芦侠图床">葫芦侠图床</option>
               </select>
             </li>
             <li>
@@ -1467,46 +1481,7 @@
                   data-key="inkToken"
                   value="${inkToken}"
                 />
-                <svg
-                  viewBox="64 64 896 896"
-                  focusable="false"
-                  data-icon="eye"
-                  width="20px"
-                  height="20px"
-                  fill="currentColor"
-                  aria-hidden="true"
-                  class="toggle-password"
-                >
-                  <path
-                    d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 0 0 0 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
-                  ></path>
-                </svg>
-              </div>
-            </li>
-            <li>
-              <span><a href="https://www.hualigs.cn" target="_blank">遇见图床token</a></span>
-              <div class="password-container">
-                <input 
-                  type="password" 
-                  placeholder="为空则为游客上传"
-                  id="meetToken" 
-                  data-key="meetToken"
-                  value="${meetToken}"
-                />
-                <svg
-                  viewBox="64 64 896 896"
-                  focusable="false"
-                  data-icon="eye"
-                  width="20px"
-                  height="20px"
-                  fill="currentColor"
-                  aria-hidden="true"
-                  class="toggle-password"
-                >
-                  <path
-                    d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 0 0 0 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
-                  ></path>
-                </svg>
+                ${getIcon("eyeIcon")}
               </div>
             </li>
             <li>
@@ -1519,20 +1494,7 @@
                   data-key="speedFreeToken"
                   value="${speedFreeToken}"
                 />
-                <svg
-                  viewBox="64 64 896 896"
-                  focusable="false"
-                  data-icon="eye"
-                  width="20px"
-                  height="20px"
-                  fill="currentColor"
-                  aria-hidden="true"
-                  class="toggle-password"
-                >
-                  <path
-                    d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 0 0 0 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
-                  ></path>
-                </svg>
+                ${getIcon("eyeIcon")}
               </div>
             </li>
             <li class="yaohuo-wrap-title">
@@ -1774,7 +1736,6 @@
       if (dataKey === "imageBedType") {
         let config = {
           水墨图床: "#inkToken",
-          遇见图床: "#meetToken",
           极速图床: "#speedFreeToken",
         };
         Object.keys(config).forEach((name) => {
@@ -1819,10 +1780,10 @@
     let imageBedType = $("#imageBedType").prop("value");
     let meetToken = $("#meetToken").prop("value");
 
-    if (openUploadImageBed && imageBedType === "遇见图床" && !meetToken) {
-      alert("遇见图床必须填写token");
-      return false;
-    }
+    // if (openUploadImageBed && imageBedType === "遇见图床" && !meetToken) {
+    //   alert("遇见图床必须填写token");
+    //   return false;
+    // }
     return true;
   }
   function handleCancelBtn() {
@@ -2545,10 +2506,9 @@
             name: "image",
             token: speedFreeToken || "",
           },
-          遇见图床: {
-            url: "https://www.hualigs.cn/api/upload",
-            name: "image",
-            token: meetToken,
+          葫芦侠图床: {
+            url: "https://api.suyanw.cn/huluxia/upload.php",
+            name: "file",
           },
         };
         let {
@@ -2561,9 +2521,7 @@
         formData.append(uploadName, file);
         try {
           let response;
-          if (imageBedType === "遇见图床") {
-            formData.append("token", meetToken);
-            formData.append("apiType", "chaoneng");
+          if (imageBedType === "葫芦侠图床") {
             response = await fetch(uploadUrl, {
               method: "POST",
               body: formData,
@@ -2579,15 +2537,13 @@
           }
 
           const res = await response.json();
-          let {
-            code,
-            data: { url },
-            msg,
-          } = res;
 
-          if (code === 200 || code === 0) {
-            if (imageBedType === "遇见图床") {
-              url = url.chaoneng;
+          let { code, url, data, msg } = res;
+
+          if (code === 200 || code === 0 || url) {
+            // 处理葫芦侠图床直接取url，其他取data.url
+            if (!url) {
+              url = data.url;
             }
             if (url) {
               // 如果是回帖页面把光标移到文本框最前面
