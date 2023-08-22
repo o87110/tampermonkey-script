@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.18.0
+// @version      3.19.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -36,6 +36,12 @@
     isNewOpenIframe: false,
     // 是否立即吃肉：否则会有指定回复后才会吃
     isImmediatelyEat: false,
+    // 小于7点关闭吃肉
+    lessThan7PointsCloseEat: true,
+    // 大于20点关闭吃肉
+    greaterThan20PointsCloseEat: true,
+    // 周末关闭吃肉
+    weekendCloseEat: true,
     // 帖子里是否显示用户等级
     isShowLevel: true,
     // 是否自动增加时长
@@ -1979,6 +1985,27 @@
               </div>
             </li>
             <li>
+              <span>小于7点关闭自动吃肉</span>
+              <div class="switch">
+                <input type="checkbox" id="lessThan7PointsCloseEat" data-key="lessThan7PointsCloseEat" />
+                <label for="lessThan7PointsCloseEat"></label>
+              </div>
+            </li>
+            <li>
+              <span>大于20点关闭自动吃肉</span>
+              <div class="switch">
+                <input type="checkbox" id="greaterThan20PointsCloseEat" data-key="greaterThan20PointsCloseEat" />
+                <label for="greaterThan20PointsCloseEat"></label>
+              </div>
+            </li>
+            <li>
+              <span>周末关闭自动吃肉</span>
+              <div class="switch">
+                <input type="checkbox" id="weekendCloseEat" data-key="weekendCloseEat" />
+                <label for="weekendCloseEat"></label>
+              </div>
+            </li>
+            <li>
               <span>肉帖过期时间：<i class="range-num">${expiredDays}</i>天</span>
               <input
                 type="range"
@@ -2177,6 +2204,9 @@
                 "timeInterval",
                 "isNewOpenIframe",
                 "isImmediatelyEat",
+                "lessThan7PointsCloseEat",
+                "greaterThan20PointsCloseEat",
+                "weekendCloseEat",
               ],
               dataKey,
             });
@@ -2672,7 +2702,15 @@
         }
         // 指定时间不自动吃肉
         if (new Date().getHours() < 7) {
-          console.log("当前小于7点，不吃肉");
+          console.log("小于7点不吃肉");
+          return;
+        }
+        if (new Date().getHours() > 19) {
+          console.log("大于20点不吃肉");
+          return;
+        }
+        if ([0, 1].includes(new Date().getDay())) {
+          console.log("周末，不吃肉");
           return;
         }
         let eatImgSrc = "/NetImages/li.gif";
