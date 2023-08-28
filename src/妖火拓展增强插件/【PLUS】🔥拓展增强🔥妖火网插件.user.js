@@ -2709,7 +2709,7 @@
           console.log("大于20点不吃肉");
           return;
         }
-        if ([0, 1].includes(new Date().getDay())) {
+        if ([6, 0].includes(new Date().getDay())) {
           console.log("周末，不吃肉");
           return;
         }
