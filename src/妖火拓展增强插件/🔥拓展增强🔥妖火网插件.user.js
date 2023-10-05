@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.9.0
+// @version      3.10.0
 // @description  发帖ubb增强、回帖ubb增强、回帖表情增强、查看贴子显示用户等级增强、手动吃肉增强、自动加载更多帖子、自动加载更多回复、一键自动上传图床、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -531,6 +531,8 @@
     "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #66ccff;border-radius: 10%;";
   // ==主代码执行==
   (function () {
+    // 修复网站更新样式错乱问题
+    handleStyle();
     // 处理浏览器滚动条事件
     handleWindowScroll();
     // 处理窗口改变事件
@@ -564,6 +566,20 @@
   })();
 
   // ==其他功能函数和方法==
+  function handleStyle() {
+    MY_addStyle(`
+      .centered-container {
+        display: block !important;
+      }
+    `);
+
+    let flexDivs = document.querySelectorAll('div[style*="display: flex"]');
+
+    // 遍历选中的元素并添加额外的样式
+    for (let i = 0; i < flexDivs.length; i++) {
+      flexDivs[i].style.flexWrap = "wrap";
+    }
+  }
   function handleCloseMedal() {
     if (
       /^\/bbs-\d+\.html|\/bbs\/book_view.aspx$/.test(
@@ -2042,7 +2058,7 @@
       });
 
       // 超链接
-      const textarea = document.querySelector("form > .retextarea");
+      const textarea = document.querySelector("textarea");
       addEventAry.forEach((item) => {
         handleEventListener(item.id, textarea, item.ubb, item.offset);
       });
@@ -2434,7 +2450,7 @@
       document.getElementsByClassName("subtitle")[0].firstElementChild.href;
 
     function success(rp) {
-      let lv_zz = /<b>等级:<\/b>(\S*)级/;
+      let lv_zz = /<\/b>(\S*)级/;
       let lv_text = rp.match(lv_zz)?.[1] || "0";
       // console.log(lv_text);
       addLvTip(lv_text);
