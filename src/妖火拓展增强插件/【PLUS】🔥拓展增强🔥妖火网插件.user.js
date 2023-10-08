@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.20.1
+// @version      3.21.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -917,24 +917,27 @@
     }
   }
   // 获取url参数
-  function getUrlParameters() {
-    var search = window.location.search.substring(1); // 去除 "?"
-    var parameters = {};
-
-    if (search) {
-      var paramsArray = search.split("&");
-
-      for (var i = 0; i < paramsArray.length; i++) {
-        var param = paramsArray[i].split("=");
-        var paramName = decodeURIComponent(param[0]);
-        var paramValue = decodeURIComponent(param[1]);
-
-        // 存储参数名和参数值到对象中
-        parameters[paramName] = paramValue;
-      }
+  function getUrlParameters(url) {
+    // 如果未传递URL参数，则使用当前页面的URL
+    if (!url) {
+      url = window.location.href;
     }
 
-    return parameters;
+    // 创建一个URL对象
+    let urlObj = new URL(url);
+
+    // 获取查询参数部分
+    let queryParams = urlObj.searchParams;
+
+    // 创建一个对象来存储参数
+    let params = {};
+
+    // 遍历参数并将它们存储在对象中
+    queryParams.forEach(function (value, key) {
+      params[key] = value;
+    });
+
+    return params;
   }
   function handleAddSettingText() {
     // 修改pc端滚动条样式
@@ -5196,9 +5199,10 @@
     }
     //  获取用户id
     async function getUserId(url) {
-      let res = await fetchData(url);
-      let id = res.match(/<b>ID号:<\/b>(\d+)/)?.[1];
-      return id;
+      return getUrlParameters(url).touserid;
+      // let res = await fetchData(url);
+      // let id = res.match(/<b>ID号:<\/b>(\d+)/)?.[1];
+      // return id;
     }
   }
   function getNextMoney(n, isAddCommission = false) {
