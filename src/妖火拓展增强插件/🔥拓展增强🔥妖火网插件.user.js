@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.10.1
+// @version      3.11.0
 // @description  发帖ubb增强、回帖ubb增强、回帖表情增强、查看贴子显示用户等级增强、手动吃肉增强、自动加载更多帖子、自动加载更多回复、一键自动上传图床、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -560,7 +560,7 @@
     // 增加发帖ubb
     handleAddNewPostUBB();
     // 显示用户等级
-    handleShowUserLevel();
+    // handleShowUserLevel();
     // 处理404页面跳回新帖页面
     handleNotFoundPage();
   })();
@@ -587,7 +587,7 @@
       ) &&
       isCloseMedal
     ) {
-      let medalImg = [...document.querySelectorAll(".subtitle > img")].slice(2);
+      let medalImg = [...document.querySelectorAll(".xunzhangtupian > img")];
       medalImg.forEach((item, index) => {
         if (index === 0) {
           item.insertAdjacentHTML(
@@ -1405,18 +1405,20 @@
                 step="${numStep}"
               />
             </li>
-            <li class="yaohuo-wrap-title">
-              <hr class="title-line title-line-left" />
-              <b>显示帖子等级</b>
-              <hr class="title-line title-line-right" />
-            </li>
-            <li>
-              <span>贴子显示等级</span>
-              <div class="switch">
-                <input type="checkbox" id="isShowLevel" data-key="isShowLevel" />
-                <label for="isShowLevel"></label>
-              </div>
-            </li>
+            <!--
+              <li class="yaohuo-wrap-title">
+                <hr class="title-line title-line-left" />
+                <b>显示帖子等级</b>
+                <hr class="title-line title-line-right" />
+              </li>
+              <li>
+                <span>贴子显示等级</span>
+                <div class="switch">
+                  <input type="checkbox" id="isShowLevel" data-key="isShowLevel" />
+                  <label for="isShowLevel"></label>
+                </div>
+              </li>
+            -->
           </ul>
           <footer>
             <button class="cancel-btn">取消</button>

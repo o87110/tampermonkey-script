@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.21.1
+// @version      3.22.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -762,7 +762,7 @@
     // 增加发帖ubb
     handleAddNewPostUBB();
     // 显示用户等级
-    handleShowUserLevel();
+    // handleShowUserLevel();
     // 处理404页面跳回新帖页面
     handleNotFoundPage();
     // 吹牛增强
@@ -801,7 +801,7 @@
       ) &&
       isCloseMedal
     ) {
-      let medalImg = [...document.querySelectorAll(".subtitle > img")].slice(2);
+      let medalImg = [...document.querySelectorAll(".xunzhangtupian > img")];
       medalImg.forEach((item, index) => {
         if (index === 0) {
           item.insertAdjacentHTML(
@@ -2176,18 +2176,20 @@
                 step="${numStep}"
               />
             </li>
-            <li class="yaohuo-wrap-title">
-              <hr class="title-line title-line-left" />
-              <b>显示帖子等级</b>
-              <hr class="title-line title-line-right" />
-            </li>
-            <li>
-              <span>贴子显示等级</span>
-              <div class="switch">
-                <input type="checkbox" id="isShowLevel" data-key="isShowLevel" />
-                <label for="isShowLevel"></label>
-              </div>
-            </li>
+            <!--
+              <li class="yaohuo-wrap-title">
+                <hr class="title-line title-line-left" />
+                <b>显示帖子等级</b>
+                <hr class="title-line title-line-right" />
+              </li>
+              <li>
+                <span>贴子显示等级</span>
+                <div class="switch">
+                  <input type="checkbox" id="isShowLevel" data-key="isShowLevel" />
+                  <label for="isShowLevel"></label>
+                </div>
+              </li>
+            -->
           </ul>
           <footer>
             <button class="cancel-btn">取消</button>
@@ -5442,12 +5444,11 @@
     }
 
     let user_id =
-      document.getElementsByClassName("subtitle")[0].firstElementChild.href;
+      document.querySelector(".louzhunicheng").firstElementChild.href;
 
     function success(rp) {
       let lv_zz = /<\/b>(\S*)级/;
       let lv_text = rp.match(lv_zz)?.[1] || "0";
-      // console.log(lv_text);
       addLvTip(lv_text);
     }
 
