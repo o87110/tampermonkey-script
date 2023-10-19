@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.22.0
+// @version      3.23.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -357,203 +357,203 @@
   ];
   const diyFaceList = [
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/43dd22ed354af.gif",
+      url: "http://static2.51gonggui.com/FhBfMfl4sGC3QJVTMaLqEKkE90Ia#.gif",
       name: "摸鱼",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/eef531d5b6d9a.gif",
+      url: "http://static2.51gonggui.com/FmNyrjU8Wq0m3PiwHQJwDhHdv-EJ#.gif",
       name: "稽舞",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/1171162cca357.gif",
+      url: "http://static2.51gonggui.com/FoKvdu89eiq0q-24IfOM2mFB0vIq#.gif",
       name: "色稽",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/57521f3d1f794.gif",
+      url: "http://static2.51gonggui.com/FrZ6GDJiOAz3pp4e5_8uSShSXXXk#.gif",
       name: "撒娇",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/004aa1eb1823a.gif",
+      url: "http://static2.51gonggui.com/FiZiSSyXSa8eCzwOXmIfOOpfA_7a#.gif",
       name: "稽狗",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/51300ab6aede6.gif",
+      url: "http://static2.51gonggui.com/FqNDzswUNJ-AsSHXyxXB4Qm1X0y-#.gif",
       name: "没钱",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/f046ae22fbae2.gif",
+      url: "http://static2.51gonggui.com/Fsq-HyBc5lP6vZY_qeWofOM9mRVH#.gif",
       name: "骚舞",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/c09bfc7f5330f.gif",
+      url: "http://static2.51gonggui.com/FhCk4emkrO9f8ICFxKlm8wBcTOgT#.gif",
       name: "吃屎",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/4b55370c90e67.gif",
+      url: "http://static2.51gonggui.com/FkEHwSlEfQ7bWya6-wg366Xy91qW#.gif",
       name: "鄙视",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/21ab651293d60.gif",
+      url: "http://static2.51gonggui.com/Fi2hY7M9DPgD9s0aCWemwk2iYUDW#.gif",
       name: "听歌",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/2e503027f610f.gif",
+      url: "http://static2.51gonggui.com/Fhry6EpdUBqFCt3OOyQTkLZMZGFR#.gif",
       name: "伸头",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/a082bfe5b0df3.gif",
+      url: "http://static2.51gonggui.com/FhgYnWJ-apnyjSXOpInJhLbfUQFY#.gif",
       name: "鼓掌",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/93c17a9cd77e9.gif",
+      url: "http://static2.51gonggui.com/FvSxOEIhyA7ID1J8emIME7tBT7Io#.gif",
       name: "踢腿",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/3592472aaa316.png",
+      url: "http://static2.51gonggui.com/FunDHky9UKkB-4zj-bfSb82u81Xg#.gif",
       name: "男同",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/998ff0f986f04.gif",
+      url: "http://static2.51gonggui.com/FgXUeACmKWWMDT9hrpVAnQp4dCqF#.gif",
       name: "手枪",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/c75d396a66b71.gif",
+      url: "http://static2.51gonggui.com/Fg_qtra3abNozPxaoEMVKO7VIsuX#.gif",
       name: "拍头",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/b630057c9a2b8.gif",
+      url: "http://static2.51gonggui.com/FnNg1vOiuOlSe7WFWRyNZfO_4H3U#.gif",
       name: "躺平",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/78c30a6fe8c89.gif",
+      url: "http://static2.51gonggui.com/Fj7WAkv87tpL1I26WQgSaXlsyYBL#.gif",
       name: "追稽",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/ed1aa444817d3.gif",
+      url: "http://static2.51gonggui.com/FgwFBazeUavJcw-SL7FS6wUkcUTk#.gif",
       name: "司稽",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/6c4e56b9f0c2c.gif",
+      url: "http://static2.51gonggui.com/FjXNVx-MUgAVq62aNqekSPOUjDAC#.gif",
       name: "乞讨",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/7f9769ba90ff0.gif",
+      url: "http://static2.51gonggui.com/FjudMlJdd8dLXuGjyASN7JldAxqe#.gif",
       name: "跪稽",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/e1248fbb24b75.gif",
+      url: "http://static2.51gonggui.com/Fm8DQQwyYthk8Q97ZLScgCDXsv4_#.gif",
       name: "刀你",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/d5eedd30ad4bd.gif",
+      url: "http://static2.51gonggui.com/FqTaBgs1l8bqeDYBxcWzxF4Wgt6_#.gif",
       name: "冲刺",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/9272af6cae5d3.gif",
+      url: "http://static2.51gonggui.com/Fmw152FIzN1gpFrbCKlp7cmqlCxc#.gif",
       name: "转圈",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/58e57366425c9.gif",
+      url: "http://static2.51gonggui.com/Fmf5aWS5yqycKebxTno7un53h9HW#.gif",
       name: "吃稽",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/ef0f9e3f3e353.gif",
+      url: "http://static2.51gonggui.com/FhUkLD2khZ7hn1uzArWkT47Pd9jq#.gif",
       name: "犯贱",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/524b369abefa3.gif",
+      url: "http://static2.51gonggui.com/FihrjZwpB1jMdOF9QvtQG3J32z4q#.gif",
       name: "牛掰",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/05/659798ffccac4.gif",
+      url: "http://static2.51gonggui.com/FlX6e1Ip6Z8gvl7lkimmCifwBhFt#.gif",
       name: "拥抱",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/dfe36d68642e8.gif",
+      url: "http://static2.51gonggui.com/FoIs-hNK7fhW8jwxEgDLRxARFcve#.gif",
       name: "拍头",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/989aa4d6e0aeb.gif",
+      url: "http://static2.51gonggui.com/Fgx4XlxG9461Y_TJsg0hGxPTylYi#.gif",
       name: "摇头",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/84a18f0849126.gif",
+      url: "http://static2.51gonggui.com/Fvrng91QU_PKY9Uwat77VTVouj5k#.gif",
       name: "挠头",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/216607e845f48.gif",
+      url: "http://static2.51gonggui.com/FkyiMRaJI1BfuA6T3w4Z9mJh1qbg#.gif",
       name: "上学",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/4914eecbff777.gif",
+      url: "http://static2.51gonggui.com/FpZEifxiFGs1BWtHjFsk5tJJNKSE#.gif",
       name: "流汗",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/08/07/4181f12786715.gif",
+      url: "http://static2.51gonggui.com/FiBZZ6mBTB5R5bu5lGkybboOwLwm#.gif",
       name: "摩擦",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/9a7bd5c247170.gif",
+      url: "http://static2.51gonggui.com/FmMtly844_wS6LfLLtLSwgzcXSqg#.gif",
       name: "喝饮料",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/06/16/4416bfa6a8ba7.gif",
+      url: "http://static2.51gonggui.com/FqyckEvAxFVyD1SmA9m2jInv_Crb#.gif",
       name: "猛狗",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/e0b400a7e3dc2.gif",
+      url: "http://static2.51gonggui.com/FmfsKjv4ymuWR80UGY-sea-I_Ey5#.gif",
       name: "妲己",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/06fe11a5e5fb1.gif",
+      url: "http://static2.51gonggui.com/FkEmzRCL3eJGlgkHHnHTy94sXwE1#.gif",
       name: "街舞",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/d7bda91d8179a.gif",
+      url: "http://static2.51gonggui.com/FgiAIOkFg8qG3UZKQx24ImVDrDRj#.gif",
       name: "功德",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/c2b8c1714199f.gif",
+      url: "http://static2.51gonggui.com/Fl2Zonx2Y8z-xZrSQnGBWzsnRKC9#.gif",
       name: "晃饮料",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/ce54bf9b4abbe.gif",
+      url: "http://static2.51gonggui.com/FvMXbnIX8RavSBAhflxf1zomD1ov#.gif",
       name: "扇子",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/1441dd979ce22.gif",
+      url: "http://static2.51gonggui.com/FmD3h-QCVdJ-ehjLh8_G-nQzynuv#.gif",
       name: "膜拜",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/d33fcaada32c2.gif",
+      url: "http://static2.51gonggui.com/FoGXe8yRSIomTZFM78TZVyP-kwlz#.gif",
       name: "醒醒",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/12e032ec1f22f.gif",
+      url: "http://static2.51gonggui.com/Fim_ZRiJugrWJkDtq4SlqbOziuZ3#.gif",
       name: "巴掌",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/9ec67435a9478.gif",
+      url: "http://static2.51gonggui.com/FpVLTimqXFvRJB9PxWDKMherZoRi#.gif",
       name: "鼓掌",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/edf6a0ead646d.gif",
+      url: "http://static2.51gonggui.com/Fit100hjJ-T5RwQxeNdoVWplvNvU#.gif",
       name: "该死",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/c0f568beacb26.gif",
+      url: "http://static2.51gonggui.com/FkeVK5icB5-Pc7mbZitDTX1AqfNO#.gif",
       name: "红酒",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/d2175ea23bebb.gif",
+      url: "http://static2.51gonggui.com/FnjJRSH3_CLjYyyQzVjD8mtY-PdB#.gif",
       name: "开心",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/3ae5c9f741f59.gif",
+      url: "http://static2.51gonggui.com/Foqd_tGWrk-ARnNrt-XraMCDzhUS#.gif",
       name: "紧张",
     },
     {
-      url: "https://tucdn.wpon.cn/2023/10/08/5bd9dd04fe8b6.gif",
+      url: "http://static2.51gonggui.com/FsCE3iHM0REN077WKr0bssyKiR7Z#.gif",
       name: "伤心2",
     },
   ];
