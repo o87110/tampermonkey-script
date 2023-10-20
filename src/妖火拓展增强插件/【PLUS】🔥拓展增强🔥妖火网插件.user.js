@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.24.1
+// @version      3.24.2
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -72,7 +72,7 @@
     isExecTrail: true,
     // 滑块range间隔
     timeStep: 5,
-    minTimeRange: 45,
+    minTimeRange: 30,
     maxTimeRange: 120,
     // 是否增加发帖ubb
     isAddNewPostUBB: true,
@@ -2936,7 +2936,10 @@
     }
     if (isAddOnlineDuration) {
       timer = setInterval(function () {
-        location.reload();
+        // 距离上次滚动超过30s才刷新页面
+        if ((new Date().getTime() - getItem("scrollNowTime", "")) / 1000 > 30) {
+          location.reload();
+        }
       }, timeInterval * 1000);
     }
   }
@@ -2947,7 +2950,13 @@
         // 定时刷新页面
         if (!isAddOnlineDuration && !timer) {
           timer = setInterval(function () {
-            location.reload();
+            // 距离上次滚动超过30s才刷新页面
+            if (
+              (new Date().getTime() - getItem("scrollNowTime", "")) / 1000 >
+              30
+            ) {
+              location.reload();
+            }
           }, timeInterval * 1000);
         }
         // 指定时间不自动吃肉
@@ -3038,6 +3047,9 @@
     window.addEventListener(
       "scroll",
       throttle(() => {
+        // 记录滚动条时间
+        setItem("scrollNowTime", new Date().getTime());
+
         let isPage = loadNextPage.some((item) =>
           item.test(window.location.pathname)
         );
