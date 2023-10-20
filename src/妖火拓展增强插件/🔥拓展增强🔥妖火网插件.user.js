@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.13.0
+// @version      3.13.1
 // @description  发帖ubb增强、回帖ubb增强、回帖表情增强、查看贴子显示用户等级增强、手动吃肉增强、自动加载更多帖子、自动加载更多回复、一键自动上传图床、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -2296,7 +2296,10 @@
         return;
       }
       const face = form.getElementsByTagName("select")[0];
-      const sendmsg = form.querySelector("#sendselect");
+      const sendmsg =
+        form.querySelector("#sendselect") ||
+        form.getElementsByTagName("select")[1] ||
+        form.querySelector(".tongzhi");
       const textarea = form.getElementsByTagName("textarea")[0];
       // 显示表情
       textarea.insertAdjacentHTML("beforebegin", '<div id="facearea"></div>');
@@ -2330,7 +2333,7 @@
       sendmsg.insertAdjacentHTML(
         "afterend",
         `<span 
-          style="${spanstyle}display:${
+          style="${spanstyle}margin-left: 2px; display:${
           isUnfoldFace ? "display: block" : "display: none"
         }" id="unfold"
           >表情${isUnfoldFace ? "折叠" : "展开"}</span>`
