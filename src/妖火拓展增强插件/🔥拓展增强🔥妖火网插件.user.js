@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.13.1
+// @version      3.14.0
 // @description  发帖ubb增强、回帖ubb增强、回帖表情增强、查看贴子显示用户等级增强、手动吃肉增强、自动加载更多帖子、自动加载更多回复、一键自动上传图床、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1424,6 +1424,18 @@
               <hr class="title-line title-line-left" />
               <b>站内设置</b>
               <hr class="title-line title-line-right" />
+            </li>
+            <li>
+              <span>更新记录、使用教程</span>
+              <div>
+                <a href="/bbs-1183941.html" target="_blank">原贴直达</a>
+              </div>
+            </li>
+            <li>
+              <span>插件交流群</span>
+              <div>
+                <a href="http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=B8jHwcToRt8GnMoJa3jDk01xt6XFP2yi&authKey=WULG168m8oDAcLqoRa2moGO5%2FWXGFAYhMtO4RjhEVDHbzQoDmHBPqfGlv8ya50Ty&noverify=0&group_code=768664029" target="_blank">一键加群</a>
+              </div>
             </li>
             <li>
               <span>显示站内设置图标</span>
