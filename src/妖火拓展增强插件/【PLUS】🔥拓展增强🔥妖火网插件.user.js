@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.25.0
+// @version      3.26.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -981,6 +981,57 @@
 
   // ==其他功能函数和方法==
 
+  // 备份 localStorage 数据到剪贴板
+  function backupLocalStorage() {
+    // 获取 localStorage 中的数据
+    var localStorageData = JSON.stringify(localStorage);
+
+    // 创建一个临时文本区域用于复制到剪贴板
+    var tempTextArea = document.createElement("textarea");
+    tempTextArea.value = localStorageData;
+    document.body.appendChild(tempTextArea);
+    tempTextArea.select();
+
+    try {
+      // 复制文本到剪贴板
+      document.execCommand("copy");
+      alert("数据备份成功，已复制到剪贴板");
+    } catch (err) {
+      console.error("备份数据失败", err);
+    } finally {
+      // 移除临时文本区域
+      document.body.removeChild(tempTextArea);
+    }
+  }
+
+  // 从剪贴板恢复 localStorage 数据
+  function restoreLocalStorage() {
+    // 显示一个提示，要求用户手动粘贴数据
+    var userInput = prompt("请将要恢复的数据粘贴到此处：");
+    if (userInput !== null && userInput.trim() !== "") {
+      try {
+        // 解析 JSON 字符串并将数据写入 localStorage
+        var parsedData = JSON.parse(userInput);
+        if (typeof parsedData === "object" && parsedData !== null) {
+          for (var key in parsedData) {
+            if (parsedData.hasOwnProperty(key)) {
+              localStorage.setItem(key, parsedData[key]);
+            }
+          }
+          alert("数据已还原");
+          window.location.reload();
+        } else {
+          alert("无效的数据格式。请确保粘贴有效的数据格式。");
+        }
+      } catch (err) {
+        alert("还原数据时出错。请确保粘贴有效的数据格式。");
+        console.error("Error restoring localStorage data", err);
+      }
+    } else {
+      alert("没有粘贴任何数据。请确保粘贴有效的数据格式。");
+    }
+  }
+  // 获取用户id
   async function getUserId(url = "/myfile.aspx") {
     if (getItem("yaohuoUserID", "")) {
       return;
@@ -1834,6 +1885,10 @@
                 <label for="isAddOnlineDuration"></label>
               </div>
             </li>
+            <li>
+              <span id="backupLocal"><a href="javascript:;">备份插件数据</a></span>
+              <span id="restoreLocal"><a href="javascript:;">恢复插件数据</a></span>
+            </li>
             <li class="yaohuo-wrap-title">
               <hr class="title-line title-line-left" />
               <b>图床设置</b>
@@ -2436,6 +2491,8 @@
 
     $(".cancel-btn").click(handleCancelBtn);
     $(".ok-btn").click(handleOkBtn);
+    $("#backupLocal").click(backupLocalStorage);
+    $("#restoreLocal").click(restoreLocalStorage);
   }
   /**
    * 设置设置菜单，点击设置打开菜单，并且回显数据，保存则保存数据
