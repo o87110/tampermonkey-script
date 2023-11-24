@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【PLUS自用】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.26.1
+// @version      3.27.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -772,6 +772,7 @@
     "你小子又水贴",
     "你号没了",
     "很刑",
+    "恭喜",
     "v50看看实力",
     "50包邮解君愁",
     "多发点审核员爱看",
@@ -780,16 +781,12 @@
     "裤子脱了你就给我看这个",
     "厉害了我的哥",
     "你女朋友真棒",
-    "我喜欢你女朋友",
     "你小子搞什么飞机",
-    "你怎么可能认识妹子",
     "牛批",
     "社会上的事少打听",
     "喜当爹",
     "有内鬼终止交易",
     "这么爽吗",
-    "赚够3千万就收手",
-    "存你个头见者有份",
   ];
   // 批量添加事件数组
   let addEventAry = [
@@ -965,7 +962,7 @@
     // 回帖增加随机颜色
     handleAddReplyRandomColor();
     // 回帖快捷回复
-    // handleAddQuickReply();
+    handleAddQuickReply();
     // 自动上传图床功能
     handleUploadImage();
     // 增加发帖ubb
@@ -3331,8 +3328,16 @@
               !isAutoEatBbs ||
               isMobile()
             ) {
-              console.log("有肉快7");
-              eatMeat.click();
+              if (
+                (isAutoEatBbs && parseInt(meiRenShuZi) > 200) ||
+                !isAutoEatBbs
+              ) {
+                eatMeat.click();
+                console.log("有肉快7");
+              } else {
+                console.log("小于200不吃");
+                autoEatCallback();
+              }
             } else {
               console.log(
                 `总次数：${totalCounter}，已吃次数：${usageCounter}，剩余次数${residueCounter}`,
@@ -3649,13 +3654,17 @@
         viewPage.includes(window.location.pathname)) &&
       isAddQuickReply
     ) {
+      const form = document.getElementsByName("f")[0];
       const textarea = document.querySelector(".retextarea");
-      const sendmsg = document.querySelector("#sendselect");
+      const sendmsg =
+        form.querySelector("#sendselect") ||
+        form.getElementsByTagName("select")[1] ||
+        form.querySelector(".tongzhi");
       const replyBtn = document.querySelector("input[type=submit]");
       // 添加表情展开按钮
       sendmsg.insertAdjacentHTML(
         "afterend",
-        `<select class="quick-reply-wrap" style="width:100px">
+        `<select class="quick-reply-wrap" style="width:100px;border: 1px solid #ccc;font-size: 12px;line-height: 18px;border-radius: 7px;margin: 0 2px;color: #333;padding-left: 5px;">
         </select>`
       );
       let quickReplyWrap = document.querySelector(".quick-reply-wrap");
