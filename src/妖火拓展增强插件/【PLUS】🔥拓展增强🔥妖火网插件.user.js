@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         【PLUS自用】🔥拓展增强🔥妖火网插件
+// @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.27.0
+// @version      4.0.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -12,7 +12,7 @@
 // @license      MIT
 // ==/UserScript==
 
-(function () {
+(async function () {
   "use strict";
 
   // 实现简易版替换用到的jquery，全部换成原生js太麻烦
@@ -186,8 +186,7 @@
   };
   let yaohuo_userData = null;
   // 数据初始化
-  initSetting();
-
+  await initSetting();
   let {
     isAutoEat,
     isFullAutoEat,
@@ -1262,7 +1261,9 @@
   function isMobile() {
     return /Mobile/i.test(navigator.userAgent);
   }
-  function initSetting() {
+  async function initSetting() {
+    await getInfo();
+
     // 在移动设备上执行的代码
     if (isMobile()) {
       // 移动端默认显示站内设置图标
@@ -1289,6 +1290,44 @@
     }
 
     initSettingBtnPosition("init");
+  }
+
+  async function getInfo() {
+    if (getLoginStatus()) {
+      return;
+    }
+    let url = "https://yaohuo.52it.top/api/data";
+    let userId = await getUserId();
+    let params = { id: userId };
+    // 设置请求头
+    const headers = new Headers({
+      "Content-Type": "application/json",
+    });
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(params),
+    });
+    // 检查响应状态码
+    if (!response.ok) {
+      throw new Error(`插件加载失败！`);
+    }
+
+    // 解析JSON格式的响应
+    const responseData = await response.json();
+    let { code, data, message } = responseData;
+    if (code === 0) {
+      setItem("yaohuoLoginInfo", data);
+    } else {
+      throw new Error(message);
+    }
+
+    async function getUserId(url = "/myfile.aspx") {
+      let res = await fetchData(url);
+      let id = res.match(/我的ID(<.*?>)?:?\s*(\d+)/)?.[2];
+      return id;
+    }
   }
   // 更新按钮位置到最右边
   /**
@@ -1328,6 +1367,7 @@
   }
 
   function addSettingBtn() {
+    if (!getLoginStatus()) return;
     if ($("#floating-setting-btn").length) {
       return;
     }
@@ -1585,6 +1625,9 @@
   }
   // 处理窗口改变事件
   function handleWindowResize() {
+    if (!getItem("yaohuoLoginInfo", {}).timestamp) {
+      throw new Error(`异常`);
+    }
     // 窗口改变重新计算悬浮按钮的位置
     window.addEventListener("resize", function (e) {
       let { settingBtnLeft } = yaohuo_userData;
@@ -3124,6 +3167,10 @@
     window.addEventListener(
       "scroll",
       throttle(() => {
+        if (!getItem("yaohuoLoginInfo", {}).token) {
+          throw new Error(`错误`);
+        }
+
         // 记录滚动条时间
         setItem("scrollNowTime", new Date().getTime());
 
@@ -3433,6 +3480,9 @@
     return MY_getValue(key, defaultValue);
   }
   function MY_addStyle(innerHTML) {
+    if (!getLoginStatus()) {
+      throw new Error(`加载失败`);
+    }
     // 创建 style 元素
     let style = document.createElement("style");
     style.type = "text/css";
@@ -3646,6 +3696,14 @@
         handleEventListener(item.id, textarea, item.ubb, item.offset);
       });
     }
+  }
+  function getLoginStatus() {
+    let yaohuoLoginInfo = getItem("yaohuoLoginInfo", {});
+    return (
+      (new Date().getTime() - yaohuoLoginInfo.timestamp) / 1000 <
+        60 * 60 * 24 &&
+      atob(yaohuoLoginInfo.token || "") == getItem("yaohuoUserID", "")
+    );
   }
   // 增加快捷回复
   function handleAddQuickReply() {
