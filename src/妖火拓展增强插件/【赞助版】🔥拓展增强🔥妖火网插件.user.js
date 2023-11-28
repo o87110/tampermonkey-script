@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.0.1
+// @version      4.1.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -38,6 +38,8 @@
     isImmediatelyEat: false,
     // 小于7点关闭吃肉
     lessThan7PointsCloseEat: true,
+    // 小于200关闭吃肉
+    lessThan200CloseEat: true,
     // 大于20点关闭吃肉
     greaterThan20PointsCloseEat: true,
     // 周末关闭吃肉
@@ -287,6 +289,10 @@
     isAddQuickReply,
 
     isCloseBoast,
+    lessThan200CloseEat,
+    lessThan7PointsCloseEat,
+    greaterThan20PointsCloseEat,
+    weekendCloseEat,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -2333,6 +2339,13 @@
               </div>
             </li>
             <li>
+              <span>小于200关闭自动吃肉</span>
+              <div class="switch">
+                <input type="checkbox" id="lessThan200CloseEat" data-key="lessThan200CloseEat" />
+                <label for="lessThan200CloseEat"></label>
+              </div>
+            </li>
+            <li>
               <span>小于7点关闭自动吃肉</span>
               <div class="switch">
                 <input type="checkbox" id="lessThan7PointsCloseEat" data-key="lessThan7PointsCloseEat" />
@@ -2568,6 +2581,7 @@
                 "lessThan7PointsCloseEat",
                 "greaterThan20PointsCloseEat",
                 "weekendCloseEat",
+                "lessThan200CloseEat",
               ],
               dataKey,
             });
@@ -3080,15 +3094,15 @@
           }, timeInterval * 1000);
         }
         // 指定时间不自动吃肉
-        if (new Date().getHours() < 7) {
+        if (lessThan7PointsCloseEat && new Date().getHours() < 7) {
           console.log("小于7点不吃肉");
           return;
         }
-        if (new Date().getHours() > 19) {
+        if (greaterThan20PointsCloseEat && new Date().getHours() > 19) {
           console.log("大于20点不吃肉");
           return;
         }
-        if ([6, 0].includes(new Date().getDay())) {
+        if (weekendCloseEat && [6, 0].includes(new Date().getDay())) {
           console.log("周末，不吃肉");
           return;
         }
@@ -3377,7 +3391,8 @@
             ) {
               if (
                 (isAutoEatBbs && parseInt(meiRenShuZi) > 200) ||
-                !isAutoEatBbs
+                !isAutoEatBbs ||
+                !lessThan200CloseEat
               ) {
                 eatMeat.click();
                 console.log("有肉快7");
