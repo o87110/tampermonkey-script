@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.1.0
+// @version      4.2.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1302,31 +1302,19 @@
     if (getLoginStatus()) {
       return;
     }
-    let url = "https://yaohuo.52it.top/api/data";
-    let userId = await getUserId();
-    let params = { id: userId };
-    // 设置请求头
-    const headers = new Headers({
-      "Content-Type": "application/json",
-    });
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify(params),
-    });
-    // 检查响应状态码
-    if (!response.ok) {
-      throw new Error(`插件加载失败！`);
-    }
+    let id = await getUserId();
 
-    // 解析JSON格式的响应
-    const responseData = await response.json();
-    let { code, data, message } = responseData;
-    if (code === 0) {
+    try {
+      let flag = ytoz(yaohuoStrText).includes(id);
+      let data = {
+        token: flag ? ztoy(id) : null,
+        timestamp: new Date().getTime(),
+      };
       setItem("yaohuoLoginInfo", data);
-    } else {
-      throw new Error(message);
+    } catch (err) {
+      console.info(err);
+      throw new Error("加载失败");
     }
 
     async function getUserId(url = "/myfile.aspx") {
@@ -6141,6 +6129,13 @@
    * @returns
    */
   function myJquery() {
+    window.yaohuoStrText = "MjA0NjksMjY2OCw0NzkyMSwxOTMzLDQyNzM4LDQzMjkx";
+    window.ytoz = function (str) {
+      return atob(str);
+    };
+    window.ztoy = function (str) {
+      return btoa(str);
+    };
     let jQuery = function (selector) {
       return new jQuery.fn.init(selector);
     };
