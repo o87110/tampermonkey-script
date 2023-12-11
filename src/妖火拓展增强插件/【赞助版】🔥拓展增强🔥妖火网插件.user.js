@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.2.0
+// @version      4.3.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -932,6 +932,8 @@
     "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #66ccff;border-radius: 10%;";
   // ==主代码执行==
   (function () {
+    // 处理新帖也帖子列表页面下一步加载时，页面会到下一页
+    handleMoreLoadNextPage();
     // 获取用户id
     getUserId();
     // 修复网站更新样式错乱问题
@@ -3163,6 +3165,26 @@
    */
   function getRandomNumber(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+  function handleMoreLoadNextPage() {
+    let isPage = [/\/bbs\/book_list\.aspx/, /\/bbs\/list\.aspx/].some((item) =>
+      item.test(window.location.pathname)
+    );
+
+    if (!isPage || loadNextPageType !== "more") {
+      return;
+    }
+    let newUrl = "";
+    let url = location.href;
+    if (!/(&|\?)page=/.test(url)) {
+      newUrl += "&page=1";
+    } else {
+      newUrl = url.replace(/(page=)\d*/, "$11");
+    }
+    let currentPage = getUrlParameters().page || 1;
+    if (currentPage > 1) {
+      location.href = newUrl;
+    }
   }
   // 浏览器scroll事件
   function handleWindowScroll() {
