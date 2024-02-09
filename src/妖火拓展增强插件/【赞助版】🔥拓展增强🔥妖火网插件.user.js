@@ -6160,7 +6160,7 @@
    * @returns
    */
   function myJquery() {
-    window.yaohuoStrText = "MjA0NjksMjY2OCw0NzkyMSwxOTMzLDQyNzM4LDQzMjkx";
+    window.yaohuoStrText = "MjA0NjksMjY2OCw0NzkyMSwxOTMzLDQyNzM4LDQzMjkxLDEyODY2";
     window.ytoz = function (str) {
       return atob(str);
     };
