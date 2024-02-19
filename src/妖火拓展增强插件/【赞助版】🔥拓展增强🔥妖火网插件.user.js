@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.4.1
+// @version      4.5.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -933,7 +933,7 @@
   // ==主代码执行==
   (function () {
     // 处理新帖也帖子列表页面下一步加载时，页面会到下一页
-    handleMoreLoadNextPage();
+    // handleMoreLoadNextPage();
     // 获取用户id
     getUserId();
     // 修复网站更新样式错乱问题
@@ -3236,6 +3236,11 @@
               isNewPage = false;
 
               // 处理自动加载更多，需要放到最后
+              handleLoadNextPage();
+            } else if (
+              /\/bbs\/book_re_my\.aspx/.test(window.location.pathname)
+            ) {
+              // 回复页特殊处理，如果是加载更多也能使用下一步
               handleLoadNextPage();
             }
           } else {
@@ -5940,7 +5945,15 @@
         nextBtn = document.querySelector("span[id$=show_tip]");
       } else {
         nextBtn = nextPageWrap.firstChild;
-        bottomMaxDistance = 30;
+        bottomMaxDistance = 0;
+      }
+      // 回复页特殊处理，如果是加载更多也能使用下一步
+      if (
+        /\/bbs\/book_re_my\.aspx/.test(window.location.pathname) &&
+        loadNextPageType === "more"
+      ) {
+        nextBtn = nextPageWrap.firstChild;
+        bottomMaxDistance = 0;
       }
       let A = nextBtn.getBoundingClientRect().bottom;
       let B = document.documentElement.clientHeight;
@@ -6160,7 +6173,8 @@
    * @returns
    */
   function myJquery() {
-    window.yaohuoStrText = "MjA0NjksMjY2OCw0NzkyMSwxOTMzLDQyNzM4LDQzMjkxLDEyODY2";
+    window.yaohuoStrText =
+      "MjA0NjksMjY2OCw0NzkyMSwxOTMzLDQyNzM4LDQzMjkxLDEyODY2";
     window.ytoz = function (str) {
       return atob(str);
     };
