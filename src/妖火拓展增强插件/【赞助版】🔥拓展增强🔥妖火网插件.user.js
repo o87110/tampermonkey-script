@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.6.0
+// @version      4.7.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -185,6 +185,30 @@
     isAddQuickReply: false,
     // 关闭吹牛
     isCloseBoast: false,
+    // 快捷回复默认
+    quickReplyStr: [
+      "感谢分享",
+      "帮顶",
+      "你小子又水贴",
+      "你号没了",
+      "很刑",
+      "恭喜",
+      "v50看看实力",
+      "50包邮解君愁",
+      "多发点审核员爱看",
+      "黑丝小姐姐照片呢",
+      "很好用已分手",
+      "裤子脱了你就给我看这个",
+      "厉害了我的哥",
+      "你女朋友真棒",
+      "你小子搞什么飞机",
+      "牛批",
+      "社会上的事少打听",
+      "喜当爹",
+      "有内鬼终止交易",
+      "这么爽吗",
+    ].join("\n"),
+    selectedAutoSubmit: false,
   };
   let yaohuo_userData = null;
   // 数据初始化
@@ -293,6 +317,9 @@
     lessThan7PointsCloseEat,
     greaterThan20PointsCloseEat,
     weekendCloseEat,
+
+    quickReplyStr,
+    selectedAutoSubmit,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1308,7 +1335,7 @@
     let id = await getUserId();
 
     try {
-      let flag = ytoz(yaohuoStrText).split(',').includes(id);
+      let flag = ytoz(yaohuoStrText).split(",").includes(id);
       let data = {
         token: flag ? ztoy(id) : null,
         timestamp: new Date().getTime(),
@@ -1740,7 +1767,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        height: 44px;
+        min-height: 44px;
       }
       .yaohuo-wrap li .tip-icon{
         vertical-align: text-top;
@@ -1764,6 +1791,9 @@
         text-align: center;
         outline: 0;
         margin-right: 0;
+      }
+      .yaohuo-wrap li textarea{
+        width: 100%;
       }
 
       .yaohuo-wrap .switch {
@@ -1853,7 +1883,7 @@
     let innerH = `
       <div class="yaohuo-modal-mask">
         <div class="yaohuo-wrap">
-          <header>🔥拓展增强🔥妖火插件设置<a href="https://update.greasyfork.org/scripts/480899/%E3%80%90%E8%B5%9E%E5%8A%A9%E7%89%88%E3%80%91%F0%9F%94%A5%E6%8B%93%E5%B1%95%E5%A2%9E%E5%BC%BA%F0%9F%94%A5%E5%A6%96%E7%81%AB%E7%BD%91%E6%8F%92%E4%BB%B6.user.js" target="_blank">【更新链接】</a></header>
+          <header>🔥拓展增强🔥插件设置<a href="https://update.greasyfork.org/scripts/480899/%E3%80%90%E8%B5%9E%E5%8A%A9%E7%89%88%E3%80%91%F0%9F%94%A5%E6%8B%93%E5%B1%95%E5%A2%9E%E5%BC%BA%F0%9F%94%A5%E5%A6%96%E7%81%AB%E7%BD%91%E6%8F%92%E4%BB%B6.user.js" target="_blank">【更新链接】</a></header>
           <ul>
             <li class="yaohuo-wrap-title">
               <hr class="title-line title-line-left" />
@@ -2463,6 +2493,16 @@
                 <label for="isAddQuickReply"></label>
               </div>
             </li>
+            <li>
+              <span>选择后是否直接提交</span>
+              <div class="switch">
+                <input type="checkbox" id="selectedAutoSubmit" data-key="selectedAutoSubmit" />
+                <label for="selectedAutoSubmit"></label>
+              </div>
+            </li>
+            <li>
+              <textarea id="replyTextarea" rows="10">${quickReplyStr}</textarea>
+            </li>
             <li class="yaohuo-wrap-title">
               <hr class="title-line title-line-left" />
               <b>发帖设置</b>
@@ -2661,6 +2701,11 @@
               ],
               dataKey,
             });
+            autoShowElement({
+              fatherIdAry: ["isAddQuickReply"],
+              childIdAry: ["replyTextarea", "selectedAutoSubmit"],
+              dataKey,
+            });
           } else {
             if (getValue("isCloseBoast") && dataKey === "isOpenBoast") {
               setValue(dataKey, false);
@@ -2790,6 +2835,27 @@
           break;
       }
     });
+
+    if (status === "edit") {
+      $("#replyTextarea").on("change", function (event) {
+        console.warn(event.target.value);
+        let value = event.target.value;
+        this.value = value
+          .split("\n")
+          .map((item) => item.trim())
+          .filter((item) => item)
+          .join("\n");
+      });
+    } else {
+      let value = document.querySelector("#replyTextarea").value;
+      console.info(value);
+      value = value
+        .split("\n")
+        .map((item) => item.trim())
+        .filter((item) => item)
+        .join("\n");
+      setValue("quickReplyStr", value);
+    }
 
     function clearWinData(dataKey) {
       if (["winEndMoney", "winEndNumber"].includes(dataKey)) {
@@ -3761,12 +3827,16 @@
       // 添加表情展开按钮
       sendmsg.insertAdjacentHTML(
         "afterend",
-        `<select class="quick-reply-wrap" style="width:100px;border: 1px solid #ccc;font-size: 12px;line-height: 18px;border-radius: 7px;margin: 0 2px;color: #333;padding-left: 5px;">
+        `<select placeholder="快捷回复" class="quick-reply-wrap" style="width:100px;border: 1px solid #ccc;font-size: 12px;line-height: 18px;border-radius: 7px;margin: 0 2px;color: #333;padding-left: 5px;">
         </select>`
       );
       let quickReplyWrap = document.querySelector(".quick-reply-wrap");
-      let allFaceHtml = "<option value=''>快捷回复</option>";
-      for (const item of quickReplyList) {
+      let allFaceHtml =
+        "<option value='' selected disabled hidden>快捷回复</option>";
+      // let allFaceHtml = "";
+
+      let replyList = quickReplyStr.split("\n");
+      for (const item of replyList) {
         allFaceHtml += `
         <option value="${item}">${item}</option>
         `;
@@ -3783,7 +3853,9 @@
           // );
           textarea.value += text;
           // insertText(textarea, text, 0);
-          replyBtn.click();
+          if (selectedAutoSubmit) {
+            replyBtn.click();
+          }
         }
       });
       quickReplyWrap.innerHTML = allFaceHtml;
