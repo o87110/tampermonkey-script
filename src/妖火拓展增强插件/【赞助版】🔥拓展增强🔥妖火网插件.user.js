@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.7.0
+// @version      4.7.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -987,6 +987,8 @@
     handleAutoEat();
     // 全自动吃肉：自动进入肉帖自动吃
     handleFullAutoEat();
+    // 自动上传图床功能
+    handleUploadImage();
     // 增加回帖ubb
     handleAddReplyUBB();
     // 增加回帖表情
@@ -997,8 +999,7 @@
     handleAddReplyRandomColor();
     // 回帖快捷回复
     handleAddQuickReply();
-    // 自动上传图床功能
-    handleUploadImage();
+
     // 增加发帖ubb
     handleAddNewPostUBB();
     // 显示用户等级
@@ -3812,25 +3813,42 @@
   }
   // 增加快捷回复
   function handleAddQuickReply() {
+    let pathName = [
+      "/bbs/userinfo.aspx",
+      "/bbs/messagelist_view.aspx",
+      "/bbs/messagelist_add.aspx",
+    ];
+    let isUserinfo = pathName.includes(window.location.pathname);
     if (
       (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
-        viewPage.includes(window.location.pathname)) &&
+        viewPage.includes(window.location.pathname) ||
+        isUserinfo) &&
       isAddQuickReply
     ) {
       const form = document.getElementsByName("f")[0];
-      const textarea = document.querySelector(".retextarea");
-      const sendmsg =
-        form.querySelector("#sendselect") ||
-        form.getElementsByTagName("select")[1] ||
-        form.querySelector(".tongzhi");
+      const textarea =
+        document.querySelector(".retextarea") ||
+        document.querySelector("textarea");
       const replyBtn = document.querySelector("input[type=submit]");
+      const sendmsg =
+        form?.querySelector("#sendselect") ||
+        form?.getElementsByTagName("select")[1] ||
+        form?.querySelector(".tongzhi") ||
+        replyBtn;
+
       // 添加表情展开按钮
       sendmsg.insertAdjacentHTML(
-        "afterend",
+        isUserinfo ? "beforebegin" : "afterend",
         `<select placeholder="快捷回复" class="quick-reply-wrap" style="width:100px;border: 1px solid #ccc;font-size: 12px;line-height: 18px;border-radius: 7px;margin: 0 2px;color: #333;padding-left: 5px;">
         </select>`
       );
       let quickReplyWrap = document.querySelector(".quick-reply-wrap");
+      // 空间和信箱页面自定义宽度和高度
+      if (isUserinfo) {
+        quickReplyWrap.style.width = "60%";
+        quickReplyWrap.style.height = "25px";
+        quickReplyWrap.style.margin = " 5px";
+      }
       let allFaceHtml =
         "<option value='' selected disabled hidden>快捷回复</option>";
       // let allFaceHtml = "";
