@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.7.1
+// @version      4.7.2
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1013,14 +1013,35 @@
 
   // ==其他功能函数和方法==
 
+  function getSelectedDataFromLocalStorage(selectedProperties) {
+    // 创建一个空对象，用于存储所选属性的值
+    var selectedData = {};
+
+    // 遍历 localStorage 中的每一项
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i); // 获取当前键名
+
+      // 检查当前键名是否在所选属性数组中
+      if (selectedProperties.includes(key)) {
+        var value = localStorage.getItem(key); // 获取对应键名的值
+        selectedData[key] = value; // 将键值对添加到新对象中
+      }
+    }
+
+    // 返回包含所选属性的对象
+    return selectedData;
+  }
+
   // 备份 localStorage 数据到剪贴板
   function backupLocalStorage() {
-    // 获取 localStorage 中的数据
-    var localStorageData = JSON.stringify(localStorage);
+    // 获取 指定localStorage 中的数据
+
+    var selectedProperties = ["autoEatList", "yaohuo_userData"];
+    var selectedData = getSelectedDataFromLocalStorage(selectedProperties);
 
     // 创建一个临时文本区域用于复制到剪贴板
     var tempTextArea = document.createElement("textarea");
-    tempTextArea.value = localStorageData;
+    tempTextArea.value = JSON.stringify(selectedData);
     document.body.appendChild(tempTextArea);
     tempTextArea.select();
 
