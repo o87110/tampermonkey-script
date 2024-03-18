@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.7.2
+// @version      4.8.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -961,8 +961,7 @@
   (function () {
     // 处理新帖也帖子列表页面下一步加载时，页面会到下一页
     // handleMoreLoadNextPage();
-    // 获取用户id
-    getUserId();
+
     // 修复网站更新样式错乱问题
     handleStyle();
     // 处理浏览器滚动条事件
@@ -1036,7 +1035,8 @@
   function backupLocalStorage() {
     // 获取 指定localStorage 中的数据
 
-    var selectedProperties = ["autoEatList", "yaohuo_userData"];
+    // autoEatList
+    var selectedProperties = ["yaohuo_userData"];
     var selectedData = getSelectedDataFromLocalStorage(selectedProperties);
 
     // 创建一个临时文本区域用于复制到剪贴板
@@ -1068,7 +1068,11 @@
         if (typeof parsedData === "object" && parsedData !== null) {
           for (var key in parsedData) {
             if (parsedData.hasOwnProperty(key)) {
-              localStorage.setItem(key, parsedData[key]);
+              setItem(key, parsedData[key]);
+              if (key === "yaohuo_userData") {
+                yaohuo_userData = parsedData[key];
+                setItem("yaohuo_userData", yaohuo_userData);
+              }
             }
           }
           alert("数据已还原");
@@ -1319,6 +1323,8 @@
     return /Mobile/i.test(navigator.userAgent);
   }
   async function initSetting() {
+    // 获取用户id
+    await getUserId();
     await getInfo();
 
     // 在移动设备上执行的代码
@@ -1976,8 +1982,9 @@
               </div>
             </li>
             <li>
-              <span id="backupLocal"><a href="javascript:;">备份插件数据</a></span>
-              <span id="restoreLocal"><a href="javascript:;">恢复插件数据</a></span>
+              <span id="restoreLocal2" onclick="localStorage.clear();location.reload()"><a href="javascript:;">清除缓存</a></span>
+              <span id="backupLocal"><a href="javascript:;">备份数据</a></span>
+              <span id="restoreLocal"><a href="javascript:;">恢复数据</a></span>
             </li>
             <li class="yaohuo-wrap-title">
               <hr class="title-line title-line-left" />
