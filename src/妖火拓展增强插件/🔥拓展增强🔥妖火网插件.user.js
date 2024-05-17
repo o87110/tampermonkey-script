@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.14.0
+// @version      3.15.0
 // @description  发帖ubb增强、回帖ubb增强、回帖表情增强、查看贴子显示用户等级增强、手动吃肉增强、自动加载更多帖子、自动加载更多回复、一键自动上传图床、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -604,6 +604,70 @@
       url4: "https://i.ibb.co/Bw8xYQP/kq2.gif",
 
       name: "伤心2",
+    },
+    {
+      url1: "https://p6.itc.cn/q_70/images03/20210723/3b9017a6580644e4af8b43d73b92c0a9.gif",
+      url2: "https://p6.itc.cn/q_70/images03/20210723/3b9017a6580644e4af8b43d73b92c0a9.gif",
+      url3: "https://p6.itc.cn/q_70/images03/20210723/3b9017a6580644e4af8b43d73b92c0a9.gif",
+      url4: "https://p6.itc.cn/q_70/images03/20210723/3b9017a6580644e4af8b43d73b92c0a9.gif",
+
+      name: "看戏",
+    },
+    {
+      url1: "https://p0.itc.cn/q_70/images03/20210723/4874b66b12f04be1aab989d289e8635a.gif",
+      url2: "https://p0.itc.cn/q_70/images03/20210723/4874b66b12f04be1aab989d289e8635a.gif",
+      url3: "https://p0.itc.cn/q_70/images03/20210723/4874b66b12f04be1aab989d289e8635a.gif",
+      url4: "https://p0.itc.cn/q_70/images03/20210723/4874b66b12f04be1aab989d289e8635a.gif",
+
+      name: "顶你",
+    },
+    {
+      url1: "https://pic2.ziyuan.wang/user/guest/2024/04/kwyjjlck_81f49e01db86c.gif",
+      url2: "https://pic2.ziyuan.wang/user/guest/2024/04/kwyjjlck_81f49e01db86c.gif",
+      url3: "https://pic2.ziyuan.wang/user/guest/2024/04/kwyjjlck_81f49e01db86c.gif",
+      url4: "https://pic2.ziyuan.wang/user/guest/2024/04/kwyjjlck_81f49e01db86c.gif",
+
+      name: "哭死",
+    },
+    {
+      url1: "https://p2.itc.cn/q_70/images03/20210723/f9c4a2e9879f438c9f151366442f311e.gif",
+      url2: "https://p2.itc.cn/q_70/images03/20210723/f9c4a2e9879f438c9f151366442f311e.gif",
+      url3: "https://p2.itc.cn/q_70/images03/20210723/f9c4a2e9879f438c9f151366442f311e.gif",
+      url4: "https://p2.itc.cn/q_70/images03/20210723/f9c4a2e9879f438c9f151366442f311e.gif",
+
+      name: "看不见",
+    },
+    {
+      url1: "https://p8.itc.cn/q_70/images03/20210723/189ca0ed210142999a1661d2bd3cf852.gif",
+      url2: "https://p8.itc.cn/q_70/images03/20210723/189ca0ed210142999a1661d2bd3cf852.gif",
+      url3: "https://p8.itc.cn/q_70/images03/20210723/189ca0ed210142999a1661d2bd3cf852.gif",
+      url4: "https://p8.itc.cn/q_70/images03/20210723/189ca0ed210142999a1661d2bd3cf852.gif",
+
+      name: "蹲坑",
+    },
+    {
+      url1: "https://pic2.zhimg.com/v2-568bb2311e00c3ecbc4dd49ab0709f09_b.gif",
+      url2: "https://pic2.zhimg.com/v2-568bb2311e00c3ecbc4dd49ab0709f09_b.gif",
+      url3: "https://pic2.zhimg.com/v2-568bb2311e00c3ecbc4dd49ab0709f09_b.gif",
+      url4: "https://pic2.zhimg.com/v2-568bb2311e00c3ecbc4dd49ab0709f09_b.gif",
+
+      name: "磨刀",
+    },
+    {
+      url1: "https://pic.ziyuan.wang/user/sub/2024/04/458ed8da862d4a71bc5ab4c2435711fd_088c2fc6f5680.png",
+      url2: "https://pic.ziyuan.wang/user/sub/2024/04/458ed8da862d4a71bc5ab4c2435711fd_088c2fc6f5680.png",
+      url3: "https://pic.ziyuan.wang/user/sub/2024/04/458ed8da862d4a71bc5ab4c2435711fd_088c2fc6f5680.png",
+      url4: "https://pic.ziyuan.wang/user/sub/2024/04/458ed8da862d4a71bc5ab4c2435711fd_088c2fc6f5680.png",
+
+      name: "小丑",
+    },
+    {
+      url1: "https://i.piantu.cn/2024/04/14/839386c85e1803d082b11cfe2fe5c33f.gif",
+      url2: "https://i.piantu.cn/2024/04/14/839386c85e1803d082b11cfe2fe5c33f.gif",
+      url3: "https://i.piantu.cn/2024/04/14/839386c85e1803d082b11cfe2fe5c33f.gif",
+      url4: "https://i.piantu.cn/2024/04/14/839386c85e1803d082b11cfe2fe5c33f.gif",
+
+      name: "有鬼",
     },
   ];
   // 批量添加事件数组
@@ -1426,15 +1490,18 @@
               <hr class="title-line title-line-right" />
             </li>
             <li>
-              <span>更新记录、使用教程</span>
+              <span style="color: #b80303;"><img src="/NetImages/jing.gif" alt="精" style="margin-bottom: -1px"><a href="https://haokawx.lot-ml.com/Product/Index/129848" target="_blank">大流量卡，返现几十不等</a></span>
               <div>
-                <a href="/bbs-1183941.html" target="_blank">原贴直达</a>
+                <a href="https://yaohuo.me/bbs/userinfo.aspx?touserid=20469" target="_blank">返现联系</a>
               </div>
             </li>
             <li>
-              <span>插件交流群</span>
+              <span>教程、交流群</span>
+              
               <div>
-                <a href="http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=B8jHwcToRt8GnMoJa3jDk01xt6XFP2yi&authKey=WULG168m8oDAcLqoRa2moGO5%2FWXGFAYhMtO4RjhEVDHbzQoDmHBPqfGlv8ya50Ty&noverify=0&group_code=768664029" target="_blank">一键加群</a>
+                <a href="/bbs-1183941.html" target="_blank">原贴直达</a>
+                / 
+                <a href="http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=B8jHwcToRt8GnMoJa3jDk01xt6XFP2yi&authKey=WULG168m8oDAcLqoRa2moGO5%2FWXGFAYhMtO4RjhEVDHbzQoDmHBPqfGlv8ya50Ty&noverify=0&group_code=768664029" target="_blank">插件交流群</a>
               </div>
             </li>
             <li>
@@ -2190,7 +2257,7 @@
             <div class='bt2'>
               <a style='width:25%' href='https://aapi.eu.org/ppx' target="_blank">皮皮虾解析</a>
               <a style='width:25%' href='https://aapi.eu.org/bili' target="_blank">b站解析</a>
-              <a style='width:25%' href='https://pan.whgpc.com/upload.php' target="_blank">外链网盘</a>
+              <a style='width:25%' href='https://www.uhsea.com' target="_blank">屋舍文件</a>
               <a style='width:25%' href='https://urlify.cn/' target="_blank">短链生成</a>
             </div>
           </div>
@@ -2249,21 +2316,21 @@
           <span id='ubb_i' style="${spanstyle}">斜体</span>
 
           <span id='ubb_color' style="${spanstyle}">颜色字</span>
-          <span id='ubb_u' style="${spanstyle}">下划线</span>
-          <span id='ubb_strike' style="${spanstyle}">删除线</span>
-          <span id='ubb_hr' style="${spanstyle}">分割线</span>
+          <span id='ubb_u' style="${spanstyle}">下划</span>
+          <span id='ubb_strike' style="${spanstyle}">删除</span>
+          <span id='ubb_hr' style="${spanstyle}">分割</span>
           <br>
           <span id='ubb_sms' style="${spanstyle}">短信</span>
           <span id='ubb_call' style="${spanstyle}">拨号</span>
           <span id='ubb_now' style="${spanstyle}">时间</span>
           <span id='ubb_codo' style="${spanstyle}">倒计天</span>
           <br>
-          <a href='https://yaohuo.me/tuchuang/' target="_blank" style="${spanstyle}">图床</a>
+          <a href='https://yaohuo.me/tuchuang/' target="_blank" style="${spanstyle}">妖火图床</a>
           <a href='https://aapi.eu.org/ppx' target="_blank" style="${spanstyle}">皮皮</a>
           <a href='https://aapi.eu.org/bili' target="_blank" style="${spanstyle}">b站</a>
           <a href='https://aapi.eu.org/dy' target="_blank" style="${spanstyle}">抖音</a>
           <a href='https://aapi.eu.org/ks' target="_blank" style="${spanstyle}">快手</a>
-          <a href='https://pan.whgpc.com/upload.php' target="_blank" style="${spanstyle}">外链</a>
+          <a href='https://www.uhsea.com' target="_blank" style="${spanstyle}">外链</a>
           <a href='https://urlify.cn/' target="_blank" style="${spanstyle}">短链接</a>
         </div>
         <hr>
@@ -2357,6 +2424,10 @@
           // 自定义图片
           let diySrc = event.target.dataset.src;
 
+          // 处理完折叠表情
+          $("#facearea").hide();
+          $("#unfold").text("表情展开");
+
           if (diySrc) {
             //把光标移到文本框最前面
             textarea.focus();
@@ -2366,10 +2437,6 @@
             // 处理图片的点击事件
             face.value = event.target.getAttribute("value");
           }
-
-          // 处理完折叠表情
-          $("#facearea").hide();
-          $("#unfold").text("表情展开");
         }
       };
       // 处理默认展开表情
