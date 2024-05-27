@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.9.3
+// @version      4.10.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -84,7 +84,7 @@
     isAddReplyFace: true,
     // 是否默认展开表情
     isUnfoldFace: false,
-    // 回帖表情包图床：妖友七牛云：url1、极速图床：url2、无花果网盘：url3、imgBB：url4
+    // 回帖表情包图床：妖友七牛云：url1、极速图床：url2、imgBB：url3
     replyFaceImageBed: "url1",
     // 是否默认展开表情
     isUnfoldUbb: false,
@@ -393,471 +393,396 @@
   /* 
   妖友七牛云：url1
   极速图床：url2
-  无花果网盘：url3
-  imgBB：url4
+  imgBB：url3
   */
   const diyFaceList = [
     {
       url1: "http://static2.51gonggui.com/FhBfMfl4sGC3QJVTMaLqEKkE90Ia#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/43dd22ed354af.gif",
-      url3: "https://pan.whgpc.com/view.php/0dc36aa45249d47905cf3000e64eaa9c.gif",
-      url4: "https://i.ibb.co/hXBXGq8/jy.gif",
+      url3: "https://i.ibb.co/hXBXGq8/jy.gif",
 
       name: "摸鱼",
     },
     {
       url1: "http://static2.51gonggui.com/FmNyrjU8Wq0m3PiwHQJwDhHdv-EJ#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/eef531d5b6d9a.gif",
-      url3: "https://pan.whgpc.com/view.php/86e8771f2fb82a6678e17017e5f57d75.gif",
-      url4: "https://i.ibb.co/L0scf9m/jw.gif",
+      url3: "https://i.ibb.co/L0scf9m/jw.gif",
 
       name: "稽舞",
     },
     {
       url1: "http://static2.51gonggui.com/FoKvdu89eiq0q-24IfOM2mFB0vIq#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/1171162cca357.gif",
-      url3: "https://pan.whgpc.com/view.php/76ce4595c26443cd7e597c4c165371d5.gif",
-      url4: "https://i.ibb.co/rmQY19V/sj.gif",
+      url3: "https://i.ibb.co/rmQY19V/sj.gif",
 
       name: "色稽",
     },
     {
       url1: "http://static2.51gonggui.com/FrZ6GDJiOAz3pp4e5_8uSShSXXXk#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/57521f3d1f794.gif",
-      url3: "https://pan.whgpc.com/view.php/f2639aff03e50d8576cfe23323878298.gif",
-      url4: "https://i.ibb.co/h14QP4d/jj.gif",
+      url3: "https://i.ibb.co/h14QP4d/jj.gif",
 
       name: "撒娇",
     },
     {
       url1: "http://static2.51gonggui.com/FiZiSSyXSa8eCzwOXmIfOOpfA_7a#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/004aa1eb1823a.gif",
-      url3: "https://pan.whgpc.com/view.php/7aa797557c49a4c4c1628f7ae261cc00.gif",
-      url4: "https://i.ibb.co/9yD4mFW/jg.gif",
+      url3: "https://i.ibb.co/9yD4mFW/jg.gif",
 
       name: "稽狗",
     },
     {
       url1: "http://static2.51gonggui.com/FqNDzswUNJ-AsSHXyxXB4Qm1X0y-#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/51300ab6aede6.gif",
-      url3: "https://pan.whgpc.com/view.php/57f05a2d06b5e6fd67571929232e3c01.gif",
-      url4: "https://i.ibb.co/CnNY1SG/mq.gif",
+      url3: "https://i.ibb.co/CnNY1SG/mq.gif",
 
       name: "没钱",
     },
     {
       url1: "http://static2.51gonggui.com/Fsq-HyBc5lP6vZY_qeWofOM9mRVH#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/f046ae22fbae2.gif",
-      url3: "https://pan.whgpc.com/view.php/722369c630ea73b78a422d1937de8d10.gif",
-      url4: "https://i.ibb.co/0qTfStm/sw.gif",
+      url3: "https://i.ibb.co/0qTfStm/sw.gif",
 
       name: "骚舞",
     },
     {
       url1: "http://static2.51gonggui.com/FhCk4emkrO9f8ICFxKlm8wBcTOgT#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/c09bfc7f5330f.gif",
-      url3: "https://pan.whgpc.com/view.php/8460b6620661f1a48ae86b1d4a395c31.gif",
-      url4: "https://i.ibb.co/yh8bSx7/cs.gif",
+      url3: "https://i.ibb.co/yh8bSx7/cs.gif",
 
       name: "吃屎",
     },
     {
       url1: "http://static2.51gonggui.com/FkEHwSlEfQ7bWya6-wg366Xy91qW#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/4b55370c90e67.gif",
-      url3: "https://pan.whgpc.com/view.php/2a91894e183d0104603773a5a9870440.gif",
-      url4: "https://i.ibb.co/3BxqbXX/bs.gif",
+      url3: "https://i.ibb.co/3BxqbXX/bs.gif",
 
       name: "鄙视",
     },
     {
       url1: "http://static2.51gonggui.com/Fi2hY7M9DPgD9s0aCWemwk2iYUDW#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/21ab651293d60.gif",
-      url3: "https://pan.whgpc.com/view.php/6f1a362f2a8b8bfebb56d4c14de3ae5a.gif",
-      url4: "https://i.ibb.co/3NrbQfQ/tg.gif",
+      url3: "https://i.ibb.co/3NrbQfQ/tg.gif",
 
       name: "听歌",
     },
     {
       url1: "http://static2.51gonggui.com/Fhry6EpdUBqFCt3OOyQTkLZMZGFR#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/2e503027f610f.gif",
-      url3: "https://pan.whgpc.com/view.php/28463b3ae820317ef6cc58b432c59787.gif",
-      url4: "https://i.ibb.co/whDBFQd/st.gif",
+      url3: "https://i.ibb.co/whDBFQd/st.gif",
 
       name: "伸头",
     },
     {
       url1: "http://static2.51gonggui.com/FhgYnWJ-apnyjSXOpInJhLbfUQFY#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/a082bfe5b0df3.gif",
-      url3: "https://pan.whgpc.com/view.php/6c3e66ac621810af119b81bd2bce5ea3.gif",
-      url4: "https://i.ibb.co/7KzRsmd/gz.gif",
+      url3: "https://i.ibb.co/7KzRsmd/gz.gif",
 
       name: "鼓掌",
     },
     {
       url1: "http://static2.51gonggui.com/FvSxOEIhyA7ID1J8emIME7tBT7Io#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/93c17a9cd77e9.gif",
-      url3: "https://pan.whgpc.com/view.php/929c71554d50f32c39000e1e01bbb7d5.gif",
-      url4: "https://i.ibb.co/KNGfHFw/tt.gif",
+      url3: "https://i.ibb.co/KNGfHFw/tt.gif",
 
       name: "踢腿",
     },
     {
       url1: "http://static2.51gonggui.com/FunDHky9UKkB-4zj-bfSb82u81Xg#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/3592472aaa316.png",
-      url3: "https://pan.whgpc.com/view.php/fbc97b307c730b27d9826df231007ba9.png",
-      url4: "https://i.ibb.co/sKS4R3x/nt.png",
+      url3: "https://i.ibb.co/sKS4R3x/nt.png",
 
       name: "男同",
     },
     {
       url1: "http://static2.51gonggui.com/FgXUeACmKWWMDT9hrpVAnQp4dCqF#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/998ff0f986f04.gif",
-      url3: "https://pan.whgpc.com/view.php/445eddde96275fcc1803c5de698f74c9.gif",
-      url4: "https://i.ibb.co/VCWLFgz/sq.gif",
+      url3: "https://i.ibb.co/VCWLFgz/sq.gif",
 
       name: "手枪",
     },
     {
       url1: "http://static2.51gonggui.com/Fg_qtra3abNozPxaoEMVKO7VIsuX#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/c75d396a66b71.gif",
-      url3: "https://pan.whgpc.com/view.php/0c5966deb9bb9b0289c2ec5270bd1f3b.gif",
-      url4: "https://i.ibb.co/pjw803c/pt.gif",
+      url3: "https://i.ibb.co/pjw803c/pt.gif",
 
       name: "拍头",
     },
     {
       url1: "http://static2.51gonggui.com/FnNg1vOiuOlSe7WFWRyNZfO_4H3U#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/b630057c9a2b8.gif",
-      url3: "https://pan.whgpc.com/view.php/2f5511bf6d98fc5420e7dcd7c080a1b3.gif",
-      url4: "https://i.ibb.co/fNcvwj0/tp.gif",
+      url3: "https://i.ibb.co/fNcvwj0/tp.gif",
 
       name: "躺平",
     },
     {
       url1: "http://static2.51gonggui.com/Fj7WAkv87tpL1I26WQgSaXlsyYBL#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/78c30a6fe8c89.gif",
-      url3: "https://pan.whgpc.com/view.php/e598172eaffc7e1ae02da9385ac07979.gif",
-      url4: "https://i.ibb.co/5jJwwdQ/zj.gif",
+      url3: "https://i.ibb.co/5jJwwdQ/zj.gif",
 
       name: "追稽",
     },
     {
       url1: "http://static2.51gonggui.com/FgwFBazeUavJcw-SL7FS6wUkcUTk#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/ed1aa444817d3.gif",
-      url3: "https://pan.whgpc.com/view.php/e68a486d27ac84b85f62dbd93775c1dd.gif",
-      url4: "https://i.ibb.co/mRLMkyv/lsj.gif",
+      url3: "https://i.ibb.co/mRLMkyv/lsj.gif",
 
       name: "司稽",
     },
     {
       url1: "http://static2.51gonggui.com/FjXNVx-MUgAVq62aNqekSPOUjDAC#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/6c4e56b9f0c2c.gif",
-      url3: "https://pan.whgpc.com/view.php/ba1bee4a3a69dedb84f029112bc919b8.gif",
-      url4: "https://i.ibb.co/7KKybVg/qt.gif",
+      url3: "https://i.ibb.co/7KKybVg/qt.gif",
 
       name: "乞讨",
     },
     {
       url1: "http://static2.51gonggui.com/FjudMlJdd8dLXuGjyASN7JldAxqe#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/7f9769ba90ff0.gif",
-      url3: "https://pan.whgpc.com/view.php/05608d0edf769d9392afd606f76414a3.gif",
-      url4: "https://i.ibb.co/3r8mtKh/gj.gif",
+      url3: "https://i.ibb.co/3r8mtKh/gj.gif",
 
       name: "跪稽",
     },
     {
       url1: "http://static2.51gonggui.com/Fm8DQQwyYthk8Q97ZLScgCDXsv4_#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/e1248fbb24b75.gif",
-      url3: "https://pan.whgpc.com/view.php/48b079675353a3343b75c7b5e5b6f89c.gif",
-      url4: "https://i.ibb.co/PWMFdB8/dn.gif",
+      url3: "https://i.ibb.co/PWMFdB8/dn.gif",
 
       name: "刀你",
     },
     {
       url1: "http://static2.51gonggui.com/FqTaBgs1l8bqeDYBxcWzxF4Wgt6_#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/d5eedd30ad4bd.gif",
-      url3: "https://pan.whgpc.com/view.php/b91f49ffc6b95e0dd5231c6dac236805.gif",
-      url4: "https://i.ibb.co/BcHh8kn/dp.gif",
+      url3: "https://i.ibb.co/BcHh8kn/dp.gif",
 
       name: "冲刺",
     },
     {
       url1: "http://static2.51gonggui.com/Fmw152FIzN1gpFrbCKlp7cmqlCxc#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/9272af6cae5d3.gif",
-      url3: "https://pan.whgpc.com/view.php/4ef0a644b8ba4f19d6b7f1b4ff0bc0a4.gif",
-      url4: "https://i.ibb.co/LDycW8K/zq.gif",
+      url3: "https://i.ibb.co/LDycW8K/zq.gif",
 
       name: "转圈",
     },
     {
       url1: "http://static2.51gonggui.com/Fmf5aWS5yqycKebxTno7un53h9HW#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/58e57366425c9.gif",
-      url3: "https://pan.whgpc.com/view.php/8bc02c826d3c6f0531219d64a4d743bd.gif",
-      url4: "https://i.ibb.co/7gNd669/cj.gif",
+      url3: "https://i.ibb.co/7gNd669/cj.gif",
 
       name: "吃稽",
     },
     {
       url1: "http://static2.51gonggui.com/FhUkLD2khZ7hn1uzArWkT47Pd9jq#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/ef0f9e3f3e353.gif",
-      url3: "https://pan.whgpc.com/view.php/c6bba691572ada2edf749e3ea2dff12f.gif",
-      url4: "https://i.ibb.co/7S2T2pF/fj.gif",
+      url3: "https://i.ibb.co/7S2T2pF/fj.gif",
 
       name: "犯贱",
     },
     {
       url1: "http://static2.51gonggui.com/FihrjZwpB1jMdOF9QvtQG3J32z4q#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/524b369abefa3.gif",
-      url3: "https://pan.whgpc.com/view.php/f257c9062d89944e77e4049b7745b8c6.gif",
-      url4: "https://i.ibb.co/yFtQtLM/nb.gif",
+      url3: "https://i.ibb.co/yFtQtLM/nb.gif",
 
       name: "牛掰",
     },
     {
       url1: "http://static2.51gonggui.com/FlX6e1Ip6Z8gvl7lkimmCifwBhFt#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/05/659798ffccac4.gif",
-      url3: "https://pan.whgpc.com/view.php/a13f847a9c3ec8522926f7730343e1d5.gif",
-      url4: "https://i.ibb.co/FVnL0PB/yb.gif",
+      url3: "https://i.ibb.co/FVnL0PB/yb.gif",
 
       name: "拥抱",
     },
     {
       url1: "http://static2.51gonggui.com/FoIs-hNK7fhW8jwxEgDLRxARFcve#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/dfe36d68642e8.gif",
-      url3: "https://pan.whgpc.com/view.php/7d83e20d67f60e5885e85cabf46a587f.gif",
-      url4: "https://i.ibb.co/Nj0V2gM/722ee7ce0b4fdecd.gif",
+      url3: "https://i.ibb.co/Nj0V2gM/722ee7ce0b4fdecd.gif",
 
       name: "拍头",
     },
     {
       url1: "http://static2.51gonggui.com/Fgx4XlxG9461Y_TJsg0hGxPTylYi#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/989aa4d6e0aeb.gif",
-      url3: "https://pan.whgpc.com/view.php/899ffe0a4c54eac43c26423c8056b837.gif",
-      url4: "https://i.ibb.co/64Gmn3C/25e66a6595b1dc82.gif",
+      url3: "https://i.ibb.co/64Gmn3C/25e66a6595b1dc82.gif",
 
       name: "摇头",
     },
     {
       url1: "http://static2.51gonggui.com/Fvrng91QU_PKY9Uwat77VTVouj5k#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/84a18f0849126.gif",
-      url3: "https://pan.whgpc.com/view.php/75990ca9a3853bd3532e44b689d24675.gif",
-      url4: "https://i.ibb.co/2jWY20p/rt.gif",
+      url3: "https://i.ibb.co/2jWY20p/rt.gif",
 
       name: "挠头",
     },
     {
       url1: "http://static2.51gonggui.com/FkyiMRaJI1BfuA6T3w4Z9mJh1qbg#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/216607e845f48.gif",
-      url3: "https://pan.whgpc.com/view.php/578e5b8d967cf8b9b81b00bd11650ce4.gif",
-      url4: "https://i.ibb.co/SdD7Vct/sx.gif",
+      url3: "https://i.ibb.co/SdD7Vct/sx.gif",
 
       name: "上学",
     },
     {
       url1: "http://static2.51gonggui.com/FpZEifxiFGs1BWtHjFsk5tJJNKSE#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/4914eecbff777.gif",
-      url3: "https://pan.whgpc.com/view.php/08f420982eae289e05e76ae8032446f7.gif",
-      url4: "https://i.ibb.co/dmng48J/lh.gif",
+      url3: "https://i.ibb.co/dmng48J/lh.gif",
 
       name: "流汗",
     },
     {
       url1: "http://static2.51gonggui.com/FiBZZ6mBTB5R5bu5lGkybboOwLwm#.gif",
       url2: "https://tucdn.wpon.cn/2023/08/07/4181f12786715.gif",
-      url3: "https://pan.whgpc.com/view.php/f79ba4d85a9ae77f0492de93630150fc.gif",
-      url4: "https://i.ibb.co/GH0Q94V/5614974ef677a274.gif",
+      url3: "https://i.ibb.co/GH0Q94V/5614974ef677a274.gif",
 
       name: "摩擦",
     },
     {
       url1: "http://static2.51gonggui.com/FmMtly844_wS6LfLLtLSwgzcXSqg#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/9a7bd5c247170.gif",
-      url3: "https://pan.whgpc.com/view.php/26a5d8e61be7d397de1803d481b8662c.gif",
-      url4: "https://i.ibb.co/zbPnx6p/hyl.gif",
+      url3: "https://i.ibb.co/zbPnx6p/hyl.gif",
 
       name: "喝饮料",
     },
     {
       url1: "http://static2.51gonggui.com/FqyckEvAxFVyD1SmA9m2jInv_Crb#.gif",
       url2: "https://tucdn.wpon.cn/2023/06/16/4416bfa6a8ba7.gif",
-      url3: "https://pan.whgpc.com/view.php/64dedb2e8994e36074f694148f2d87fc.gif",
-      url4: "https://i.ibb.co/Lhp7Hv5/mg.gif",
+      url3: "https://i.ibb.co/Lhp7Hv5/mg.gif",
 
       name: "猛狗",
     },
     {
       url1: "http://static2.51gonggui.com/FmfsKjv4ymuWR80UGY-sea-I_Ey5#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/e0b400a7e3dc2.gif",
-      url3: "https://pan.whgpc.com/view.php/8d4b3f8d3af72b4fce01769a96d3a755.gif",
-      url4: "https://i.ibb.co/pzh7P1x/hl.gif",
+      url3: "https://i.ibb.co/pzh7P1x/hl.gif",
 
       name: "妲己",
     },
     {
       url1: "http://static2.51gonggui.com/FkEmzRCL3eJGlgkHHnHTy94sXwE1#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/06fe11a5e5fb1.gif",
-      url3: "https://pan.whgpc.com/view.php/d4da5ba55529539877aa74eff729e7ef.gif",
-      url4: "https://i.ibb.co/jbpQSMW/jw.gif",
+      url3: "https://i.ibb.co/jbpQSMW/jw.gif",
 
       name: "街舞",
     },
     {
       url1: "http://static2.51gonggui.com/FgiAIOkFg8qG3UZKQx24ImVDrDRj#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/d7bda91d8179a.gif",
-      url3: "https://pan.whgpc.com/view.php/ead0a91139a5c775995279358a8b1c6c.gif",
-      url4: "https://i.ibb.co/WtR06gb/gd.gif",
+      url3: "https://i.ibb.co/WtR06gb/gd.gif",
 
       name: "功德",
     },
     {
       url1: "http://static2.51gonggui.com/Fl2Zonx2Y8z-xZrSQnGBWzsnRKC9#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/c2b8c1714199f.gif",
-      url3: "https://pan.whgpc.com/view.php/c9919c4d4046875398ab6b246e741099.gif",
-      url4: "https://i.ibb.co/HCp8nfK/hyl2.gif",
+      url3: "https://i.ibb.co/HCp8nfK/hyl2.gif",
 
       name: "晃饮料",
     },
     {
       url1: "http://static2.51gonggui.com/FvMXbnIX8RavSBAhflxf1zomD1ov#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/ce54bf9b4abbe.gif",
-      url3: "https://pan.whgpc.com/view.php/2a82f8948a7ada38b8eb1e9cdedea407.gif",
-      url4: "https://i.ibb.co/fnsVq6r/sz.gif",
+      url3: "https://i.ibb.co/fnsVq6r/sz.gif",
 
       name: "扇子",
     },
     {
       url1: "http://static2.51gonggui.com/FmD3h-QCVdJ-ehjLh8_G-nQzynuv#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/1441dd979ce22.gif",
-      url3: "https://pan.whgpc.com/view.php/8f50aefffab062e30c2165f60b019b08.gif",
-      url4: "https://i.ibb.co/64MJMCL/mb.gif",
+      url3: "https://i.ibb.co/64MJMCL/mb.gif",
 
       name: "膜拜",
     },
     {
       url1: "http://static2.51gonggui.com/FoGXe8yRSIomTZFM78TZVyP-kwlz#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/d33fcaada32c2.gif",
-      url3: "https://pan.whgpc.com/view.php/122f5dd1a4913685c404dda5c78c026e.gif",
-      url4: "https://i.ibb.co/yyyKLDr/xx.gif",
+      url3: "https://i.ibb.co/yyyKLDr/xx.gif",
 
       name: "醒醒",
     },
     {
       url1: "http://static2.51gonggui.com/Fim_ZRiJugrWJkDtq4SlqbOziuZ3#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/12e032ec1f22f.gif",
-      url3: "https://pan.whgpc.com/view.php/2258e2b3d9a1139fad6d9a113f656bc0.gif",
-      url4: "https://i.ibb.co/nL32s9K/bz.gif",
+      url3: "https://i.ibb.co/nL32s9K/bz.gif",
 
       name: "巴掌",
     },
     {
       url1: "http://static2.51gonggui.com/FpVLTimqXFvRJB9PxWDKMherZoRi#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/9ec67435a9478.gif",
-      url3: "https://pan.whgpc.com/view.php/fcc1f3b8336776f53f181381d1eb111b.gif",
-      url4: "https://i.ibb.co/12bpF7R/gz.gif",
+      url3: "https://i.ibb.co/12bpF7R/gz.gif",
 
       name: "鼓掌",
     },
     {
       url1: "http://static2.51gonggui.com/Fit100hjJ-T5RwQxeNdoVWplvNvU#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/edf6a0ead646d.gif",
-      url3: "https://pan.whgpc.com/view.php/8916deeb8cdb7c0f8f956230e46b267e.gif",
-      url4: "https://i.ibb.co/C7wyK9x/qz.gif",
+      url3: "https://i.ibb.co/C7wyK9x/qz.gif",
 
       name: "该死",
     },
     {
       url1: "http://static2.51gonggui.com/FkeVK5icB5-Pc7mbZitDTX1AqfNO#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/c0f568beacb26.gif",
-      url3: "https://pan.whgpc.com/view.php/57a622b7f6497b1b9e4a40d3ff8e1496.gif",
-      url4: "https://i.ibb.co/NKZGsFh/xz.gif",
+      url3: "https://i.ibb.co/NKZGsFh/xz.gif",
 
       name: "红酒",
     },
     {
       url1: "http://static2.51gonggui.com/FnjJRSH3_CLjYyyQzVjD8mtY-PdB#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/d2175ea23bebb.gif",
-      url3: "https://pan.whgpc.com/view.php/c66298deb451721f7c2b4e512bbee7f4.gif",
-      url4: "https://i.ibb.co/QQRBQTT/kx.gif",
+      url3: "https://i.ibb.co/QQRBQTT/kx.gif",
 
       name: "开心",
     },
     {
       url1: "http://static2.51gonggui.com/Foqd_tGWrk-ARnNrt-XraMCDzhUS#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/3ae5c9f741f59.gif",
-      url3: "https://pan.whgpc.com/view.php/2714933f8898a06c69017397814a4274.gif",
-      url4: "https://i.ibb.co/Z6jmV32/jz.gif",
+      url3: "https://i.ibb.co/Z6jmV32/jz.gif",
 
       name: "紧张",
     },
     {
       url1: "http://static2.51gonggui.com/FsCE3iHM0REN077WKr0bssyKiR7Z#.gif",
       url2: "https://tucdn.wpon.cn/2023/10/08/5bd9dd04fe8b6.gif",
-      url3: "https://pan.whgpc.com/view.php/02b0cd088bcc9f7bc1991e7a2213e94a.gif",
-      url4: "https://i.ibb.co/Bw8xYQP/kq2.gif",
+      url3: "https://i.ibb.co/Bw8xYQP/kq2.gif",
 
       name: "伤心2",
     },
     {
       url1: "https://p6.itc.cn/q_70/images03/20210723/3b9017a6580644e4af8b43d73b92c0a9.gif",
-      url2: "https://p6.itc.cn/q_70/images03/20210723/3b9017a6580644e4af8b43d73b92c0a9.gif",
-      url3: "https://p6.itc.cn/q_70/images03/20210723/3b9017a6580644e4af8b43d73b92c0a9.gif",
-      url4: "https://p6.itc.cn/q_70/images03/20210723/3b9017a6580644e4af8b43d73b92c0a9.gif",
 
       name: "看戏",
     },
     {
       url1: "https://p0.itc.cn/q_70/images03/20210723/4874b66b12f04be1aab989d289e8635a.gif",
-      url2: "https://p0.itc.cn/q_70/images03/20210723/4874b66b12f04be1aab989d289e8635a.gif",
-      url3: "https://p0.itc.cn/q_70/images03/20210723/4874b66b12f04be1aab989d289e8635a.gif",
-      url4: "https://p0.itc.cn/q_70/images03/20210723/4874b66b12f04be1aab989d289e8635a.gif",
 
       name: "顶你",
     },
     {
       url1: "https://pic2.ziyuan.wang/user/guest/2024/04/kwyjjlck_81f49e01db86c.gif",
-      url2: "https://pic2.ziyuan.wang/user/guest/2024/04/kwyjjlck_81f49e01db86c.gif",
-      url3: "https://pic2.ziyuan.wang/user/guest/2024/04/kwyjjlck_81f49e01db86c.gif",
-      url4: "https://pic2.ziyuan.wang/user/guest/2024/04/kwyjjlck_81f49e01db86c.gif",
 
       name: "哭死",
     },
     {
       url1: "https://p2.itc.cn/q_70/images03/20210723/f9c4a2e9879f438c9f151366442f311e.gif",
-      url2: "https://p2.itc.cn/q_70/images03/20210723/f9c4a2e9879f438c9f151366442f311e.gif",
-      url3: "https://p2.itc.cn/q_70/images03/20210723/f9c4a2e9879f438c9f151366442f311e.gif",
-      url4: "https://p2.itc.cn/q_70/images03/20210723/f9c4a2e9879f438c9f151366442f311e.gif",
 
       name: "看不见",
     },
     {
       url1: "https://p8.itc.cn/q_70/images03/20210723/189ca0ed210142999a1661d2bd3cf852.gif",
-      url2: "https://p8.itc.cn/q_70/images03/20210723/189ca0ed210142999a1661d2bd3cf852.gif",
-      url3: "https://p8.itc.cn/q_70/images03/20210723/189ca0ed210142999a1661d2bd3cf852.gif",
-      url4: "https://p8.itc.cn/q_70/images03/20210723/189ca0ed210142999a1661d2bd3cf852.gif",
 
       name: "蹲坑",
     },
     {
       url1: "https://pic2.zhimg.com/v2-568bb2311e00c3ecbc4dd49ab0709f09_b.gif",
-      url2: "https://pic2.zhimg.com/v2-568bb2311e00c3ecbc4dd49ab0709f09_b.gif",
-      url3: "https://pic2.zhimg.com/v2-568bb2311e00c3ecbc4dd49ab0709f09_b.gif",
-      url4: "https://pic2.zhimg.com/v2-568bb2311e00c3ecbc4dd49ab0709f09_b.gif",
 
       name: "磨刀",
     },
     {
       url1: "https://pic.ziyuan.wang/user/sub/2024/04/458ed8da862d4a71bc5ab4c2435711fd_088c2fc6f5680.png",
-      url2: "https://pic.ziyuan.wang/user/sub/2024/04/458ed8da862d4a71bc5ab4c2435711fd_088c2fc6f5680.png",
-      url3: "https://pic.ziyuan.wang/user/sub/2024/04/458ed8da862d4a71bc5ab4c2435711fd_088c2fc6f5680.png",
-      url4: "https://pic.ziyuan.wang/user/sub/2024/04/458ed8da862d4a71bc5ab4c2435711fd_088c2fc6f5680.png",
 
       name: "小丑",
     },
     {
       url1: "https://i.piantu.cn/2024/04/14/839386c85e1803d082b11cfe2fe5c33f.gif",
-      url2: "https://i.piantu.cn/2024/04/14/839386c85e1803d082b11cfe2fe5c33f.gif",
-      url3: "https://i.piantu.cn/2024/04/14/839386c85e1803d082b11cfe2fe5c33f.gif",
-      url4: "https://i.piantu.cn/2024/04/14/839386c85e1803d082b11cfe2fe5c33f.gif",
 
       name: "有鬼",
     },
@@ -2073,7 +1998,7 @@
               <select data-key="imageBedType" id="imageBedType">
                 <option value="水墨图床">水墨图床</option>
                 <option value="极速图床">极速图床</option>
-                <option value="葫芦侠图床">葫芦侠图床</option>
+                <option value="美团图床">美团图床</option>
               </select>
             </li>
             <li>
@@ -2524,8 +2449,7 @@
               <select data-key="replyFaceImageBed" id="replyFaceImageBed">
                 <option value="url1">妖友七牛云</option>
                 <option value="url2">极速图床</option>
-                <option value="url3">无花果网盘</option>
-                <option value="url4">imgBB</option>
+                <option value="url3">imgBB</option>
               </select>
             </li>
             <hr>
@@ -4004,9 +3928,9 @@
         allFaceHtml += `
         <img
           id="diyFace${i}"
-          data-src="${item[replyFaceImageBed || "url1"]}"
+          data-src="${item[replyFaceImageBed] || item.url1}"
           style="width: 32px;height: 32px"
-          src="${item[replyFaceImageBed || "url1"]}"
+          src="${item[replyFaceImageBed] || item.url1}"
           value="${item.name}.gif"
         />`;
       });
@@ -4334,31 +4258,35 @@
       async function uploadFile(file) {
         let uploadConfig = {
           水墨图床: {
-            url1: "https://img.ink/api/upload",
+            url: "https://img.ink/api/upload",
             name: "image",
             token: inkToken || "",
           },
           极速图床: {
-            url1: "https://tucdn.wpon.cn/api/upload",
+            url: "https://tucdn.wpon.cn/api/upload",
             name: "image",
             token: speedFreeToken || "",
           },
-          葫芦侠图床: {
-            url1: "https://api.suyanw.cn/huluxia/upload.php",
-            name: "file",
+          美团图床: {
+            url: "https://aapi.helioho.st/upload.php",
+            name: "image",
           },
         };
         let {
-          url1: uploadUrl,
+          url: uploadUrl,
           name: uploadName,
           token: uploadToken,
         } = uploadConfig[imageBedType];
 
         let formData = new FormData();
         formData.append(uploadName, file);
+
+        if (imageBedType === "美团图床") {
+          formData.append("fileId", file.name);
+        }
         try {
           let response;
-          if (imageBedType === "葫芦侠图床") {
+          if (imageBedType === "美团图床") {
             response = await fetch(uploadUrl, {
               method: "POST",
               body: formData,
