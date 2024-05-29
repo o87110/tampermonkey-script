@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.10.12
+// @version      4.10.13
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -160,13 +160,13 @@
     // 动态胜率：true开启，false关闭；会根据最近15条地方答案动态调整策略
     isPublishBoastDynamicWinRate: false,
     // 发牛动态胜率来源：1我的大话，2全部大话
-    publishBoastDynamicRateSource: "2",
+    publishBoastDynamicRateSource: "1",
     // 吃吹牛动态概率：true开启，false关闭；会根据最近15条地方答案动态调整策略
     isEatBoastDynamicWinRate: true,
     // 10次后才开启动态胜率
     dynamicWinRateAfter10times: false,
     // 动态概率统计几局
-    dynamicWinRateCount: 15,
+    dynamicWinRateCount: 10,
     // 是否半夜停止发牛，0-7不自动发牛
     isMidnightStopPublishBoast: true,
     // 策略2倍数
@@ -5749,15 +5749,15 @@
           rate1 = publishAnswer1Rate;
           console.log(`当前小于10次用默认概率:${publishAnswer1Rate}`);
         }
-        if (dynamicWinRateCount !== 15) {
-          let { yzSelect2: Select2ByAll, total: totalByAll } = await handleData(
-            tempDiv,
-            true
-          );
-          let rateAll = (Select2ByAll / totalByAll).toFixed(2);
+        // if (dynamicWinRateCount !== 15) {
+        //   let { yzSelect2: Select2ByAll, total: totalByAll } = await handleData(
+        //     tempDiv,
+        //     true
+        //   );
+        //   let rateAll = (Select2ByAll / totalByAll).toFixed(2);
 
-          console.log(`计算局数:${totalByAll},概率为${rateAll}`);
-        }
+        //   console.log(`计算局数:${totalByAll},概率为${rateAll}`);
+        // }
 
         console.log(`计算局数:${total},动态概率初始值:${rate1}`);
         // 动态策略最小0.35，最大0.65
