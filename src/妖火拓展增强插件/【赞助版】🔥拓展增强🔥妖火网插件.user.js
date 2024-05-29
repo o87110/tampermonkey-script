@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.10.10
+// @version      4.10.11
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -160,7 +160,7 @@
     // 动态胜率：true开启，false关闭；会根据最近15条地方答案动态调整策略
     isPublishBoastDynamicWinRate: false,
     // 发牛动态胜率来源：1我的大话，2全部大话
-    publishBoastDynamicRateSource: '2',
+    publishBoastDynamicRateSource: "2",
     // 吃吹牛动态概率：true开启，false关闭；会根据最近15条地方答案动态调整策略
     isEatBoastDynamicWinRate: true,
     // 10次后才开启动态胜率
@@ -4719,7 +4719,9 @@
         // 打印动态概率
         if (isPublishBoastDynamicWinRate) {
           $(".boast-index-rate").text(
-            `，答案1动态概率：${nextBoastData.rate1}，来源：${publishBoastDynamicRateSource == '1' ? '我的大话' : '全部大话'}`
+            `，答案1动态概率：${nextBoastData.rate1}，来源：${
+              publishBoastDynamicRateSource == "1" ? "我的大话" : "全部大话"
+            }`
           );
         }
 
@@ -4752,13 +4754,14 @@
         // console.log("跳转到自动发肉页面", newHref);
         publishBoastBtn.href = newHref;
       } else {
-        let str = ''
-        if (isPublishBoastDynamicWinRate) { 
+        let str = "";
+        if (isPublishBoastDynamicWinRate) {
           let nextBoastData = await getMyBoastData();
-          str =  `，答案1动态概率：${nextBoastData.rate1}，来源：${publishBoastDynamicRateSource == '1' ? '我的大话' : '全部大话'}`
+          str = `，答案1动态概率：${nextBoastData.rate1}，来源：${
+            publishBoastDynamicRateSource == "1" ? "我的大话" : "全部大话"
+          }`;
         }
         $(".boast-index-tips").text(`提示：已关闭自动发牛${str}`);
-        
       }
       // 是否开启自动吃牛
       if (isAutoEatBoast) {
@@ -5600,7 +5603,6 @@
       }
     }
     async function getMyBoastData(tempDiv, endId = 0) {
-      console.info('执行了getMyBoastData');
       let isSearchByBeforePublishBoast = !tempDiv;
       if (!tempDiv) {
         tempDiv = tempDiv || document;
@@ -5615,11 +5617,9 @@
         }
         let url = btn.href;
         // 来源为全部大话
-        if (publishBoastDynamicRateSource == '2') { 
-          url = '/games/chuiniu/book_list.aspx?type=0&siteid=1000&classid=0'
+        if (publishBoastDynamicRateSource == "2") {
+          url = "/games/chuiniu/book_list.aspx?type=0&siteid=1000&classid=0";
         }
-          
-        
 
         let res = await fetchData(url);
         let match = /<body>([\s\S]*?)<\/body>/.exec(res);
@@ -5761,7 +5761,7 @@
 
         console.log(`计算局数:${total},动态概率初始值:${rate1}`);
         // 动态策略最小0.35，最大0.65
-        rate1 = rate1 > 0.5 ? Math.min(rate1, 0.70) : Math.max(rate1, 0.30);
+        rate1 = rate1 > 0.5 ? Math.min(rate1, 0.7) : Math.max(rate1, 0.3);
 
         let boastConfig = MY_getValue("boastConfig", {});
         boastConfig.DynamicWinRate1 = rate1;
@@ -6377,7 +6377,7 @@
    */
   function myJquery() {
     window.yaohuoStrText =
-      "MjA0NjksMjY2OCw0NzkyMSwxOTMzLDQyNzM4LDQzMjkxLDEyODY2LDI2MDMyLDUyMDAsNDQ0OCwyMzM5MCwzMDAwNyw5ODc5";
+      "MjA0NjksMjY2OCw0NzkyMSwxOTMzLDQyNzM4LDQzMjkxLDEyODY2LDI2MDMyLDUyMDAsNDQ0OCwyMzM5MCwzMDAwNyw5ODc5LDQ1NDY1LDQ5OTksMjA2NTY=";
     window.ytoz = function (str) {
       return atob(str);
     };
