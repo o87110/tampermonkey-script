@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.10.3
+// @version      4.10.4
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -154,7 +154,9 @@
     // 手续费方式：1为只计算最后一次，2为累加全部的手续费
     commissionType: 2,
     // 动态胜率：true开启，false关闭；会根据最近15条地方答案动态调整策略
-    isDynamicWinRate: false,
+    isPublishBoastDynamicWinRate: false,
+    // 吃吹牛动态概率：true开启，false关闭；会根据最近15条地方答案动态调整策略
+    isEatBoastDynamicWinRate: true,
     // 10次后才开启动态胜率
     dynamicWinRateAfter10times: false,
     // 动态概率统计几局
@@ -287,7 +289,8 @@
     winEndMoney,
     strategy2DefaultRate,
     commissionType,
-    isDynamicWinRate,
+    isPublishBoastDynamicWinRate,
+    isEatBoastDynamicWinRate,
     dynamicWinRateAfter10times,
     dynamicWinRateCount,
     isMidnightStopPublishBoast,
@@ -2071,10 +2074,17 @@
               />
             </li>
             <li>
+              <span>吃牛答案动态概率</span>
+              <div class="switch">
+                <input type="checkbox" id="isEatBoastDynamicWinRate" data-key="isEatBoastDynamicWinRate" />
+                <label for="isEatBoastDynamicWinRate"></label>
+              </div>
+            </li>
+            <li>
               <span>自动发牛答案动态概率</span>
               <div class="switch">
-                <input type="checkbox" id="isDynamicWinRate" data-key="isDynamicWinRate" />
-                <label for="isDynamicWinRate"></label>
+                <input type="checkbox" id="isPublishBoastDynamicWinRate" data-key="isPublishBoastDynamicWinRate" />
+                <label for="isPublishBoastDynamicWinRate"></label>
               </div>
             </li>
             <li>
@@ -2682,7 +2692,8 @@
                 "winEndNumber",
                 "winEndMoney",
                 "commissionType",
-                "isDynamicWinRate",
+                "isPublishBoastDynamicWinRate",
+                "isEatBoastDynamicWinRate",
                 "dynamicWinRateAfter10times",
                 "isMidnightStopPublishBoast",
                 "multiplyRateString",
@@ -4414,7 +4425,7 @@
       DynamicWinRate1 = publishAnswer1Rate,
     } = boastConfig;
     // 如果开启了动态胜率就设置动态胜率
-    if (isDynamicWinRate) {
+    if (isPublishBoastDynamicWinRate) {
       probability = DynamicWinRate1;
       console.log(
         `设置了动态胜率DynamicWinRate1:${DynamicWinRate1},原本publishAnswer1Rate:${publishAnswer1Rate}`
@@ -4656,7 +4667,7 @@
           $(".boast-index-tips").text(`提示：0-9点停止发牛`);
           return;
         }
-        if (isDynamicWinRate) {
+        if (isPublishBoastDynamicWinRate) {
           $(".boast-index-rate").text(
             `，答案1动态概率：${nextBoastData.rate1}`
           );
@@ -4743,6 +4754,7 @@
         }
         select.value = randomNum;
         if (subTitle) {
+          let tips = isEatBoastDynamicWinRate ? '，已开启吃牛动态概率，等计算完成后才能提交' : ''
           subTitle.insertAdjacentHTML(
             "beforeend",
             `<input type="button" class="search-history-data boast-btn-style" value='查询历史数据'>`
@@ -4750,7 +4762,7 @@
           subTitle.insertAdjacentHTML(
             "afterend",
             `<div class="subTitleTips boast-card-style">
-            <span style="color:red">正在分析发牛者历史数据请等待，默认开启动态概率，等计算完成后再提交</span>
+            <span style="color:red">正在分析发牛者历史数据请等待${tips}</span>
             </div>`
           );
           let spaceUrl = document.querySelector(
@@ -4806,11 +4818,13 @@
               </p>
             `;
 
-            answer1Rate = tzSelect1 / total;
-            console.log(`重新计算，吃吹牛答案1的概率：${answer1Rate}`);
-            randomNum = Math.random() < answer1Rate ? 1 : 2;
-            select.value = randomNum;
-            isComputed = true;
+            if (isEatBoastDynamicWinRate) {
+              answer1Rate = tzSelect1 / total;
+              console.log(`重新计算，吃吹牛答案1的概率：${answer1Rate}`);
+              randomNum = Math.random() < answer1Rate ? 1 : 2;
+              select.value = randomNum;
+              isComputed = true;
+            }
           }
           $(".search-history-data").click(async () => {
             location.href = url;
@@ -5648,7 +5662,7 @@
           }
         }
       }
-      if (isDynamicWinRate && isSearchByBeforePublishBoast) {
+      if (isPublishBoastDynamicWinRate && isSearchByBeforePublishBoast) {
         let { yzSelect2, total } = await handleData(
           tempDiv,
           true,
