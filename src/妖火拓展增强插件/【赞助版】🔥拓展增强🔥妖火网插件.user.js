@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.10.7
+// @version      4.10.8
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -159,6 +159,8 @@
     commissionType: 2,
     // 动态胜率：true开启，false关闭；会根据最近15条地方答案动态调整策略
     isPublishBoastDynamicWinRate: false,
+    // 发牛动态胜率来源：1我的大话，2全部大话
+    publishBoastDynamicRateSource: '2',
     // 吃吹牛动态概率：true开启，false关闭；会根据最近15条地方答案动态调整策略
     isEatBoastDynamicWinRate: true,
     // 10次后才开启动态胜率
@@ -296,6 +298,7 @@
     strategy2DefaultRate,
     commissionType,
     isPublishBoastDynamicWinRate,
+    publishBoastDynamicRateSource,
     isEatBoastDynamicWinRate,
     dynamicWinRateAfter10times,
     dynamicWinRateCount,
@@ -2103,11 +2106,18 @@
               </div>
             </li>
             <li>
-              <span>自动发牛答案动态概率</span>
+              <span>发牛答案动态概率</span>
               <div class="switch">
                 <input type="checkbox" id="isPublishBoastDynamicWinRate" data-key="isPublishBoastDynamicWinRate" />
                 <label for="isPublishBoastDynamicWinRate"></label>
               </div>
+            </li>
+            <li>
+              <span>发牛动态概率取自</span>
+              <select data-key="publishBoastDynamicRateSource" id="publishBoastDynamicRateSource">
+                <option value="1">我的大话</option>
+                <option value="2">全部大话</option>
+              </select>
             </li>
             <li>
               <span>动态概率10局后开启</span>
@@ -2717,6 +2727,7 @@
                 "winEndMoney",
                 "commissionType",
                 "isPublishBoastDynamicWinRate",
+                "publishBoastDynamicRateSource",
                 "isEatBoastDynamicWinRate",
                 "dynamicWinRateAfter10times",
                 "isMidnightStopPublishBoast",
@@ -4635,6 +4646,7 @@
 
         let nextBoastData = await getMyBoastData();
         let { loseMoney, nextMoney } = nextBoastData;
+        // 设置自动发牛金额异常提示
         if (loseMoney && parseFloat(nextMoney) > loseMoney * 3) {
           if (nextMoneyAbnormalProcessingMethod == 1) {
             $(".boast-index-tips").text(
@@ -4652,16 +4664,19 @@
         // winEndNumber winEndNumberData
         let winIdData = MY_getValue("winIdData", []);
         let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
+        // 设置了赢了停止发牛
         if (nextBoastData.lastIsWin && lastWinIsEnd) {
           $(".boast-index-tips").text("提示：当前赢了停止发牛");
           console.log("提示：当前赢了停止发牛");
           return;
         }
+        // 设置了赢了指定次数停止发牛
         if (winEndNumber && winIdData.length >= winEndNumber) {
           $(".boast-index-tips").text(`提示：赢了${winEndNumber}次，自动停止`);
           console.log(`提示：赢了${winEndNumber}次，自动停止`);
           return;
         }
+        // 设置了赢了指定妖精停止发牛
         if (winEndMoney && boastPlayGameObject.total >= winEndMoney) {
           $(".boast-index-tips").text(
             `提示：赢了${boastPlayGameObject.total}妖精，自动停止`
@@ -4670,7 +4685,9 @@
           return;
         }
 
+        // 添加定时器
         if (!timer) {
+          // 根据是否有人吃牛动态调整刷新间隔
           autoPublishBoastInterval = nextBoastData.isFinished
             ? parseInt(autoPublishBoastInterval) - 25
             : parseInt(autoPublishBoastInterval) + 5;
@@ -4690,7 +4707,7 @@
         }
         // autoPublishBoastInterval
         console.log("nextBoastData", nextBoastData);
-        // 小于7点不发牛
+        // 0-9点停止发牛
         if (
           isMidnightStopPublishBoast &&
           new Date().getHours() < 9 &&
@@ -4699,9 +4716,10 @@
           $(".boast-index-tips").text(`提示：0-9点停止发牛`);
           return;
         }
+        // 打印动态概率
         if (isPublishBoastDynamicWinRate) {
           $(".boast-index-rate").text(
-            `，答案1动态概率：${nextBoastData.rate1}`
+            `，答案1动态概率：${nextBoastData.rate1}，来源：${publishBoastDynamicRateSource == '1' ? '我的大话' : '全部大话'}`
           );
         }
 
@@ -4734,7 +4752,13 @@
         // console.log("跳转到自动发肉页面", newHref);
         publishBoastBtn.href = newHref;
       } else {
-        $(".boast-index-tips").text("提示：已关闭自动发牛");
+        let str = ''
+        if (isPublishBoastDynamicWinRate) { 
+          let nextBoastData = await getMyBoastData();
+          str =  `答案1动态概率：${nextBoastData.rate1}，来源：${publishBoastDynamicRateSource == '1' ? '我的大话' : '全部大话'}`
+        }
+        $(".boast-index-tips").text(`提示：已关闭自动发牛,${str}`);
+        
       }
       // 是否开启自动吃牛
       if (isAutoEatBoast) {
@@ -5576,6 +5600,7 @@
       }
     }
     async function getMyBoastData(tempDiv, endId = 0) {
+      console.info('执行了getMyBoastData');
       let isSearchByBeforePublishBoast = !tempDiv;
       if (!tempDiv) {
         tempDiv = tempDiv || document;
@@ -5589,6 +5614,12 @@
           };
         }
         let url = btn.href;
+        // 来源为全部大话
+        if (publishBoastDynamicRateSource == '2') { 
+          url = '/games/chuiniu/book_list.aspx?type=0&siteid=1000&classid=0'
+        }
+          
+        
 
         let res = await fetchData(url);
         let match = /<body>([\s\S]*?)<\/body>/.exec(res);
@@ -5730,7 +5761,7 @@
 
         console.log(`计算局数:${total},动态概率初始值:${rate1}`);
         // 动态策略最小0.35，最大0.65
-        rate1 = rate1 > 0.5 ? Math.min(rate1, 0.65) : Math.max(rate1, 0.35);
+        rate1 = rate1 > 0.5 ? Math.min(rate1, 0.70) : Math.max(rate1, 0.30);
 
         let boastConfig = MY_getValue("boastConfig", {});
         boastConfig.DynamicWinRate1 = rate1;
