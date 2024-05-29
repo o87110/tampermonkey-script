@@ -2549,7 +2549,7 @@
               </select>
             </li>
             <li>
-              <span>自动加载最大数：<i class="range-num">${maxLoadNum}</i>个</span>
+              <span>加载最大数：<i class="range-num">${maxLoadNum}</i>个</span>
               <input
                 id="maxLoadNum"
                 type="range"
@@ -3449,7 +3449,7 @@
         (e) => {
           if (autoEatList[id] && !confirm("当前已经吃过肉，是否继续回复")) {
             // 取消提交
-            textarea.value = "";
+            // textarea.value = "";
             e.preventDefault();
             e.stopPropagation();
           }
@@ -4728,6 +4728,13 @@
       console.log(`吃吹牛答案1的概率：${answer1Rate}`);
       let randomNum = Math.random() < answer1Rate ? 1 : 2;
       let isAutoEat = window.location.search.includes("open=new");
+      let isComputed = false;
+      submit.addEventListener("click", (e) => {
+        if (!isComputed) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
       if (document.title === "应战") {
         // 应战结果就返回
         if (!select) {
@@ -4743,7 +4750,7 @@
           subTitle.insertAdjacentHTML(
             "afterend",
             `<div class="subTitleTips boast-card-style">
-            <span style="color:red">正在分析发牛者历史数据请等待</span>
+            <span style="color:red">正在分析发牛者历史数据请等待，默认开启动态概率，等计算完成后再提交</span>
             </div>`
           );
           let spaceUrl = document.querySelector(
@@ -4800,9 +4807,10 @@
             `;
 
             answer1Rate = tzSelect1 / total;
-            // console.log(`重新计算，吃吹牛答案1的概率：${answer1Rate}`);
-            // randomNum = Math.random() < answer1Rate ? 1 : 2;
-            // select.value = randomNum;
+            console.log(`重新计算，吃吹牛答案1的概率：${answer1Rate}`);
+            randomNum = Math.random() < answer1Rate ? 1 : 2;
+            select.value = randomNum;
+            isComputed = true;
           }
           $(".search-history-data").click(async () => {
             location.href = url;
