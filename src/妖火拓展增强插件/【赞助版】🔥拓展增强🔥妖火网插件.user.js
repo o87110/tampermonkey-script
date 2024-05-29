@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.10.6
+// @version      4.10.7
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -122,6 +122,10 @@
     eatBoastMaxMoney: 100000,
     isReplaceHistoryHref: true,
 
+    // 发牛随机颜色
+    publishBoastRandomColor: false,
+    // 发牛指定颜色
+    publishBoastColor: "#3d68a8",
     // 是否自动发吹牛：true为是：false为否
     isAutoPublishBoast: false,
     // 自动发牛的时间间隔
@@ -274,6 +278,8 @@
     eatBoastMaxMoney,
     isReplaceHistoryHref,
 
+    publishBoastColor,
+    publishBoastRandomColor,
     isAutoPublishBoast,
     autoPublishBoastStrategy,
     autoPublishBoastInitialValue,
@@ -2050,6 +2056,22 @@
               </div>
             </li>
             <li>
+              <span>发牛随机颜色</span>
+              <div class="switch">
+                <input type="checkbox" id="publishBoastRandomColor" data-key="publishBoastRandomColor" />
+                <label for="publishBoastRandomColor"></label>
+              </div>
+            </li>
+            <li>
+              <span>发牛默认颜色：<a class="clear-color-btn">清除</a></span>
+              <input 
+                id="publishBoastColor" 
+                data-key="publishBoastColor"
+                type="color" 
+                value="${publishBoastColor}"
+              >
+            </li>
+            <li>
               <span>发牛答案一概率：<i class="range-num">${publishAnswer1Rate}</i></span>
               <input
                 type="range"
@@ -2678,6 +2700,8 @@
                 "isAutoEatBoast",
                 "eatBoastMaxNum",
                 "eatBoastMaxMoney",
+                "publishBoastColor",
+                "publishBoastRandomColor",
                 "isAutoPublishBoast",
                 "autoPublishBoastStrategy",
                 "autoPublishBoastInitialValue",
@@ -2854,6 +2878,7 @@
         default:
           if (status === "edit") {
             item.value = getValue(dataKey, "");
+            clearColorData(dataKey);
           } else {
             setValue(dataKey, item.value);
           }
@@ -2881,7 +2906,14 @@
         .join("\n");
       setValue("quickReplyStr", value);
     }
-
+    function clearColorData(dataKey) {
+      if (dataKey === "publishBoastColor") {
+        $(".clear-color-btn").click(() => {
+          setValue("publishBoastColor", "");
+          $("#publishBoastColor").prop("value", "#3d68a8");
+        });
+      }
+    }
     function clearWinData(dataKey) {
       if (["winEndMoney", "winEndNumber"].includes(dataKey)) {
         $(".clear-win-data-btn").click(() => {
@@ -3778,7 +3810,7 @@
           <span id='ubb_b' style="${spanstyle}">加粗</span>
           <span id='ubb_i' style="${spanstyle}">斜体</span>
 
-          <span id='ubb_color' style="${spanstyle}">颜色字</span>
+          <span id='ubb_random_color' style="${spanstyle}">颜色字</span>
           <span id='ubb_u' style="${spanstyle}">下划</span>
           <span id='ubb_strike' style="${spanstyle}">删除</span>
           <span id='ubb_hr' style="${spanstyle}">分割</span>
@@ -4740,7 +4772,7 @@
       let randomNum = Math.random() < answer1Rate ? 1 : 2;
       let isAutoEat = window.location.search.includes("open=new");
       let isComputed = false;
-      submit.addEventListener("click", (e) => {
+      submit?.addEventListener("click", (e) => {
         if (!isComputed) {
           e.preventDefault();
           e.stopPropagation();
@@ -4754,7 +4786,9 @@
         }
         select.value = randomNum;
         if (subTitle) {
-          let tips = isEatBoastDynamicWinRate ? '，已开启吃牛动态概率，等计算完成后才能提交' : ''
+          let tips = isEatBoastDynamicWinRate
+            ? "，已开启吃牛动态概率，等计算完成后才能提交"
+            : "";
           subTitle.insertAdjacentHTML(
             "beforeend",
             `<input type="button" class="search-history-data boast-btn-style" value='查询历史数据'>`
@@ -4856,6 +4890,7 @@
       let number = document.querySelector("input[type=number]");
       let submit = document.querySelector("input[type=submit]");
       let select = document.querySelector("select");
+      let question = document.querySelector("input[name=question]");
       let answer1Rate = publishAnswer1Rate;
       console.log(`发布吹牛答案1的概率：${answer1Rate}`);
       // let randomNum = Math.random() < answer1Rate ? 2 : 1;
@@ -4863,6 +4898,15 @@
       let isAutoEat = window.location.search.includes("open=new");
       if (document.title === "公开挑战") {
         if (select) {
+          // 随机颜色
+          if (publishBoastColor !== "#3d68a8" || publishBoastRandomColor) {
+            let randomColor = publishBoastColor;
+            if (publishBoastRandomColor) {
+              randomColor = getColorWithinBrightnessRange();
+            }
+            question.value = `[forecolor=${randomColor}]${question.value}[/forecolor]`;
+          }
+
           let publishMoney = getUrlParameters().publishMoney;
 
           if (publishMoney) {
@@ -4923,7 +4967,7 @@
                 location.href = "/games/chuiniu/index.aspx";
               } else {
                 setItem("publishNumber", publishNumber - 1);
-                location.href = "/games/chuiniu/add.aspx?open=new";
+                location.href = `/games/chuiniu/add.aspx?open=new&publishMoney=${batchPublishBoastMoney}`;
               }
             }, 1000);
           }
