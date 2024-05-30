@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.11.5
+// @version      4.11.6
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -4719,9 +4719,7 @@
         // 打印动态概率
         if (isPublishBoastDynamicWinRate) {
           $(".boast-index-rate").text(
-            `，答案1动态概率：${nextBoastData.rate1}，来源：${
-              publishBoastDynamicRateSource == "1" ? "我的大话" : "全部大话"
-            }`
+            `，答案1动态概率：${nextBoastData.rate1}，来源：我的大话`
           );
         }
 
@@ -4738,12 +4736,20 @@
           location.href = newHref;
         } else {
           $(".boast-index-tips").text("提示：未完成不发牛");
+          
           console.log("当前未完成不发牛");
         }
       } else if (isAutoAddMoney) {
         $(".boast-index-tips").text("提示：已开启半自动发牛");
         let nextBoastData = await getMyBoastData();
         let { loseMoney, nextMoney } = nextBoastData;
+
+        // 打印动态概率
+        if (isPublishBoastDynamicWinRate) {
+          $(".boast-index-rate").text(
+            `，答案1动态概率：${nextBoastData.rate1}，来源：我的大话`
+          );
+        }
 
         let href = publishBoastBtn.href;
         nextMoney = nextMoney || 500;
@@ -5617,7 +5623,7 @@
         }
         let url = btn.href;
         // 来源为全部大话
-        if (publishBoastDynamicRateSource == "2") {
+        if (publishBoastDynamicRateSource == "2" && !isAutoPublishBoast && !isAutoAddMoney) {
           url = "/games/chuiniu/book_list.aspx?type=0&siteid=1000&classid=0";
         }
 
