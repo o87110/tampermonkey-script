@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.11.6
+// @version      4.12.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -4688,22 +4688,7 @@
         // 添加定时器
         if (!timer) {
           // 根据是否有人吃牛动态调整刷新间隔
-          autoPublishBoastInterval = nextBoastData.isFinished
-            ? parseInt(autoPublishBoastInterval) - 25
-            : parseInt(autoPublishBoastInterval) + 5;
-          if (autoPublishBoastInterval <= 5) {
-            autoPublishBoastInterval = 5;
-          }
-          if (autoPublishBoastInterval >= 50) {
-            autoPublishBoastInterval = 50;
-          }
-          yaohuo_userData.autoPublishBoastInterval = autoPublishBoastInterval;
-          console.log("autoPublishBoastInterval", autoPublishBoastInterval);
-          timer = setInterval(function () {
-            location.reload();
-          }, autoPublishBoastInterval * 1000);
-
-          MY_setValue("yaohuo_userData", yaohuo_userData);
+          addInterval(nextBoastData.isFinished);
         }
         // autoPublishBoastInterval
         console.log("nextBoastData", nextBoastData);
@@ -4736,7 +4721,7 @@
           location.href = newHref;
         } else {
           $(".boast-index-tips").text("提示：未完成不发牛");
-          
+
           console.log("当前未完成不发牛");
         }
       } else if (isAutoAddMoney) {
@@ -4771,6 +4756,10 @@
       }
       // 是否开启自动吃牛
       if (isAutoEatBoast) {
+        // 添加定时器
+        if (!timer) {
+          addInterval(list.length);
+        }
         for (const item of list) {
           let match = item.innerHTML.match(/\((\d+)妖晶\)$/);
           let number = parseInt(match[1]);
@@ -4801,7 +4790,7 @@
       let subTitle = document.querySelector(".subtitle");
       // 吃多吃2少吃1
       let answer1Rate = eatAnswer1Rate;
-      console.log(`吃吹牛答案1的概率：${answer1Rate}`);
+      // console.log(`吃吹牛答案1的概率：${answer1Rate}`);
       let randomNum = Math.random() < answer1Rate ? 1 : 2;
       let isAutoEat = window.location.search.includes("open=new");
       let isComputed = false;
@@ -5041,6 +5030,25 @@
           `<a href="/games/chuiniu/doit.aspx?siteid=1000&classid=0&id=${id}">一键跳转</a>`
         );
       }
+    }
+    function addInterval(isFinished) {
+      autoPublishBoastInterval = isFinished
+        ? parseInt(autoPublishBoastInterval) - 25
+        : parseInt(autoPublishBoastInterval) + 5;
+      if (autoPublishBoastInterval <= 5) {
+        autoPublishBoastInterval = 5;
+      }
+      if (autoPublishBoastInterval >= 50) {
+        autoPublishBoastInterval = 50;
+      }
+
+      yaohuo_userData.autoPublishBoastInterval = autoPublishBoastInterval;
+      console.log("自动吃牛/发牛时间间隔", autoPublishBoastInterval);
+      timer = setInterval(function () {
+        location.reload();
+      }, autoPublishBoastInterval * 1000);
+
+      MY_setValue("yaohuo_userData", yaohuo_userData);
     }
     async function handleAddMyHistoryBoast() {
       let title = document.querySelector(".title");
@@ -5623,7 +5631,11 @@
         }
         let url = btn.href;
         // 来源为全部大话
-        if (publishBoastDynamicRateSource == "2" && !isAutoPublishBoast && !isAutoAddMoney) {
+        if (
+          publishBoastDynamicRateSource == "2" &&
+          !isAutoPublishBoast &&
+          !isAutoAddMoney
+        ) {
           url = "/games/chuiniu/book_list.aspx?type=0&siteid=1000&classid=0";
         }
 
