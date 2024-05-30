@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.11.0
+// @version      4.11.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -179,7 +179,7 @@
     // 策略4默认值
     defaultValueByStrategy4String: "500,500,500,500",
     defaultValueByStrategy4: [500, 500, 500, 500],
-    // 下一把金额异常处理方式：1停止，2从第局开始发
+    // 下一把金额异常处理方式：1停止，2从第局开始发，3忽略
     nextMoneyAbnormalProcessingMethod: 1,
     // 超时从第一局发牛
     overtimeFromFirstRoundPublish: false,
@@ -2157,6 +2157,7 @@
               <select data-key="nextMoneyAbnormalProcessingMethod" id="nextMoneyAbnormalProcessingMethod">
                 <option value="1">停止自动发牛</option>
                 <option value="2">自动发牛从第一把开始</option>
+                <option value="3">忽略不做任何处理</option>
               </select>
             </li>
             <li>
@@ -4659,7 +4660,6 @@
           } else if (nextMoneyAbnormalProcessingMethod == 2) {
             nextMoney = getNextMoney(1, true);
           }
-          return;
         }
         // winEndNumber winEndNumberData
         let winIdData = MY_getValue("winIdData", []);
