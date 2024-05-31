@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.12.5
+// @version      4.13.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -167,6 +167,8 @@
     dynamicWinRateAfter10times: false,
     // 动态概率统计几局
     dynamicWinRateCount: 10,
+    // 历史统计次数
+    getHistoryCount: 8,
     // 是否半夜停止发牛，0-7不自动发牛
     isMidnightStopPublishBoast: true,
     // 策略2倍数
@@ -302,6 +304,7 @@
     isEatBoastDynamicWinRate,
     dynamicWinRateAfter10times,
     dynamicWinRateCount,
+    getHistoryCount,
     isMidnightStopPublishBoast,
     multiplyRate,
     multiplyRateString,
@@ -2127,12 +2130,24 @@
               </div>
             </li>
             <li>
+              <span>统计历史记录：<i class="range-num">${getHistoryCount}</i>次</span>
+              <input
+                type="range"
+                id="getHistoryCount"
+                data-key="getHistoryCount"
+                min="${0}"
+                value="${getHistoryCount}"
+                max="${15}"
+                step="${1}"
+              />
+            </li>
+            <li>
               <span>动态概率计算几局：<i class="range-num">${dynamicWinRateCount}</i></span>
               <input
                 type="range"
                 id="dynamicWinRateCount"
                 data-key="dynamicWinRateCount"
-                min="${2}"
+                min="${0}"
                 value="${dynamicWinRateCount}"
                 max="${15}"
                 step="${1}"
@@ -2738,6 +2753,7 @@
                 "nextMoneyAbnormalProcessingMethod",
                 "overtimeFromFirstRoundPublish",
                 "autoPublishBoastTimeout",
+                "getHistoryCount",
                 "dynamicWinRateCount",
                 "isAutoAddMoney",
               ],
@@ -4817,55 +4833,62 @@
         }
         select.value = randomNum;
         if (subTitle) {
-          let tips = isEatBoastDynamicWinRate
-            ? "，已开启吃牛动态概率，等计算完成后才能提交"
-            : "";
           subTitle.insertAdjacentHTML(
             "beforeend",
             `<input type="button" class="search-history-data boast-btn-style" value='查询历史数据'>`
-          );
-          subTitle.insertAdjacentHTML(
-            "afterend",
-            `<div class="subTitleTips boast-card-style">
-            <span style="color:red">正在分析发牛者历史数据请等待${tips}</span>
-            </div>`
           );
           let spaceUrl = document.querySelector(
             "a[href^='/bbs/userinfo.aspx']"
           ).href;
           let userId = await getUserId(spaceUrl);
           let url = `/games/chuiniu/book_list.aspx?type=0&touserid=${userId}&siteid=1000&classid=0`;
-          let res = await fetchData(url);
-          let match = /<body>([\s\S]*?)<\/body>/.exec(res);
-          let bodyString = match?.[0];
-          bodyString = bodyString.replace(
-            /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-            ""
-          );
-          if (bodyString) {
-            let tempDiv = document.createElement("div");
-            tempDiv.innerHTML = bodyString;
-            let res = await handleData(tempDiv, true);
-            tempDiv = null;
-            let {
-              total,
-              tzSelect1,
-              tzSelect2,
-              tzSelect1Win,
-              tzSelect2Win,
-              tzWin,
-              tzWinRate,
-              yzSelect1,
-              yzSelect2,
-              yzSelect1Win,
-              yzSelect2Win,
-              tzSelectString,
-              yzSelectString,
-              tzSelectDomString,
-              tzMoney,
-              yzMoney,
-            } = res;
-            document.querySelector(".subTitleTips").innerHTML = `
+          $(".search-history-data").click(async () => {
+            location.href = url;
+          });
+          // 大于0次才显示
+          if (parseInt(getHistoryCount) > 0) {
+            let tips = isEatBoastDynamicWinRate
+              ? "，已开启吃牛动态概率，等计算完成后才能提交"
+              : "";
+
+            subTitle.insertAdjacentHTML(
+              "afterend",
+              `<div class="subTitleTips boast-card-style">
+            <span style="color:red">正在分析发牛者历史数据请等待${tips}</span>
+            </div>`
+            );
+
+            let res = await fetchData(url);
+            let match = /<body>([\s\S]*?)<\/body>/.exec(res);
+            let bodyString = match?.[0];
+            bodyString = bodyString.replace(
+              /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+              ""
+            );
+            if (bodyString) {
+              let tempDiv = document.createElement("div");
+              tempDiv.innerHTML = bodyString;
+              let res = await handleData(tempDiv, true, 0, getHistoryCount);
+              tempDiv = null;
+              let {
+                total,
+                tzSelect1,
+                tzSelect2,
+                tzSelect1Win,
+                tzSelect2Win,
+                tzWin,
+                tzWinRate,
+                yzSelect1,
+                yzSelect2,
+                yzSelect1Win,
+                yzSelect2Win,
+                tzSelectString,
+                yzSelectString,
+                tzSelectDomString,
+                tzMoney,
+                yzMoney,
+              } = res;
+              document.querySelector(".subTitleTips").innerHTML = `
               <p>发牛者过去${total}条中，选择了：${tzSelectDomString}，答案一：${tzSelect1}次，选择答案二：${tzSelect2}次</p>
               <p>选择1胜率：
               <b style="color:${tzSelect1 > tzSelect2 ? "red" : "unset"}">
@@ -4873,27 +4896,27 @@
               </b>
               ，选择2胜率：
               <b style="color:${tzSelect1 < tzSelect2 ? "red" : "unset"}">${(
-              tzSelect2 / total || 0
-            ).toFixed(2)}</b>
+                tzSelect2 / total || 0
+              ).toFixed(2)}</b>
               </p>
               <p>
               发吹牛<b style="color:${tzMoney >= 0 ? "red" : "green"}">${
-              tzMoney > 0 ? "赢了" : "输了"
-            }</b>${Math.abs(tzMoney)}妖精\n
+                tzMoney > 0 ? "赢了" : "输了"
+              }</b>${Math.abs(tzMoney)}妖精\n
               </p>
             `;
 
-            if (isEatBoastDynamicWinRate) {
-              answer1Rate = tzSelect1 / total;
-              console.log(`重新计算，吃吹牛答案1的概率：${answer1Rate}`);
-              randomNum = Math.random() < answer1Rate ? 1 : 2;
-              select.value = randomNum;
-              isComputed = true;
+              if (isEatBoastDynamicWinRate) {
+                answer1Rate = tzSelect1 / total;
+                console.log(`重新计算，吃吹牛答案1的概率：${answer1Rate}`);
+                randomNum = Math.random() < answer1Rate ? 1 : 2;
+                select.value = randomNum;
+                isComputed = true;
+              }
             }
+          } else {
+            isComputed = true;
           }
-          $(".search-history-data").click(async () => {
-            location.href = url;
-          });
         }
         let payMoney = document
           .querySelector("form")
@@ -4951,7 +4974,9 @@
           // 非自动发牛展示历史数据
           if (!isAutoEat) {
             setItem("publishNumber", "0");
-            await handleAddMyHistoryBoast();
+            if (parseInt(getHistoryCount) > 0) {
+              await handleAddMyHistoryBoast();
+            }
           }
 
           // 自动发牛未完成跳回首页
@@ -5088,7 +5113,7 @@
       if (bodyString) {
         let tempDiv = document.createElement("div");
         tempDiv.innerHTML = bodyString;
-        let res = await handleData(tempDiv, true);
+        let res = await handleData(tempDiv, true, 0, getHistoryCount);
         let {
           total,
           tzSelect1,
