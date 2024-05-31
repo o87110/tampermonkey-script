@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.13.0
+// @version      4.13.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -4857,62 +4857,68 @@
             <span style="color:red">正在分析发牛者历史数据请等待${tips}</span>
             </div>`
             );
+            try {
+              let res = await fetchData(url);
+              let match = /<body>([\s\S]*?)<\/body>/.exec(res);
+              let bodyString = match?.[0];
+              bodyString = bodyString.replace(
+                /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+                ""
+              );
+              if (bodyString) {
+                let tempDiv = document.createElement("div");
+                tempDiv.innerHTML = bodyString;
+                let res = await handleData(tempDiv, true, 0, getHistoryCount);
+                tempDiv = null;
+                let {
+                  total,
+                  tzSelect1,
+                  tzSelect2,
+                  tzSelect1Win,
+                  tzSelect2Win,
+                  tzWin,
+                  tzWinRate,
+                  yzSelect1,
+                  yzSelect2,
+                  yzSelect1Win,
+                  yzSelect2Win,
+                  tzSelectString,
+                  yzSelectString,
+                  tzSelectDomString,
+                  tzMoney,
+                  yzMoney,
+                } = res;
+                document.querySelector(".subTitleTips").innerHTML = `
+                  <p>发牛者过去${total}条中，选择了：${tzSelectDomString}，答案一：${tzSelect1}次，选择答案二：${tzSelect2}次</p>
+                  <p>选择1胜率：
+                  <b style="color:${tzSelect1 > tzSelect2 ? "red" : "unset"}">
+                  ${(tzSelect1 / total || 0).toFixed(2)}
+                  </b>
+                  ，选择2胜率：
+                  <b style="color:${
+                    tzSelect1 < tzSelect2 ? "red" : "unset"
+                  }">${(tzSelect2 / total || 0).toFixed(2)}</b>
+                  </p>
+                  <p>
+                  发吹牛<b style="color:${tzMoney >= 0 ? "red" : "green"}">${
+                  tzMoney > 0 ? "赢了" : "输了"
+                }</b>${Math.abs(tzMoney)}妖精\n
+                  </p>
+                `;
 
-            let res = await fetchData(url);
-            let match = /<body>([\s\S]*?)<\/body>/.exec(res);
-            let bodyString = match?.[0];
-            bodyString = bodyString.replace(
-              /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-              ""
-            );
-            if (bodyString) {
-              let tempDiv = document.createElement("div");
-              tempDiv.innerHTML = bodyString;
-              let res = await handleData(tempDiv, true, 0, getHistoryCount);
-              tempDiv = null;
-              let {
-                total,
-                tzSelect1,
-                tzSelect2,
-                tzSelect1Win,
-                tzSelect2Win,
-                tzWin,
-                tzWinRate,
-                yzSelect1,
-                yzSelect2,
-                yzSelect1Win,
-                yzSelect2Win,
-                tzSelectString,
-                yzSelectString,
-                tzSelectDomString,
-                tzMoney,
-                yzMoney,
-              } = res;
-              document.querySelector(".subTitleTips").innerHTML = `
-              <p>发牛者过去${total}条中，选择了：${tzSelectDomString}，答案一：${tzSelect1}次，选择答案二：${tzSelect2}次</p>
-              <p>选择1胜率：
-              <b style="color:${tzSelect1 > tzSelect2 ? "red" : "unset"}">
-              ${(tzSelect1 / total || 0).toFixed(2)}
-              </b>
-              ，选择2胜率：
-              <b style="color:${tzSelect1 < tzSelect2 ? "red" : "unset"}">${(
-                tzSelect2 / total || 0
-              ).toFixed(2)}</b>
-              </p>
-              <p>
-              发吹牛<b style="color:${tzMoney >= 0 ? "red" : "green"}">${
-                tzMoney > 0 ? "赢了" : "输了"
-              }</b>${Math.abs(tzMoney)}妖精\n
-              </p>
-            `;
-
-              if (isEatBoastDynamicWinRate) {
-                answer1Rate = tzSelect1 / total;
-                console.log(`重新计算，吃吹牛答案1的概率：${answer1Rate}`);
-                randomNum = Math.random() < answer1Rate ? 1 : 2;
-                select.value = randomNum;
-                isComputed = true;
+                if (isEatBoastDynamicWinRate) {
+                  answer1Rate = tzSelect1 / total;
+                  console.log(`重新计算，吃吹牛答案1的概率：${answer1Rate}`);
+                  randomNum = Math.random() < answer1Rate ? 1 : 2;
+                  select.value = randomNum;
+                  isComputed = true;
+                }
               }
+            } catch (error) {
+              isComputed = true;
+              document.querySelector(
+                ".subTitleTips"
+              ).innerHTML = `请求被拦截，统计失败！`;
             }
           } else {
             isComputed = true;
@@ -5089,92 +5095,73 @@
       MY_setValue("yaohuo_userData", yaohuo_userData);
     }
     async function handleAddMyHistoryBoast() {
-      let title = document.querySelector(".title");
-      title.insertAdjacentHTML(
-        "afterend",
-        `<div class="subTitleTips boast-card-style">
+      try {
+        let title = document.querySelector(".title");
+        title.insertAdjacentHTML(
+          "afterend",
+          `<div class="subTitleTips boast-card-style">
         <span style="color:red">正在分析发牛历史数据请等待</span>
         </div>`
-      );
-      document.querySelector(".boast-card-style").style.boxShadow =
-        "0px 0px 2px 1px #ccc";
-      let myBoastHistoryHref = MY_getValue("myBoastHistoryHref", "");
-      if (!myBoastHistoryHref) {
-        console.log("myBoastHistoryHref为空");
-        return false;
-      }
-      let res = await fetchData(myBoastHistoryHref);
-      let match = /<body>([\s\S]*?)<\/body>/.exec(res);
-      let bodyString = match?.[0];
-      bodyString = bodyString.replace(
-        /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-        ""
-      );
-      if (bodyString) {
-        let tempDiv = document.createElement("div");
-        tempDiv.innerHTML = bodyString;
-        let res = await handleData(tempDiv, true, 0, getHistoryCount);
-        let {
-          total,
-          tzSelect1,
-          tzSelect2,
-          tzSelect1Win,
-          tzSelect2Win,
-          tzWin,
-          tzWinRate,
-          yzSelect1,
-          yzSelect2,
-          yzSelect1Win,
-          yzSelect2Win,
-          tzSelectString,
-          yzSelectString,
-          tzSelectDomString,
-          yzSelectDomString,
-          tzMoney,
-          yzMoney,
-        } = res;
-        document.querySelector(".subTitleTips").innerHTML = `
+        );
+        document.querySelector(".boast-card-style").style.boxShadow =
+          "0px 0px 2px 1px #ccc";
+        let myBoastHistoryHref = MY_getValue("myBoastHistoryHref", "");
+        if (!myBoastHistoryHref) {
+          console.log("myBoastHistoryHref为空");
+          return false;
+        }
+        let res = await fetchData(myBoastHistoryHref);
+        let match = /<body>([\s\S]*?)<\/body>/.exec(res);
+        let bodyString = match?.[0];
+        bodyString = bodyString.replace(
+          /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+          ""
+        );
+        if (bodyString) {
+          let tempDiv = document.createElement("div");
+          tempDiv.innerHTML = bodyString;
+          let res = await handleData(tempDiv, true, 0, getHistoryCount);
+          let {
+            total,
+            tzSelect1,
+            tzSelect2,
+            tzSelect1Win,
+            tzSelect2Win,
+            tzWin,
+            tzWinRate,
+            yzSelect1,
+            yzSelect2,
+            yzSelect1Win,
+            yzSelect2Win,
+            tzSelectString,
+            yzSelectString,
+            tzSelectDomString,
+            yzSelectDomString,
+            tzMoney,
+            yzMoney,
+          } = res;
+          document.querySelector(".subTitleTips").innerHTML = `
           <p>发牛者过去${total}条中，选择了：${tzSelectDomString}，答案一：${tzSelect1}次/${(
-          tzSelect1 / total
-        ).toFixed(2)}，选择答案二：${tzSelect2}次/${(tzSelect2 / total).toFixed(
-          2
-        )}</p>
-          <p>吃牛者过去${total}条中，选择了：${yzSelectDomString}，答案一：${yzSelect1}次/${(
-          yzSelect1 / total
-        ).toFixed(2)}，选择答案二：${yzSelect2}次/${(yzSelect2 / total).toFixed(
-          2
-        )}</p>
-        <p>
-          发吹牛<b style="color:${tzMoney >= 0 ? "red" : "green"}">${
-          tzMoney > 0 ? "赢了" : "输了"
-        }</b>${Math.abs(tzMoney)}妖精
-          </p>
-        `;
-        /* 
-        <p>发牛发布1胜率：
-            <b style="color:${tzSelect1Win > tzSelect2Win ? "red" : "unset"}">
-            ${(tzSelect1Win / total).toFixed(2)}
-            </b>
-            ，发布2胜率：
-            <b style="color:${tzSelect1Win < tzSelect2Win ? "red" : "unset"}">
-            ${(tzSelect2Win / total).toFixed(2)}
-            </b>
-          </p>
-          <p>吃牛选择1胜率：
-            <b style="color:${yzSelect1Win > yzSelect2Win ? "red" : "unset"}">
-            ${(yzSelect1Win / total).toFixed(2)}
-            </b>
-            ，选择2胜率：
-            <b style="color:${yzSelect1Win < yzSelect2Win ? "red" : "unset"}">
-            ${(yzSelect2Win / total).toFixed(2)}
-            </b>
-          </p>
+            tzSelect1 / total
+          ).toFixed(2)}，选择答案二：${tzSelect2}次/${(
+            tzSelect2 / total
+          ).toFixed(2)}</p>
+            <p>吃牛者过去${total}条中，选择了：${yzSelectDomString}，答案一：${yzSelect1}次/${(
+            yzSelect1 / total
+          ).toFixed(2)}，选择答案二：${yzSelect2}次/${(
+            yzSelect2 / total
+          ).toFixed(2)}</p>
           <p>
-          发吹牛<b style="color:${tzMoney >= 0 ? "red" : "green"}">${
-          tzMoney > 0 ? "赢了" : "输了"
-        }</b>${Math.abs(tzMoney)}妖精\n
-          </p>
-        */
+            发吹牛<b style="color:${tzMoney >= 0 ? "red" : "green"}">${
+            tzMoney > 0 ? "赢了" : "输了"
+          }</b>${Math.abs(tzMoney)}妖精
+            </p>
+        `;
+        }
+      } catch (error) {
+        document.querySelector(
+          ".subTitleTips"
+        ).innerHTML = `请求被拦截，统计失败！`;
       }
     }
     function isTimeOut() {
