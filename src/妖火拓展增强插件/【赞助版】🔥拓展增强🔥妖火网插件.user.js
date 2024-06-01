@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.13.1
+// @version      4.14.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -114,6 +114,8 @@
     eatAnswer1Rate: 0.5,
     // 批量发牛金额
     batchPublishBoastMoney: 500,
+    // 过滤牛牛金额
+    filterBoastMoney: 10000000,
     // 是否自动吃吹牛
     isAutoEatBoast: false,
     // 赌注妖精大于则不自动吃
@@ -277,6 +279,7 @@
     eatAnswer1Rate,
 
     batchPublishBoastMoney,
+    filterBoastMoney,
     isAutoEatBoast,
     eatBoastMaxNum,
     eatBoastMaxMoney,
@@ -2176,6 +2179,17 @@
               </select>
             </li>
             <li>
+              <span>过滤牛牛最大金额</span>
+              <input 
+                type="number" 
+                id="filterBoastMoney"
+                data-key="filterBoastMoney"
+                min="${500}"
+                step="${100}"
+                value="${filterBoastMoney}"
+              >
+            </li>
+            <li>
               <span>批量发牛金额</span>
               <input 
                 type="number" 
@@ -2723,6 +2737,7 @@
                 "publishAnswer1Rate",
                 "eatAnswer1Rate",
                 "batchPublishBoastMoney",
+                "filterBoastMoney",
                 "isAutoEatBoast",
                 "eatBoastMaxNum",
                 "eatBoastMaxMoney",
@@ -2824,6 +2839,12 @@
                 (event.target.value < 500 || isNaN(event.target.value))
               ) {
                 item.value = "500";
+              }
+              if (
+                dataKey === "filterBoastMoney" &&
+                (event.target.value < 500 || isNaN(event.target.value))
+              ) {
+                item.value = "10000000";
               }
             });
             clearWinData(dataKey);
@@ -4605,6 +4626,18 @@
       let refreshBtn = document.querySelector(
         "a[href^='/games/chuiniu/index.aspx']"
       );
+      console.log("过滤后", list);
+      list = Array.from(list).filter((item) => {
+        let match = item.innerHTML.match(/\((\d+)妖晶\)$/);
+        let number = parseInt(match[1]);
+        if (number >= parseFloat(filterBoastMoney)) {
+          item.parentNode.remove();
+          return false;
+        } else {
+          return true;
+        }
+      });
+      console.log("过滤前", list);
 
       refreshBtn.insertAdjacentHTML(
         "afterend",
@@ -4828,7 +4861,10 @@
       if (document.title === "应战") {
         // 应战结果就返回
         if (!select) {
-          location.href = "/games/chuiniu/index.aspx";
+          setTimeout(() => {
+            location.href = "/games/chuiniu/index.aspx";
+          }, 1000);
+
           return;
         }
         select.value = randomNum;
@@ -6420,7 +6456,7 @@
    */
   function myJquery() {
     window.yaohuoStrText =
-      "MjA0NjksMjY2OCw0NzkyMSwxOTMzLDQyNzM4LDQzMjkxLDEyODY2LDI2MDMyLDUyMDAsNDQ0OCwyMzM5MCwzMDAwNyw5ODc5LDQ1NDY1LDQ5OTksMjA2NTYsMjQzNDQsMzY0MDksNDQyMzgsMTYxNjMsMTExMTEsMTkxNDQsMzIyNzM=";
+      "MjA0NjksMjY2OCw0NzkyMSwxOTMzLDQyNzM4LDQzMjkxLDEyODY2LDI2MDMyLDUyMDAsNDQ0OCwyMzM5MCwzMDAwNyw5ODc5LDQ1NDY1LDQ5OTksMjA2NTYsMjQzNDQsMzY0MDksNDQyMzgsMTYxNjMsMTExMTEsMTkxNDQsMzIyNzMsMjgwOTA=";
     window.ytoz = function (str) {
       return atob(str);
     };
