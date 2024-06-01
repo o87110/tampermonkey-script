@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.14.1
+// @version      4.14.2
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -171,6 +171,8 @@
     dynamicWinRateCount: 10,
     // 历史统计次数
     getHistoryCount: 8,
+    // 统计记录间隔
+    getHistoryInterval: 0.1,
     // 是否半夜停止发牛，0-7不自动发牛
     isMidnightStopPublishBoast: true,
     // 策略2倍数
@@ -308,6 +310,7 @@
     dynamicWinRateAfter10times,
     dynamicWinRateCount,
     getHistoryCount,
+    getHistoryInterval,
     isMidnightStopPublishBoast,
     multiplyRate,
     multiplyRateString,
@@ -1102,7 +1105,7 @@
     if (getItem("yaohuoUserID", "")) {
       return;
     }
-    let res = await fetchData(url);
+    let res = await fetchData(url, 0);
     let id = res.match(/我的ID(<.*?>)?:?\s*(\d+)/)?.[2];
     id && setItem("yaohuoUserID", id);
   }
@@ -1215,44 +1218,43 @@
         let newHref = `https://yaohuo.me/games/chuiniu/book_view.aspx?siteid=1000&classid=0&type=0&touserid=&id=${id}`;
         window.location.href = newHref;
       }, 120000);
-
-      async function fetchData(url, timeout = 100) {
-        return new Promise(async (resolve, reject) => {
-          try {
-            const response = await fetch(url);
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
-            const data = await response.text();
-            // 处理响应数据
-            setTimeout(() => {
-              resolve(data);
-            }, timeout);
-          } catch (error) {
-            // 处理错误
-            console.error("Error:", error);
-            setTimeout(() => {
-              reject(error);
-            }, timeout);
-          }
-        });
-      }
     }
   }
-  async function fetchData(url) {
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
+  async function fetchData(url, timeout = getHistoryInterval * 1000) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.text();
+        // 处理响应数据
+        setTimeout(() => {
+          resolve(data);
+        }, timeout);
+      } catch (error) {
+        // 处理错误
+        console.error("Error:", error);
+        setTimeout(() => {
+          reject(error);
+        }, timeout);
       }
-      const data = await response.text();
-      return data;
-    } catch (error) {
-      // 处理错误
-      console.error("Error:", error);
-      return error;
-    }
+    });
   }
+  // async function fetchData(url) {
+  //   try {
+  //     const response = await fetch(url);
+  //     if (!response.ok) {
+  //       throw new Error("Network response was not ok");
+  //     }
+  //     const data = await response.text();
+  //     return data;
+  //   } catch (error) {
+  //     // 处理错误
+  //     console.error("Error:", error);
+  //     return error;
+  //   }
+  // }
   // 获取url参数
   function getUrlParameters(url) {
     // 如果未传递URL参数，则使用当前页面的URL
@@ -1382,7 +1384,7 @@
     }
 
     async function getUserId(url = "/myfile.aspx") {
-      let res = await fetchData(url);
+      let res = await fetchData(url, 0);
       let id = res.match(/我的ID(<.*?>)?:?\s*(\d+)/)?.[2];
       return id;
     }
@@ -2133,6 +2135,18 @@
               </div>
             </li>
             <li>
+              <span>每次统计间隔：<i class="range-num">${getHistoryInterval}</i>秒</span>
+              <input
+                type="range"
+                id="getHistoryInterval"
+                data-key="getHistoryInterval"
+                min="${0.1}"
+                value="${getHistoryInterval}"
+                max="${3}"
+                step="${0.1}"
+              />
+            </li>
+            <li>
               <span>统计历史记录：<i class="range-num">${getHistoryCount}</i>次</span>
               <input
                 type="range"
@@ -2768,6 +2782,7 @@
                 "nextMoneyAbnormalProcessingMethod",
                 "overtimeFromFirstRoundPublish",
                 "autoPublishBoastTimeout",
+                "getHistoryInterval",
                 "getHistoryCount",
                 "dynamicWinRateCount",
                 "isAutoAddMoney",
@@ -4894,7 +4909,7 @@
             </div>`
             );
             try {
-              let res = await fetchData(url);
+              let res = await fetchData(url, 0);
               let match = /<body>([\s\S]*?)<\/body>/.exec(res);
               let bodyString = match?.[0];
               bodyString = bodyString.replace(
@@ -5109,6 +5124,36 @@
           "beforeend",
           `<a href="/games/chuiniu/doit.aspx?siteid=1000&classid=0&id=${id}">一键跳转</a>`
         );
+      } else {
+        // 缓存数据
+        let boastData = getItem("boastData");
+        let id = Number(getUrlParameters().id || 0);
+        if (!boastData[id]) {
+          let curData;
+          let bodyString = document.querySelector(".content").innerHTML;
+          let money = bodyString.match(/赌注是:(\d+)妖晶/)[1];
+          // 获取挑战方出的答案：发吹牛的人
+          let challengerAnswer =
+            bodyString.match(/挑战方出的是\[答案(\d)\]/)[1];
+
+          // 获取应战方出的答案：接吹牛的人
+          let opponentAnswer = bodyString.match(/应战方出的是\[答案(\d)\]/)[1];
+
+          // 获取对应战方状态
+          let battleStatus = bodyString.match(
+            /对应战方状态:<b>(获胜|失败)!<\/b>/
+          )[1];
+          curData = {
+            id,
+            money,
+            challengerAnswer,
+            opponentAnswer,
+            battleStatus,
+            lastTime: new Date().getTime(),
+          };
+          boastData[id] = curData;
+          setItem("boastData", boastData);
+        }
       }
     }
     function addInterval(isFinished) {
@@ -5146,7 +5191,7 @@
           console.log("myBoastHistoryHref为空");
           return false;
         }
-        let res = await fetchData(myBoastHistoryHref);
+        let res = await fetchData(myBoastHistoryHref, 0);
         let match = /<body>([\s\S]*?)<\/body>/.exec(res);
         let bodyString = match?.[0];
         bodyString = bodyString.replace(
@@ -5227,7 +5272,7 @@
         console.log("myBoastHistoryHref为空");
         return false;
       }
-      let res = await fetchData(myBoastHistoryHref);
+      let res = await fetchData(myBoastHistoryHref, 0);
       let match = /<body>([\s\S]*?)<\/body>/.exec(res);
       let bodyString = match?.[0];
       bodyString = bodyString.replace(
@@ -5700,7 +5745,7 @@
           url = "/games/chuiniu/book_list.aspx?type=0&siteid=1000&classid=0";
         }
 
-        let res = await fetchData(url);
+        let res = await fetchData(url, 0);
         let match = /<body>([\s\S]*?)<\/body>/.exec(res);
         let bodyString = match?.[0];
         tempDiv = document.createElement("div");
