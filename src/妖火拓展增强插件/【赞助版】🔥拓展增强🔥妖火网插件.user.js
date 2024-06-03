@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.14.3
+// @version      4.14.4
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -2952,7 +2952,7 @@
 
     if (status === "edit") {
       $("#replyTextarea").on("change", function (event) {
-        console.warn(event.target.value);
+        // console.warn(event.target.value);
         let value = event.target.value;
         this.value = value
           .split("\n")
@@ -2962,7 +2962,7 @@
       });
     } else {
       let value = document.querySelector("#replyTextarea").value;
-      console.info(value);
+      // console.info(value);
       value = value
         .split("\n")
         .map((item) => item.trim())
