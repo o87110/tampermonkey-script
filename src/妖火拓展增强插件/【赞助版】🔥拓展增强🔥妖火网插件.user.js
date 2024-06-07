@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.14.7
+// @version      4.15.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -155,6 +155,8 @@
     winEndNumber: 10,
     // 赢多少妖精结束
     winEndMoney: 20000,
+    // 剩多少妖精结束
+    maxEndMoney: 500,
     // 策略2后续默认倍数: 2
     strategy2DefaultRate: 2,
     // 手续费方式：1为只计算最后一次，2为累加全部的手续费
@@ -172,7 +174,7 @@
     // 历史统计次数
     getHistoryCount: 8,
     // 统计记录间隔
-    getHistoryInterval: 0.2,
+    getHistoryInterval: 0.5,
     // 是否半夜停止发牛，0-7不自动发牛
     isMidnightStopPublishBoast: true,
     // 策略2倍数
@@ -302,6 +304,7 @@
     lastWinIsEnd,
     winEndNumber,
     winEndMoney,
+    maxEndMoney,
     strategy2DefaultRate,
     commissionType,
     isPublishBoastDynamicWinRate,
@@ -2312,6 +2315,19 @@
               >
             </li>
             <li>
+              <span>剩多少停发牛：</span>
+              <input 
+                style="width:100px"
+                type="number" 
+                id="maxEndMoney"
+                data-key="maxEndMoney"
+                min="${500}"
+                max="${10000000}"
+                step="${100}"
+                value="${maxEndMoney}"
+              >
+            </li>
+            <li>
               <span>超时从第一局发牛</span>
               <div class="switch">
                 <input type="checkbox" id="overtimeFromFirstRoundPublish" data-key="overtimeFromFirstRoundPublish" />
@@ -2762,6 +2778,7 @@
                 "strategy2DefaultRate",
                 "winEndNumber",
                 "winEndMoney",
+                "maxEndMoney",
                 "commissionType",
                 "isPublishBoastDynamicWinRate",
                 "publishBoastDynamicRateSource",
@@ -2792,10 +2809,12 @@
                 // "autoPublishBoastStrategy",
                 // "autoPublishBoastInitialValue",
                 // "strategy1RecoveryCount",
+                "isMidnightStopPublishBoast",
                 "addCommissionCount",
-                // "lastWinIsEnd",
-                // "winEndNumber",
-                // "winEndMoney",
+                "lastWinIsEnd",
+                "winEndNumber",
+                "winEndMoney",
+                "maxEndMoney",
                 "strategy2DefaultRate",
               ],
               dataKey,
@@ -4530,6 +4549,7 @@
     }
     if (consecutiveCount >= randomConsecutive) {
       randomNumber = previousNumber === 1 ? 2 : 1; // 切换到另一个数字
+      console.log(`大于连续次数${randomConsecutive}，答案反转`)
     }
     return randomNumber;
   }
@@ -4537,7 +4557,7 @@
     let boastConfig = MY_getValue("boastConfig", {});
     let {
       previousNumber,
-      consecutiveCount,
+      consecutiveCount = 1,
       randomConsecutive,
       previousAry = [],
     } = boastConfig;
@@ -4545,11 +4565,13 @@
     if (randomNumber === previousNumber) {
       consecutiveCount++;
     } else {
-      randomConsecutive = getRandomNumber(
-        publishBoastMinConsecutive,
-        publishBoastMaxConsecutive
-      );
-      consecutiveCount = 1;
+      if (consecutiveCount >= randomConsecutive) {
+        randomConsecutive = getRandomNumber(
+          publishBoastMinConsecutive,
+          publishBoastMaxConsecutive
+        );
+        consecutiveCount = 1;
+      }
     }
     previousNumber = randomNumber;
     previousAry.push(randomNumber);
@@ -4743,14 +4765,17 @@
           console.log(`提示：赢了${boastPlayGameObject.total}妖精，自动停止`);
           return;
         }
-
-        // 添加定时器
-        if (!timer) {
-          // 根据是否有人吃牛动态调整刷新间隔
-          addInterval(nextBoastData.isFinished);
+        // 设置了剩多少妖精停止发牛
+        if (
+          maxEndMoney &&
+          money.innerText <= parseFloat(maxEndMoney)
+          // boastPlayGameObject.total >= parseFloat(maxEndMoney)
+        ) {
+          $(".boast-index-tips").text(`提示：妖精低于${maxEndMoney}，自动停止`);
+          console.log(`提示：妖精低于${maxEndMoney}，自动停止`);
+          return;
         }
-        // autoPublishBoastInterval
-        console.log("nextBoastData", nextBoastData);
+
         // 0-9点停止发牛
         if (
           isMidnightStopPublishBoast &&
@@ -4760,6 +4785,15 @@
           $(".boast-index-tips").text(`提示：0-9点停止发牛`);
           return;
         }
+
+        // 添加定时器
+        if (!timer) {
+          // 根据是否有人吃牛动态调整刷新间隔
+          addInterval(nextBoastData.isFinished);
+        }
+        // autoPublishBoastInterval
+        console.log("nextBoastData", nextBoastData);
+        
         // 打印动态概率
         if (isPublishBoastDynamicWinRate) {
           $(".boast-index-rate").text(
@@ -5039,16 +5073,18 @@
               location.href = "/games/chuiniu/index.aspx";
             }, 5000);
           }
+          select.value = randomNum;
+
           // 保存发布的值
           submit.addEventListener(
             "click",
             () => {
-              saveBoastRandomNumber(randomNum);
+              saveBoastRandomNumber(select.value);
             },
             true
           );
 
-          select.value = randomNum;
+          
 
           select.insertAdjacentHTML(
             "afterend",
