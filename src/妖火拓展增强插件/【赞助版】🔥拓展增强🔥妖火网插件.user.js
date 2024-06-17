@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.16.1
+// @version      4.17.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1020,10 +1020,49 @@
     handleNotFoundPage();
     // 吹牛增强
     handleBoast();
+    // 打赏增强
+    handleReward();
     // handleStatisticalData();
   })();
 
   // ==其他功能函数和方法==
+  function handleReward() {
+    if (/^\/bbs-.*\.html$/.test(window.location.pathname)) {
+      let wrap = document.querySelector(".aui-grids");
+      let item = document.querySelectorAll(".aui-grids-item");
+      let typeAmount = document.getElementById("type-amount");
+      let sendmoney = document.querySelector("input[name=sendmoney]");
+      item.forEach((element) => {
+        element.setAttribute("contenteditable", "true");
+
+        // 监听输入事件
+        element.addEventListener("blur", function (event) {
+          let newValue = event.target.textContent;
+          let originalContent = element.textContent;
+
+          const newContent = event.target.textContent;
+          if (isNaN(newContent) || !newContent) {
+            // 如果内容不是数字，恢复到原始内容
+            event.target.textContent = originalContent;
+          } else {
+            // 更新原始内容为新内容
+            originalContent = newContent;
+            this.value = newContent;
+            sendmoney.value = newContent;
+            typeAmount.innerHTML =
+              '打赏<span id="bounty" class="space">' +
+              this.getAttribute("value") +
+              '</span><span class="space"></span>妖晶';
+          }
+          // 在这里执行更新页面的逻辑，例如保存内容到服务器等
+        });
+      });
+
+      // wrap.insertAdjacentHTML("beforeend", `
+      //   <button type="button" class="aui-grids-item" value="88888" contenteditable="true"><span>88888</span></button>
+      // `);
+    }
+  }
 
   function getSelectedDataFromLocalStorage(selectedProperties) {
     // 创建一个空对象，用于存储所选属性的值
