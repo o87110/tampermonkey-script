@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.17.0
+// @version      4.18.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -123,6 +123,8 @@
     // 自身妖精小于则不自动吃
     eatBoastMaxMoney: 100000,
     isReplaceHistoryHref: true,
+    // 自动吃牛最小概率
+    autoEatBoastRate: 0,
 
     // 发牛随机颜色
     publishBoastRandomColor: false,
@@ -285,6 +287,7 @@
     batchPublishBoastMoney,
     filterBoastMoney,
     isAutoEatBoast,
+    autoEatBoastRate,
     eatBoastMaxNum,
     eatBoastMaxMoney,
     isReplaceHistoryHref,
@@ -1412,6 +1415,7 @@
         timestamp: new Date().getTime(),
       };
       setItem("yaohuoLoginInfo", data);
+      setItem("notAutoEatBoastList", []);
     } catch (err) {
       console.info(err);
       throw new Error("加载失败");
@@ -2309,6 +2313,18 @@
               >
             </li>
             <li>
+              <span>自动吃牛最小胜率：<i class="range-num">${autoEatBoastRate}</i></span></span>
+              <input
+                type="range"
+                id="autoEatBoastRate"
+                data-key="autoEatBoastRate"
+                min="${0}"
+                value="${autoEatBoastRate}"
+                max="${1}"
+                step="${0.01}"
+              />
+            </li>
+            <li>
               <span>自动发吹牛</span>
               <div class="switch">
                 <input type="checkbox" id="isAutoPublishBoast" data-key="isAutoPublishBoast" />
@@ -2800,6 +2816,7 @@
                 "batchPublishBoastMoney",
                 "filterBoastMoney",
                 "isAutoEatBoast",
+                "autoEatBoastRate",
                 "eatBoastMaxNum",
                 "eatBoastMaxMoney",
                 "publishBoastColor",
@@ -2839,7 +2856,11 @@
             });
             autoShowElement({
               fatherIdAry: ["isAutoEatBoast"],
-              childIdAry: ["eatBoastMaxNum", "eatBoastMaxMoney"],
+              childIdAry: [
+                "eatBoastMaxNum",
+                "eatBoastMaxMoney",
+                "autoEatBoastRate",
+              ],
               dataKey,
             });
             autoShowElement({
@@ -4694,7 +4715,7 @@
       let refreshBtn = document.querySelector(
         "a[href^='/games/chuiniu/index.aspx']"
       );
-      console.log("过滤后", list);
+      // console.log("过滤后", list);
       list = Array.from(list).filter((item) => {
         let match = item.innerHTML.match(/\((\d+)妖晶\)$/);
         let number = parseInt(match[1]);
@@ -4705,7 +4726,7 @@
           return true;
         }
       });
-      console.log("过滤前", list);
+      // console.log("过滤前", list);
 
       refreshBtn.insertAdjacentHTML(
         "afterend",
@@ -4888,29 +4909,55 @@
       }
       // 是否开启自动吃牛
       if (isAutoEatBoast) {
+        let notAutoEatBoastList = getItem("notAutoEatBoastList", []);
+        let idList = []
+        let filterList = list.filter(item => { 
+          let match = item.innerHTML.match(/\((\d+)妖晶\)$/);
+          let number = parseInt(match[1]);
+          let href = item.getAttribute("href");
+          // console.log("href", href);
+          let id = getUrlParameters(
+            href.includes("yaohuo.me") ? href : location.origin + href
+          ).id;
+
+          idList.push(id)
+
+          return number <= eatBoastMaxNum && !notAutoEatBoastList.includes(String(id))
+        })
+
+
+        console.info('filterList', filterList);
         // 添加定时器
         if (!timer) {
-          addInterval(list.length);
+          addInterval(filterList.length);
         }
-        let newList = Array.from(list).reverse();
+        let newList = Array.from(filterList).reverse();
         if (money.innerText <= parseFloat(eatBoastMaxMoney)) {
           console.log("妖精小于设置金额，已关闭自动吃牛");
           $(".boast-index-tips").text(`妖精小于设置金额，已关闭自动吃牛`);
           clearInterval(timer);
           return;
         }
+        
         for (const item of newList) {
           let match = item.innerHTML.match(/\((\d+)妖晶\)$/);
           let number = parseInt(match[1]);
           let href = item.getAttribute("href");
+          // console.log("href", href);
+          let id = getUrlParameters(
+            href.includes("yaohuo.me") ? href : location.origin + href
+          ).id;
 
           let newHref = href.includes("?")
             ? `${href}&open=new`
             : `${href}?open=new`;
 
           if (number <= eatBoastMaxNum) {
+            console.log("href", notAutoEatBoastList, id);
             // item.click();
-            location.href = newHref;
+            if (!notAutoEatBoastList.includes(String(id))) {
+              location.href = newHref;
+            }
           } else {
             console.log(
               `当前大于设置的赌注妖精：${eatBoastMaxNum}，则不自动吃`
@@ -5048,7 +5095,27 @@
           payMoney &&
           parseFloat(payMoney) <= parseFloat(eatBoastMaxNum)
         ) {
-          submit.click();
+          // answer1Rate >= 0.8 || answer1Rate <= 0.2 autoEatBoastRate
+          if (
+            answer1Rate >= autoEatBoastRate ||
+            1 - answer1Rate >= autoEatBoastRate
+          ) {
+            console.log(`自动吃牛，当前answer1Rate：${answer1Rate}`);
+            submit.click();
+          } else {
+            let notAutoEatBoastList = getItem("notAutoEatBoastList", []);
+
+            console.log(`只自动吃${autoEatBoastRate}概率以上的牛`);
+            let id = getUrlParameters().id;
+            if (!notAutoEatBoastList.includes(id)) {
+              notAutoEatBoastList.push(id);
+              setItem("notAutoEatBoastList", notAutoEatBoastList);
+            }
+
+            setTimeout(() => {
+              location.href = "/games/chuiniu/index.aspx";
+            }, 5000);
+          }
         } else {
           console.log("非自动吃牛，不自动吃");
         }
