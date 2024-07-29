@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         【自用版】🔥拓展增强🔥妖火网插件R3Knos8Ccd
 // @namespace    https://yaohuo.me/
-// @version      5.1.1
+// @version      5.2.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
 // @match        *://*.yaohuo.me/*
 // @icon         https://yaohuo.me/css/favicon.ico
 // @require      https://cdn.jsdelivr.net/npm/ali-oss@6.20.0/dist/aliyun-oss-sdk.min.js
-// @require      https://update.greasyfork.org/scripts/502042/1418641/YaoHuoUtils%E5%BA%93.js#sha256-XTONJEvg4W/QOp61gd5ijTk+2pSjfxGbjQBVm+qd6qs=
+// @require      https://update.greasyfork.org/scripts/502042/1418878/YaoHuoUtils%E5%BA%93.js#sha256-CcFREcmA/8hMlKH0/UlYLiFvdfeQfWj2STZoMlAMjBo=
 // @run-at       document-end
 // @grant        GM_registerMenuCommand
 // @grant        GM_openInTab
@@ -1169,10 +1169,22 @@ void (async function () {
   }
 
   function backupLocalStorageByRemote(forceRevert) {
-    YaoHuoUtils.setData();
+    YaoHuoUtils.setData()
+      .then((res) => {
+        forceRevert && showTooltip(res, 1);
+      })
+      .catch((err) => {
+        forceRevert && showTooltip(res, 0);
+      });
   }
   function restoreLocalStorageByRemote(forceRevert) {
-    YaoHuoUtils.getData(forceRevert);
+    YaoHuoUtils.getData(forceRevert)
+      .then((res) => {
+        forceRevert && showTooltip(res, 1);
+      })
+      .catch((err) => {
+        forceRevert && showTooltip(res, 0);
+      });
   }
   // 获取用户id
   async function getUserId(url = "/myfile.aspx", force = false) {
@@ -1555,6 +1567,37 @@ void (async function () {
       .add-position-static{
         position: static !important;
       }
+
+      .global-tooltip {
+        visibility: hidden;
+        min-width: 200px;
+        background-color: #fff;
+        color: #000;
+        text-align: center;
+        border-radius: 5px;
+        padding: 2px;
+        position: fixed;
+        top: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 2000;
+        opacity: 0;
+        transition: opacity 0.5s, visibility 0.5s;
+        box-shadow: 0px 0px 4px 0px #aaa;
+      }
+
+      .global-tooltip.show {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      .global-tooltip.success {
+        border-left: 5px solid #4caf50; /* Green */
+      }
+
+      .global-tooltip.error {
+        border-left: 5px solid #f44336; /* Red */
+      }
     `);
 
     let innerH = `
@@ -1594,7 +1637,12 @@ void (async function () {
         </svg>
       </div>
     `;
+
+    let globalTipH = `
+      <div id="globalTooltip" class="global-tooltip"></div>
+    `;
     $("body").append(innerH);
+    $("body").append(globalTipH);
 
     const floatingDiv = $("#floating-setting-btn")[0];
 
@@ -1775,6 +1823,28 @@ void (async function () {
       // 更新悬浮图标位置信息
       saveSettingBtnPosition({ top: position.top, left: newLeft });
     }
+  }
+
+  /**
+   * 1成功提示，0失败提示
+   */
+  function showTooltip(message, type = "1", timeout = 3000) {
+    type = type == "1" ? "success" : "error";
+    var tooltip = document.getElementById("globalTooltip");
+    // 移除所有类型类
+    tooltip.classList.remove("success", "error");
+
+    tooltip.innerHTML = message;
+    tooltip.classList.add("show", type);
+
+    setTimeout(function () {
+      tooltip.classList.remove("show");
+
+      // 延迟移除类型类，确保过渡效果结束
+      setTimeout(function () {
+        tooltip.classList.remove(type);
+      }, 500); // 等待过渡效果结束
+    }, timeout); // 3秒后消失
   }
   // 处理窗口改变事件
   function handleWindowResize() {
@@ -2801,13 +2871,23 @@ void (async function () {
     $("#backupLocal").click(backupLocalStorage);
     $("#restoreLocal").click(restoreLocalStorage);
     $("#backupLocalByRemote").click(() => {
-      if (confirm("确认备份数据到远端吗？")) {
-        backupLocalStorageByRemote(true);
+      let lastRemoteBackupTime = getItem("lastRemoteBackupTime", 0);
+      if ((new Date().getTime() - lastRemoteBackupTime) / 1000 > 10) {
+        if (confirm("确认备份数据到远端吗？")) {
+          backupLocalStorageByRemote(true);
+        }
+      } else {
+        showTooltip("请勿频繁操作");
       }
     });
     $("#restoreLocalByRemote").click(() => {
-      if (confirm("确认从远端恢复数据吗")) {
-        restoreLocalStorageByRemote(true);
+      let lastRemoteRestoreTime = getItem("lastRemoteRestoreTime", 0);
+      if ((new Date().getTime() - lastRemoteRestoreTime) / 1000 > 10) {
+        if (confirm("确认从远端恢复数据吗")) {
+          restoreLocalStorageByRemote(true);
+        }
+      } else {
+        showTooltip("请勿频繁操作");
       }
     });
   }
@@ -3470,33 +3550,22 @@ void (async function () {
           if (!autoEatList[id]) {
             if (
               (isNewOpenIframe || loadNextPageType === "more") &&
-              isMobile() &&
-              typeof GM_openInTab !== "function"
+              isMobile()
             ) {
               break;
             }
             if (isNewOpenIframe) {
               // 新窗口
               setTimeout(() => {
-                if (isMobile()) {
-                  if (typeof GM_openInTab == "function") {
-                    GM_openInTab(
-                      newHref.includes(location.origin)
-                        ? newHref
-                        : location.origin + newHref
-                    );
-                  }
-                } else {
-                  // 不通过window.open方式吃肉，无法设置静默状态
-                  // 无法保持原窗口焦点 打开新窗口。会影响其他窗口页面
-                  // 创建一个 iframe 元素
-                  let iframe = document.createElement("iframe");
+                // 不通过window.open方式吃肉，无法设置静默状态
+                // 无法保持原窗口焦点 打开新窗口。会影响其他窗口页面
+                // 创建一个 iframe 元素
+                let iframe = document.createElement("iframe");
 
-                  // 设置 iframe 的属性
-                  iframe.src = newHref;
-                  iframe.style.display = "none";
-                  document.body.appendChild(iframe);
-                }
+                // 设置 iframe 的属性
+                iframe.src = newHref;
+                iframe.style.display = "none";
+                document.body.appendChild(iframe);
               }, Math.max((index + 1) * 1000, 2000));
             } else {
               bbs.href = newHref;
@@ -4024,16 +4093,26 @@ void (async function () {
       document
         .querySelector("#saveDraftButton")
         .addEventListener("click", () => {
-          setTimeout(() => {
-            backupLocalStorageByRemote();
-          }, 10);
+          let lastRemoteBackupTime = getItem("lastRemoteBackupTime", 0);
+          if ((new Date().getTime() - lastRemoteBackupTime) / 1000 > 10) {
+            if (confirm("确认备份数据到远端吗？")) {
+              backupLocalStorageByRemote(true);
+            }
+          } else {
+            showTooltip("请勿频繁操作", 0);
+          }
         });
       document
         .querySelector("#clearDraftButton")
         .addEventListener("click", () => {
-          setTimeout(() => {
-            backupLocalStorageByRemote();
-          }, 10);
+          let lastRemoteBackupTime = getItem("lastRemoteBackupTime", 0);
+          if ((new Date().getTime() - lastRemoteBackupTime) / 1000 > 10) {
+            if (confirm("确认备份数据到远端吗？")) {
+              backupLocalStorageByRemote(true);
+            }
+          } else {
+            showTooltip("请勿频繁操作", 0);
+          }
         });
     }
   }
@@ -6424,7 +6503,7 @@ void (async function () {
   function deleteExpiredID(value, key) {
     let nowTime = new Date().getTime();
     // 吹牛数据默认存储7天
-    let expire = key === "boastData" ? 5 : expiredDays;
+    let expire = key === "boastData" ? 3 : expiredDays;
     let lastTime;
     Object.keys(value).forEach((key) => {
       if (key === "boastData") {

@@ -65,51 +65,59 @@ void (async function () {
 
   // 上传 JSON 文件
   async function uploadJson(fileName, jsonData) {
-    try {
-      // 将 JSON 对象转换为字符串
-      const jsonString = JSON.stringify(jsonData);
-      const options = {
-        meta: { temp: "demo" },
-        mime: "json",
-        headers: { "Content-Type": "text/plain" },
-      };
-      // 将字符串转换为 Blob
-      const blob = new Blob([jsonString], { type: "application/json" });
-      // 上传文件
-      const result = await client.put(fileName, blob);
-      console.log("utils-File uploaded:", new Date().toLocaleString());
-    } catch (err) {
-      console.error("utils-Error uploading file:", err);
-    }
+    return new Promise(async (resolve, reject) => {
+      try {
+        // 将 JSON 对象转换为字符串
+        const jsonString = JSON.stringify(jsonData);
+        const options = {
+          meta: { temp: "demo" },
+          mime: "json",
+          headers: { "Content-Type": "text/plain" },
+        };
+        // 将字符串转换为 Blob
+        const blob = new Blob([jsonString], { type: "application/json" });
+        // 上传文件
+        const result = await client.put(fileName, blob);
+        resolve("备份数据成功");
+        console.log("utils-File uploaded:", new Date().toLocaleString());
+      } catch (err) {
+        console.error("utils-Error uploading file:", err);
+        reject("备份数据失败");
+      }
+    });
   }
 
   // 下载 JSON 文件
   async function downloadJson(fileName, forceRevert) {
-    try {
-      const result = await client.get(fileName);
+    return new Promise(async (resolve, reject) => {
+      try {
+        const result = await client.get(fileName);
 
-      let dateStr = result.res.headers["last-modified"];
-      let lastRemoteBackupTime = getItem("lastRemoteBackupTime", 0);
-      let lastRemoteRestoreTime = getItem("lastRemoteRestoreTime", 0);
-      let modifyTime = new Date(dateStr).getTime();
-      console.info("utils-last-modified", new Date(dateStr).toLocaleString());
-      console.info(
-        "utils-lastRemoteBackupTime",
-        new Date(lastRemoteBackupTime).toLocaleString()
-      );
-      console.info(
-        "utils-lastRemoteRestoreTime",
-        new Date(lastRemoteRestoreTime).toLocaleString()
-      );
-      if (modifyTime > lastRemoteRestoreTime || forceRevert) {
-        console.info("utils--------开始远程数据恢复-------");
-        restoreData(result.content.toString());
-      } else {
-        console.info("utils-文件修改时间小于上次远程恢复时间，取消恢复");
+        let dateStr = result.res.headers["last-modified"];
+        let lastRemoteBackupTime = getItem("lastRemoteBackupTime", 0);
+        let lastRemoteRestoreTime = getItem("lastRemoteRestoreTime", 0);
+        let modifyTime = new Date(dateStr).getTime();
+        console.info("utils-last-modified", new Date(dateStr).toLocaleString());
+        console.info(
+          "utils-lastRemoteBackupTime",
+          new Date(lastRemoteBackupTime).toLocaleString()
+        );
+        console.info(
+          "utils-lastRemoteRestoreTime",
+          new Date(lastRemoteRestoreTime).toLocaleString()
+        );
+        if (modifyTime > lastRemoteRestoreTime || forceRevert) {
+          console.info("utils--------开始远程数据恢复-------");
+          restoreData(result.content.toString());
+          resolve("恢复数据成功");
+        } else {
+          console.info("utils-文件修改时间小于上次远程恢复时间，取消恢复");
+        }
+      } catch (err) {
+        console.error("utils-Error downloading file:", err);
+        reject("恢复数据失败");
       }
-    } catch (err) {
-      console.error("utils-Error downloading file:", err);
-    }
+    });
   }
   function utilsInit() {
     let id = getItem("yaohuoUserID", "");
@@ -136,11 +144,11 @@ void (async function () {
     setData: (forceRevert) => {
       utilsInit();
       let jsonData = getSelectedDataFromLocalStorage();
-      uploadJson(fileName, jsonData);
+      return uploadJson(fileName, jsonData);
     },
     getData: (forceRevert) => {
       utilsInit();
-      downloadJson(fileName, forceRevert);
+      return downloadJson(fileName, forceRevert);
     },
   };
 

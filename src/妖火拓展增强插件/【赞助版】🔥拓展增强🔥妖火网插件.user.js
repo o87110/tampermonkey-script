@@ -1,20 +1,20 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      4.18.0
+// @version      5.0.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
 // @match        *://*.yaohuo.me/*
 // @icon         https://yaohuo.me/css/favicon.ico
+// @require      https://update.greasyfork.org/scripts/502079/1418877/YaoHuoUtilsApi.js#sha256-PG5Ujc4blENa1TRpop4qHT7Nik4SSGoXm5Zb6NykwbM=
 // @run-at       document-end
 // @grant        GM_registerMenuCommand
+// @grant        GM_openInTab
 // @license      MIT
 // ==/UserScript==
 
-(async function () {
-  "use strict";
-
+void (async function () {
   // 实现简易版替换用到的jquery，全部换成原生js太麻烦
   let $, jQuery;
   $ = jQuery = myJquery();
@@ -229,8 +229,10 @@
     selectedAutoSubmit: false,
   };
   let yaohuo_userData = null;
+
   // 数据初始化
   await initSetting();
+
   let {
     isAutoEat,
     isFullAutoEat,
@@ -974,7 +976,7 @@
   const a3style =
     "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #66ccff;border-radius: 10%;";
   // ==主代码执行==
-  (function () {
+  (async function () {
     // 处理新帖也帖子列表页面下一步加载时，页面会到下一页
     // handleMoreLoadNextPage();
 
@@ -1076,8 +1078,13 @@
       var key = localStorage.key(i); // 获取当前键名
 
       // 检查当前键名是否在所选属性数组中
-      if (selectedProperties.includes(key)) {
+      if (!selectedProperties || selectedProperties.includes(key)) {
         var value = localStorage.getItem(key); // 获取对应键名的值
+        if (key === "yaohuo_userData") {
+          let obj = JSON.parse(value);
+          let result = delete obj.websitePassword;
+          value = JSON.stringify(obj);
+        }
         selectedData[key] = value; // 将键值对添加到新对象中
       }
     }
@@ -1111,26 +1118,34 @@
       document.body.removeChild(tempTextArea);
     }
   }
-
-  // 从剪贴板恢复 localStorage 数据
-  function restoreLocalStorage() {
-    // 显示一个提示，要求用户手动粘贴数据
-    var userInput = prompt("请将要恢复的数据粘贴到此处：");
+  function restoreData(userInput) {
     if (userInput !== null && userInput.trim() !== "") {
       try {
         // 解析 JSON 字符串并将数据写入 localStorage
         var parsedData = JSON.parse(userInput);
         if (typeof parsedData === "object" && parsedData !== null) {
+          let newData = getItem("yaohuo_userData");
+          localStorage.clear();
           for (var key in parsedData) {
             if (parsedData.hasOwnProperty(key)) {
-              setItem(key, parsedData[key]);
               if (key === "yaohuo_userData") {
-                yaohuo_userData = parsedData[key];
+                let oldData = JSON.parse(parsedData[key]);
+                for (const oldKey in oldData) {
+                  if (oldData.hasOwnProperty(oldKey)) {
+                    newData[oldKey] = oldData[oldKey];
+                  }
+                }
+                yaohuo_userData = newData;
                 setItem("yaohuo_userData", yaohuo_userData);
+              } else {
+                setItem(key, parsedData[key]);
               }
             }
           }
-          alert("数据已还原");
+
+          setItem("lastRemoteRestoreTime", new Date().getTime());
+
+          // alert("数据已还原");
           setTimeout(() => {
             window.location.reload();
           }, 300);
@@ -1145,13 +1160,42 @@
       alert("没有粘贴任何数据。请确保粘贴有效的数据格式。");
     }
   }
+  // 从剪贴板恢复 localStorage 数据
+  function restoreLocalStorage() {
+    // 显示一个提示，要求用户手动粘贴数据
+    var userInput = prompt("请将要恢复的数据粘贴到此处：");
+    restoreData(userInput);
+  }
+
+  function backupLocalStorageByRemote(forceRevert) {
+    YaoHuoUtils.setData()
+      .then((res) => {
+        forceRevert && showTooltip(res, 1);
+      })
+      .catch((err) => {
+        forceRevert && showTooltip(res, 0);
+      });
+  }
+  function restoreLocalStorageByRemote(forceRevert) {
+    YaoHuoUtils.getData(forceRevert)
+      .then((res) => {
+        forceRevert && showTooltip(res, 1);
+      })
+      .catch((err) => {
+        forceRevert && showTooltip(res, 0);
+      });
+  }
   // 获取用户id
-  async function getUserId(url = "/myfile.aspx") {
-    if (getItem("yaohuoUserID", "")) {
+  async function getUserId(url = "/myfile.aspx", force = false) {
+    if (getItem("yaohuoUserID", "") && !force) {
       return;
     }
     let res = await fetchData(url, 0);
     let id = res.match(/我的ID(<.*?>)?:?\s*(\d+)/)?.[2];
+    if (force) {
+      id && setItem("yaohuoUserID", id);
+      return id;
+    }
     id && setItem("yaohuoUserID", id);
   }
   function handleStyle() {
@@ -1206,7 +1250,7 @@
       let page = 1;
       let initId = Number(getUrlParameters().id || 0);
       let minId = initId - 500;
-      let obj = MY_getValue("boastData");
+      let obj = getItem("boastData");
       let url;
       let id;
       for (id = initId; id > minId; id--) {
@@ -1248,7 +1292,7 @@
           battleStatus,
           lastTime: new Date().getTime(),
         };
-        MY_setValue("boastData", obj);
+        setItem("boastData", obj);
       }
       console.log("当前已结束，等待下次");
       setTimeout(() => {
@@ -1369,10 +1413,11 @@
     return /Mobile/i.test(navigator.userAgent);
   }
   async function initSetting() {
+    window.setItem = setItem;
+    window.getItem = getItem;
     // 获取用户id
     await getUserId();
     await getInfo();
-
     // 在移动设备上执行的代码
     if (isMobile()) {
       // 移动端默认显示站内设置图标
@@ -1381,21 +1426,40 @@
       // 在桌面设备上执行的代码
     }
 
+    let lastRemoteRestoreTime = getItem("lastRemoteRestoreTime", 0);
+    let lastRemoteBackupTime = getItem("lastRemoteBackupTime", 0);
+    console.info(
+      "lastRemoteRestoreTime",
+      new Date(lastRemoteRestoreTime).toLocaleString()
+    );
+    if (
+      !lastRemoteRestoreTime ||
+      ((new Date().getTime() - lastRemoteRestoreTime) / 1000 > 30 &&
+        (new Date().getTime() - lastRemoteBackupTime) / 1000 > 5)
+    ) {
+      restoreLocalStorageByRemote();
+    }
+
     // 获取用户历史数据
-    yaohuo_userData = MY_getValue("yaohuo_userData");
+    yaohuo_userData = getItem("yaohuo_userData");
 
     // 查看本地是否存在旧数据
     if (!yaohuo_userData) {
       yaohuo_userData = settingData;
-      // MY_setValue("yaohuo_userData", yaohuo_userData);
+      // setItem("yaohuo_userData", yaohuo_userData);
     }
+
+    let flag = false;
 
     // 自动更新数据
     for (let value in settingData) {
       if (!yaohuo_userData.hasOwnProperty(value)) {
+        flag = true;
         yaohuo_userData[value] = settingData[value];
-        MY_setValue("yaohuo_userData", yaohuo_userData);
       }
+    }
+    if (flag) {
+      setItem("yaohuo_userData", yaohuo_userData);
     }
 
     initSettingBtnPosition("init");
@@ -1406,26 +1470,28 @@
       return;
     }
 
-    let id = await getUserId();
+    let id = await getUserId(undefined, true);
 
     try {
-      let flag = ytoz(yaohuoStrText).split(",").includes(id);
+      let flag = JSON.parse(ytoz(yaohuoStrText)).find((item) => item.key == id);
+
       let data = {
         token: flag ? ztoy(id) : null,
         timestamp: new Date().getTime(),
       };
-      setItem("yaohuoLoginInfo", data);
+
+      setItem("yaohuoLoginInfo", data, true);
       setItem("notAutoEatBoastList", []);
     } catch (err) {
       console.info(err);
       throw new Error("加载失败");
     }
 
-    async function getUserId(url = "/myfile.aspx") {
-      let res = await fetchData(url, 0);
-      let id = res.match(/我的ID(<.*?>)?:?\s*(\d+)/)?.[2];
-      return id;
-    }
+    // async function getUserId(url = "/myfile.aspx") {
+    //   let res = await fetchData(url, 0);
+    //   let id = res.match(/我的ID(<.*?>)?:?\s*(\d+)/)?.[2];
+    //   return id;
+    // }
   }
   // 更新按钮位置到最右边
   /**
@@ -1500,6 +1566,37 @@
       .add-position-static{
         position: static !important;
       }
+
+      .global-tooltip {
+        visibility: hidden;
+        min-width: 200px;
+        background-color: #fff;
+        color: #000;
+        text-align: center;
+        border-radius: 5px;
+        padding: 2px;
+        position: fixed;
+        top: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 2000;
+        opacity: 0;
+        transition: opacity 0.5s, visibility 0.5s;
+        box-shadow: 0px 0px 4px 0px #aaa;
+      }
+
+      .global-tooltip.show {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      .global-tooltip.success {
+        border-left: 5px solid #4caf50; /* Green */
+      }
+
+      .global-tooltip.error {
+        border-left: 5px solid #f44336; /* Red */
+      }
     `);
 
     let innerH = `
@@ -1539,7 +1636,12 @@
         </svg>
       </div>
     `;
+
+    let globalTipH = `
+      <div id="globalTooltip" class="global-tooltip"></div>
+    `;
     $("body").append(innerH);
+    $("body").append(globalTipH);
 
     const floatingDiv = $("#floating-setting-btn")[0];
 
@@ -1721,6 +1823,28 @@
       saveSettingBtnPosition({ top: position.top, left: newLeft });
     }
   }
+
+  /**
+   * 1成功提示，0失败提示
+   */
+  function showTooltip(message, type = "1", timeout = 3000) {
+    type = type == "1" ? "success" : "error";
+    var tooltip = document.getElementById("globalTooltip");
+    // 移除所有类型类
+    tooltip.classList.remove("success", "error");
+
+    tooltip.innerHTML = message;
+    tooltip.classList.add("show", type);
+
+    setTimeout(function () {
+      tooltip.classList.remove("show");
+
+      // 延迟移除类型类，确保过渡效果结束
+      setTimeout(function () {
+        tooltip.classList.remove(type);
+      }, 500); // 等待过渡效果结束
+    }, timeout); // 3秒后消失
+  }
   // 处理窗口改变事件
   function handleWindowResize() {
     if (!getItem("yaohuoLoginInfo", {}).timestamp) {
@@ -1829,7 +1953,7 @@
       .yaohuo-wrap ::-webkit-scrollbar {
         width: 3px;
       }
-
+ 
       /* 设置滚动条滑块的背景色 */
       .yaohuo-wrap ::-webkit-scrollbar-thumb {
         background-color: #999;
@@ -1870,25 +1994,25 @@
       .yaohuo-wrap li textarea{
         width: 100%;
       }
-
+ 
       .yaohuo-wrap .switch {
         position: relative;
         display: inline-block;
         width: 60px;
         height: 30px;
       }
-
+ 
       .yaohuo-wrap .switch input {
         opacity: 0;
         width: 0;
         height: 0;
       }
-
+ 
       .yaohuo-wrap .password-container{
         width: 60%;
         position: relative;
       }
-
+ 
       .password-container .toggle-password {
         position: absolute;
         top: 52%;
@@ -1896,7 +2020,7 @@
         transform: translateY(-50%);
         cursor: pointer;
       }
-
+ 
       .yaohuo-wrap-title{
         height: 38px !important;
       }
@@ -1906,7 +2030,7 @@
         border-top: 1px dashed #dcdcdc;
         width: 30%; /* 可根据需要调整宽度 */
       }
-
+ 
       .yaohuo-wrap li .password-container input {
         width: 100%;
         box-sizing: border-box;
@@ -1918,7 +2042,7 @@
         box-sizing: border-box;
         height: 30px;
       }
-
+ 
       .yaohuo-wrap .switch label {
         position: absolute;
         cursor: pointer;
@@ -1931,7 +2055,7 @@
         transition: 0.4s;
         border-radius: 34px;
       }
-
+ 
       .yaohuo-wrap .switch label::before {
         position: absolute;
         content: "";
@@ -1943,11 +2067,11 @@
         transition: 0.4s;
         border-radius: 50%;
       }
-
+ 
       .yaohuo-wrap .switch input:checked + label {
         background-color: #2196f3;
       }
-
+ 
       .yaohuo-wrap .switch input:checked + label::before {
         transform: translateX(26px);
       }
@@ -2029,6 +2153,10 @@
               <span id="restoreLocal2" onclick="localStorage.clear();location.reload()"><a href="javascript:;">清除缓存</a></span>
               <span id="backupLocal"><a href="javascript:;">备份数据</a></span>
               <span id="restoreLocal"><a href="javascript:;">恢复数据</a></span>
+            </li>
+            <li>
+              <span id="backupLocalByRemote"><a href="javascript:;">备份数据到远端</a></span>
+              <span id="restoreLocalByRemote"><a href="javascript:;">从远端恢复数据</a></span>
             </li>
             <li class="yaohuo-wrap-title">
               <hr class="title-line title-line-left" />
@@ -2741,6 +2869,26 @@
     $(".ok-btn").click(handleOkBtn);
     $("#backupLocal").click(backupLocalStorage);
     $("#restoreLocal").click(restoreLocalStorage);
+    $("#backupLocalByRemote").click(() => {
+      let lastRemoteBackupTime = getItem("lastRemoteBackupTime", 0);
+      if ((new Date().getTime() - lastRemoteBackupTime) / 1000 > 10) {
+        if (confirm("确认备份数据到远端吗？")) {
+          backupLocalStorageByRemote(true);
+        }
+      } else {
+        showTooltip("请勿频繁操作");
+      }
+    });
+    $("#restoreLocalByRemote").click(() => {
+      let lastRemoteRestoreTime = getItem("lastRemoteRestoreTime", 0);
+      if ((new Date().getTime() - lastRemoteRestoreTime) / 1000 > 10) {
+        if (confirm("确认从远端恢复数据吗")) {
+          restoreLocalStorageByRemote(true);
+        }
+      } else {
+        showTooltip("请勿频繁操作");
+      }
+    });
   }
   /**
    * 设置设置菜单，点击设置打开菜单，并且回显数据，保存则保存数据
@@ -2939,9 +3087,9 @@
               (dataKey === "winEndNumber" && winEndNumber != item.value) ||
               (dataKey === "winEndMoney" && winEndMoney != item.value)
             ) {
-              MY_setValue("winIdData", []);
-              MY_setValue("boastPlayGameObject", {});
-              MY_setValue("currentLatestId", null);
+              setItem("winIdData", []);
+              setItem("boastPlayGameObject", {});
+              setItem("currentLatestId", null);
             }
             setValue(dataKey, item.value);
           }
@@ -3052,9 +3200,9 @@
     function clearWinData(dataKey) {
       if (["winEndMoney", "winEndNumber"].includes(dataKey)) {
         $(".clear-win-data-btn").click(() => {
-          let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
-          MY_setValue("winIdData", []);
-          MY_setValue(
+          let boastPlayGameObject = getItem("boastPlayGameObject", {});
+          setItem("winIdData", []);
+          setItem(
             "boastPlayGameObject",
             Object.assign(boastPlayGameObject, {
               storage: {},
@@ -3062,8 +3210,8 @@
               failCount: 0,
             })
           );
-          MY_setValue("currentLatestId", null);
-          // MY_setValue("boastConfig", {});
+          setItem("currentLatestId", null);
+          // setItem("boastConfig", {});
         });
       }
     }
@@ -3286,7 +3434,7 @@
     setSettingInputEvent("save");
     $("body").removeClass("overflow-hidden-scroll");
     $(".yaohuo-modal-mask").hide();
-    MY_setValue("yaohuo_userData", yaohuo_userData);
+    setItem("yaohuo_userData", yaohuo_userData, true);
     if (!yaohuo_userData.isShowSettingIcon) {
       $("#floating-setting-btn").hide();
     } else {
@@ -3399,6 +3547,13 @@
           // }
 
           if (!autoEatList[id]) {
+            if (
+              (isNewOpenIframe || loadNextPageType === "more") &&
+              isMobile() &&
+              typeof GM_openInTab !== "function"
+            ) {
+              break;
+            }
             if (isNewOpenIframe) {
               // 新窗口
               setTimeout(() => {
@@ -3411,7 +3566,7 @@
                 iframe.src = newHref;
                 iframe.style.display = "none";
                 document.body.appendChild(iframe);
-              }, (index + 1) * 1000);
+              }, Math.max((index + 1) * 1000, 2000));
             } else {
               bbs.href = newHref;
               bbs.click();
@@ -3691,7 +3846,7 @@
             }
           } else {
             console.log("已经吃过了");
-            autoEatCallback();
+            autoEatCallback(false);
           }
         }
       }
@@ -3729,7 +3884,7 @@
     // 只有吃过肉才记录
     if (iSEaten) {
       autoEatList[id] = new Date().getTime();
-      setItem("autoEatList", autoEatList);
+      setItem("autoEatList", autoEatList, true);
     }
 
     if (isFullAutoEat && isAutoEatBbs) {
@@ -3805,12 +3960,48 @@
       return value;
     }
   }
+  function getLocaleStringDate(getTime) {
+    return new Date(+getTime).toLocaleString();
+  }
+
   // 设置值
-  function setItem(key, value) {
+  function setItem(key, value, syncRemote) {
     // if (key === "autoEatList") {
     //   deleteExpiredID(value); //删除过期的肉帖
     // }
+
+    // console.info("设置了数据", key);
     MY_setValue(key, value);
+    let lastRemoteBackupTime = getItem(
+      "lastRemoteBackupTime",
+      new Date().getTime()
+    );
+    let lastRemoteRestoreTime = getItem(
+      "lastRemoteRestoreTime",
+      new Date().getTime()
+    );
+    if (syncRemote) {
+      console.info("new Date", getLocaleStringDate(new Date().getTime()));
+      console.info(
+        "lastRemoteBackupTime",
+        getLocaleStringDate(lastRemoteBackupTime)
+      );
+      console.info(
+        "lastRemoteRestoreTime",
+        getLocaleStringDate(lastRemoteRestoreTime)
+      );
+    }
+
+    if (
+      syncRemote &&
+      (new Date().getTime() - lastRemoteBackupTime) / 1000 > 5 &&
+      (new Date().getTime() - lastRemoteRestoreTime) / 1000 > 10
+    ) {
+      console.info("---------进行远程同步---------", key);
+      //
+      setItem("lastRemoteBackupTime", new Date().getTime());
+      backupLocalStorageByRemote();
+    }
   }
   /**
    * 返回yaohuo_userData里的数据
@@ -3898,6 +4089,31 @@
         ubb_tool.style.display =
           ubb_tool.style.display === "none" ? "block" : "none";
       });
+
+      document
+        .querySelector("#saveDraftButton")
+        .addEventListener("click", () => {
+          let lastRemoteBackupTime = getItem("lastRemoteBackupTime", 0);
+          if ((new Date().getTime() - lastRemoteBackupTime) / 1000 > 10) {
+            if (confirm("确认备份数据到远端吗？")) {
+              backupLocalStorageByRemote(true);
+            }
+          } else {
+            showTooltip("请勿频繁操作", 0);
+          }
+        });
+      document
+        .querySelector("#clearDraftButton")
+        .addEventListener("click", () => {
+          let lastRemoteBackupTime = getItem("lastRemoteBackupTime", 0);
+          if ((new Date().getTime() - lastRemoteBackupTime) / 1000 > 10) {
+            if (confirm("确认备份数据到远端吗？")) {
+              backupLocalStorageByRemote(true);
+            }
+          } else {
+            showTooltip("请勿频繁操作", 0);
+          }
+        });
     }
   }
   // 增加回帖ubb
@@ -3938,13 +4154,13 @@
           <span id='ubb_audio' style="${spanstyle}">音频</span>
           <span id='ubb_movie' style="${spanstyle}">视频</span>
           <span id='ubb_nzgsa' style="${a2style}">你真该死啊</span>
-
+ 
           <br>
           <span id='ubb_text' style="${spanstyle}">半角</span>
           <span id='ubb_br' style="${spanstyle}">换行</span>
           <span id='ubb_b' style="${spanstyle}">加粗</span>
           <span id='ubb_i' style="${spanstyle}">斜体</span>
-
+ 
           <span id='ubb_random_color' style="${spanstyle}">颜色字</span>
           <span id='ubb_u' style="${spanstyle}">下划</span>
           <span id='ubb_strike' style="${spanstyle}">删除</span>
@@ -4583,7 +4799,7 @@
    * @returns 返回生成后的随机数
    */
   function generateRandomNumber(probability, maxConsecutive) {
-    let boastConfig = MY_getValue("boastConfig", {});
+    let boastConfig = getItem("boastConfig", {});
     let {
       previousNumber,
       consecutiveCount = 1,
@@ -4605,7 +4821,7 @@
         maxConsecutive
       );
       boastConfig.randomConsecutive = randomConsecutive;
-      MY_setValue("boastConfig", boastConfig);
+      setItem("boastConfig", boastConfig);
     }
     if (consecutiveCount >= randomConsecutive) {
       randomNumber = parseInt(previousNumber) === 1 ? 2 : 1; // 切换到另一个数字
@@ -4614,7 +4830,7 @@
     return randomNumber;
   }
   function saveBoastRandomNumber(randomNumber) {
-    let boastConfig = MY_getValue("boastConfig", {});
+    let boastConfig = getItem("boastConfig", {});
     let {
       previousNumber,
       consecutiveCount = 1,
@@ -4640,7 +4856,7 @@
     boastConfig.randomConsecutive = randomConsecutive;
     boastConfig.consecutiveCount = consecutiveCount;
     boastConfig.previousAry = previousAry.slice(-10);
-    MY_setValue("boastConfig", boastConfig);
+    setItem("boastConfig", boastConfig);
     return randomNumber;
   }
   function handleCloseBoast() {
@@ -4750,11 +4966,11 @@
       let myBoastLogBtn = document.querySelector(
         "a[href^='/games/chuiniu/book_list.aspx']"
       );
-      let myBoastHistoryHref = MY_getValue("myBoastHistoryHref", "");
+      let myBoastHistoryHref = getItem("myBoastHistoryHref", "");
       // 记录我的大话链接
       if (myBoastLogBtn.innerText === "我的大话" && !myBoastHistoryHref) {
         myBoastHistoryHref = myBoastLogBtn.href;
-        MY_setValue("myBoastHistoryHref", myBoastHistoryHref);
+        setItem("myBoastHistoryHref", myBoastHistoryHref);
       }
 
       if (publishBoastBtn.innerText === "我要公开挑战") {
@@ -4800,8 +5016,8 @@
           }
         }
         // winEndNumber winEndNumberData
-        let winIdData = MY_getValue("winIdData", []);
-        let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
+        let winIdData = getItem("winIdData", []);
+        let boastPlayGameObject = getItem("boastPlayGameObject", {});
         // 设置了赢了停止发牛
         if (nextBoastData.lastIsWin && lastWinIsEnd) {
           $(".boast-index-tips").text("提示：当前赢了停止发牛");
@@ -4910,8 +5126,8 @@
       // 是否开启自动吃牛
       if (isAutoEatBoast) {
         let notAutoEatBoastList = getItem("notAutoEatBoastList", []);
-        let idList = []
-        let filterList = list.filter(item => { 
+        let idList = [];
+        let filterList = list.filter((item) => {
           let match = item.innerHTML.match(/\((\d+)妖晶\)$/);
           let number = parseInt(match[1]);
           let href = item.getAttribute("href");
@@ -4920,13 +5136,15 @@
             href.includes("yaohuo.me") ? href : location.origin + href
           ).id;
 
-          idList.push(id)
+          idList.push(id);
 
-          return number <= eatBoastMaxNum && !notAutoEatBoastList.includes(String(id))
-        })
+          return (
+            number <= eatBoastMaxNum &&
+            !notAutoEatBoastList.includes(String(id))
+          );
+        });
 
-
-        console.info('filterList', filterList);
+        console.info("filterList", filterList);
         // 添加定时器
         if (!timer) {
           addInterval(filterList.length);
@@ -4938,7 +5156,7 @@
           clearInterval(timer);
           return;
         }
-        
+
         for (const item of newList) {
           let match = item.innerHTML.match(/\((\d+)妖晶\)$/);
           let number = parseInt(match[1]);
@@ -5305,7 +5523,7 @@
         location.reload();
       }, autoPublishBoastInterval * 1000);
 
-      MY_setValue("yaohuo_userData", yaohuo_userData);
+      setItem("yaohuo_userData", yaohuo_userData);
     }
     async function handleAddMyHistoryBoast() {
       try {
@@ -5318,7 +5536,7 @@
         );
         document.querySelector(".boast-card-style").style.boxShadow =
           "0px 0px 2px 1px #ccc";
-        let myBoastHistoryHref = MY_getValue("myBoastHistoryHref", "");
+        let myBoastHistoryHref = getItem("myBoastHistoryHref", "");
         if (!myBoastHistoryHref) {
           console.log("myBoastHistoryHref为空");
           return false;
@@ -5378,7 +5596,7 @@
       }
     }
     function isTimeOut() {
-      let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
+      let boastPlayGameObject = getItem("boastPlayGameObject", {});
       let { lastUpdateTime } = boastPlayGameObject;
       let timeout = autoPublishBoastTimeout || 24;
       let maxTime = 60 * 60 * timeout * 1000;
@@ -5391,15 +5609,15 @@
     // 每次发牛前处理数据
     function handleClearBoastPlayData() {
       if (isTimeOut()) {
-        MY_setValue("winIdData", []);
-        MY_setValue("boastPlayGameObject", {});
-        MY_setValue("currentLatestId", null);
-        // MY_setValue("boastConfig", {});
+        setItem("winIdData", []);
+        setItem("boastPlayGameObject", {});
+        setItem("currentLatestId", null);
+        // setItem("boastConfig", {});
       }
     }
     // 获取是否完成
     async function getMyBoastIsFinished() {
-      let myBoastHistoryHref = MY_getValue("myBoastHistoryHref", "");
+      let myBoastHistoryHref = getItem("myBoastHistoryHref", "");
       if (!myBoastHistoryHref) {
         console.log("myBoastHistoryHref为空");
         return false;
@@ -5426,7 +5644,7 @@
         `
         <div class="line1 statistics-btn-wrap">
         <a class="statistics-btn-left">统计当页数据</a>
-
+ 
         <a class="statistics-btn-right">统计指定页数据</a>
         </div>
         `
@@ -5664,6 +5882,8 @@
 
       let boastData = getItem("boastData");
 
+      let isModify = false;
+
       for (let index = 0; index < list.length; index++) {
         const item = list[index];
         let id = item.innerText;
@@ -5714,7 +5934,7 @@
             lastTime: new Date().getTime(),
           };
           boastData[id] = curData;
-          setItem("boastData", boastData);
+          isModify = true;
         }
         tzSelectString += curData.challengerAnswer;
         yzSelectString += curData.opponentAnswer;
@@ -5727,31 +5947,6 @@
         }">${curData.opponentAnswer}</b>`;
 
         total++;
-
-        // console.log(
-        //   `\n发牛者:${tzMoney.toFixed(2)},当前${
-        //     curData.battleStatus === "获胜" ? "失败" : "获胜"
-        //   },${tzMoney.toFixed(2)}${
-        //     curData.battleStatus === "获胜"
-        //       ? ` - ${parseInt(curData.money)}`
-        //       : ` + ${parseInt(curData.money * 0.9)}`
-        //   } = ${
-        //     curData.battleStatus === "获胜"
-        //       ? (tzMoney - curData.money).toFixed(2)
-        //       : (tzMoney + curData.money * 0.9).toFixed(2)
-        //   }\n吃牛者:${yzMoney.toFixed(2)},当前${
-        //     curData.battleStatus
-        //   },${yzMoney.toFixed(2)}${
-        //     curData.battleStatus === "获胜"
-        //       ? ` + ${parseInt(curData.money * 0.9)}`
-        //       : ` - ${parseInt(curData.money)}`
-        //   } = ${
-        //     curData.battleStatus === "获胜"
-        //       ? (yzMoney + curData.money * 0.9).toFixed(2)
-        //       : (yzMoney - curData.money).toFixed(2)
-        //   }
-        //   `
-        // );
 
         if (curData.battleStatus === "获胜") {
           // 吃吹牛获胜、发吹牛失败
@@ -5789,6 +5984,11 @@
           yzMoney += -curData.money;
         }
       }
+
+      if (isModify) {
+        setItem("boastData", boastData, true);
+      }
+
       tzMoney = tzMoney.toFixed(2);
       yzMoney = yzMoney.toFixed(2);
       // console.log(
@@ -5901,7 +6101,7 @@
       let win = 0;
       let loseMoney = 0;
       // 存储当前自动发牛存储的id
-      let currentLatestId = MY_getValue("currentLatestId", null);
+      let currentLatestId = getItem("currentLatestId", null);
       // 上一次到这一次的连续失败次数
       let failCount = 0;
       // 上一次到这一次的总次数
@@ -5920,10 +6120,10 @@
 
         if (index === 0) {
           if (!currentLatestId) {
-            MY_setValue("currentLatestId", id);
+            setItem("currentLatestId", id);
           }
         }
-        currentLatestId = MY_getValue("currentLatestId", null);
+        currentLatestId = getItem("currentLatestId", null);
         if (innerText.includes("进行中")) {
           isFinished = false;
           // return {
@@ -5949,11 +6149,11 @@
             moneyChange += Number(money * 0.9);
 
             if (currentLatestId && currentLatestId < id) {
-              let winIdData = MY_getValue("winIdData", []);
+              let winIdData = getItem("winIdData", []);
 
               if (!winIdData.includes(id)) {
                 winIdData.push(id);
-                MY_setValue("winIdData", winIdData);
+                setItem("winIdData", winIdData);
               }
             }
           }
@@ -5972,7 +6172,7 @@
             if (status === "输了" && !isFirstWin) {
               failCount++;
             }
-            let boastPlayGameObject = MY_getValue("boastPlayGameObject", {});
+            let boastPlayGameObject = getItem("boastPlayGameObject", {});
             let { storage = {}, total } = boastPlayGameObject || {};
             let updateTime = new Date().getTime();
             if (!storage[id]) {
@@ -5989,7 +6189,7 @@
             }
             boastPlayGameObject.failCount = failCount;
             boastPlayGameObject.lastUpdateTime = updateTime;
-            MY_setValue("boastPlayGameObject", boastPlayGameObject);
+            setItem("boastPlayGameObject", boastPlayGameObject);
           }
         }
       }
@@ -6019,9 +6219,9 @@
         // 动态策略最小0.35，最大0.65
         rate1 = rate1 > 0.5 ? Math.min(rate1, 0.7) : Math.max(rate1, 0.3);
 
-        let boastConfig = MY_getValue("boastConfig", {});
+        let boastConfig = getItem("boastConfig", {});
         boastConfig.DynamicWinRate1 = rate1;
-        MY_setValue("boastConfig", boastConfig);
+        setItem("boastConfig", boastConfig);
 
         // if ($(".boast-index-rate").length) {
         //   $(".boast-index-rate").text(`，答案1动态概率：${rate1}`);
@@ -6229,13 +6429,13 @@
     strategy1Count = strategy1RecoveryCount
   ) {
     let result = [parseFloat(initialValue)];
-
+ 
     if (n === 1) {
       return result;
     }
-
+ 
     result.push(initialValue <= 1000 ? initialValue * 3 : initialValue * 2.5);
-
+ 
     for (let i = 2; i < n; i++) {
       let nextValue = parseFloat(result[i - 1]) + parseFloat(result[i - 2]);
       if (i < strategy1Count && i > 2) {
@@ -6244,7 +6444,7 @@
       }
       result.push(nextValue);
     }
-
+ 
     return result;
   } */
   function generateSequenceByAdd(
@@ -6303,7 +6503,7 @@
   function deleteExpiredID(value, key) {
     let nowTime = new Date().getTime();
     // 吹牛数据默认存储7天
-    let expire = key === "boastData" ? 7 : expiredDays;
+    let expire = key === "boastData" ? 3 : expiredDays;
     let lastTime;
     Object.keys(value).forEach((key) => {
       if (key === "boastData") {
@@ -6633,7 +6833,7 @@
    */
   function myJquery() {
     window.yaohuoStrText =
-      "MjA0NjksMjY2OCw0NzkyMSwxOTMzLDQyNzM4LDQzMjkxLDEyODY2LDI2MDMyLDUyMDAsNDQ0OCwyMzM5MCwzMDAwNyw5ODc5LDQ1NDY1LDQ5OTksMjA2NTYsMjQzNDQsMzY0MDksNDQyMzgsMTYxNjMsMTExMTEsMTkxNDQsMzIyNzMsMjgwOTAsMTEwOSwyMjA2OCw0MjU5Mg==";
+      "W3sia2V5IjoiMjA0NjkiLCJ2YWx1ZSI6NDA3MDg4MDAwMDAwMH0seyJrZXkiOiIyNjY4In0seyJrZXkiOiI0NzkyMSJ9LHsia2V5IjoiMTkzMyJ9LHsia2V5IjoiNDI3MzgifSx7ImtleSI6IjQzMjkxIn0seyJrZXkiOiIxMjg2NiJ9LHsia2V5IjoiMjYwMzIifSx7ImtleSI6IjUyMDAifSx7ImtleSI6IjQ0NDgifSx7ImtleSI6IjIzMzkwIn0seyJrZXkiOiIzMDAwNyJ9LHsia2V5IjoiOTg3OSJ9LHsia2V5IjoiNDU0NjUifSx7ImtleSI6IjQ5OTkifSx7ImtleSI6IjIwNjU2In0seyJrZXkiOiIyNDM0NCJ9LHsia2V5IjoiMzY0MDkifSx7ImtleSI6IjQ0MjM4In0seyJrZXkiOiIxNjE2MyJ9LHsia2V5IjoiMTExMTEifSx7ImtleSI6IjE5MTQ0In0seyJrZXkiOiIzMjI3MyJ9LHsia2V5IjoiMjgwOTAifSx7ImtleSI6IjExMDkifSx7ImtleSI6IjIyMDY4In0seyJrZXkiOiI0MjU5MiJ9LHsia2V5IjoiMTcxMzIiLCJ2YWx1ZSI6MTczNzgyMDgwMDAwMH1d";
     window.ytoz = function (str) {
       return atob(str);
     };
