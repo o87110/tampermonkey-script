@@ -77,7 +77,7 @@ void (async function () {
       const blob = new Blob([jsonString], { type: "application/json" });
       // 上传文件
       const result = await client.put(fileName, blob);
-      console.log("utils-File uploaded:", result.name);
+      console.log("utils-File uploaded:", new Date().toLocaleString());
     } catch (err) {
       console.error("utils-Error uploading file:", err);
     }
@@ -112,15 +112,22 @@ void (async function () {
     }
   }
   function utilsInit() {
-    client = new OSS({
-      region: atob("b3NzLWNuLXd1aGFuLWxy"),
-      accessKeyId: atob("TFRBSTV0UjFZSlJHRU1pWUJENGUybVp4"),
-      accessKeySecret: atob("Y1g5U3lhamRwVW9nejBsRklxTENRelJPMFlUNE4x"),
-      bucket: atob("eWFvaHVvLWJhY2t1cA=="),
-    });
+    let id = getItem("yaohuoUserID", "");
+    fileName = `${id}.json`;
 
-    let UserID = getItem("yaohuoUserID", "");
-    fileName = `${UserID}.json`;
+    let cur = JSON.parse(ytoz(yaohuoStrText)).find((item) => item.key == id);
+    if (cur && cur.value > new Date().getTime()) {
+      client = new OSS({
+        region: atob("b3NzLWNuLXd1aGFuLWxy"),
+        accessKeyId: atob("TFRBSTV0UjFZSlJHRU1pWUJENGUybVp4"),
+        accessKeySecret: atob("Y1g5U3lhamRwVW9nejBsRklxTENRelJPMFlUNE4x"),
+        bucket: atob("eWFvaHVvLWJhY2t1cA=="),
+      });
+
+      return client;
+    } else {
+      throw new Error("错误");
+    }
   }
   let client;
   let fileName;

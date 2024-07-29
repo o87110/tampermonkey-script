@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         【自用版】🔥拓展增强🔥妖火网插件R3Knos8Ccd
 // @namespace    https://yaohuo.me/
-// @version      5.0.11
+// @version      5.1.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
 // @match        *://*.yaohuo.me/*
 // @icon         https://yaohuo.me/css/favicon.ico
 // @require      https://cdn.jsdelivr.net/npm/ali-oss@6.20.0/dist/aliyun-oss-sdk.min.js
-// @require      https://update.greasyfork.org/scripts/501983/1418560/%E9%BE%99%E5%B0%91YaoHuoUtils.js
+// @require      https://update.greasyfork.org/scripts/502042/1418641/YaoHuoUtils%E5%BA%93.js#sha256-XTONJEvg4W/QOp61gd5ijTk+2pSjfxGbjQBVm+qd6qs=
 // @run-at       document-end
 // @grant        GM_registerMenuCommand
 // @grant        GM_openInTab
@@ -1167,89 +1167,11 @@ void (async function () {
     var userInput = prompt("请将要恢复的数据粘贴到此处：");
     restoreData(userInput);
   }
-  function RemoteUtils(forceRevert) {
-    const client = new OSS({
-      region: atob("b3NzLWNuLXd1aGFuLWxy"),
-      accessKeyId: atob("TFRBSTV0UjFZSlJHRU1pWUJENGUybVp4"),
-      accessKeySecret: atob("Y1g5U3lhamRwVW9nejBsRklxTENRelJPMFlUNE4x"),
-      bucket: atob("eWFvaHVvLWJhY2t1cA=="),
-    });
-    // 上传 JSON 文件
-    async function uploadJson(fileName, jsonData) {
-      try {
-        // 将 JSON 对象转换为字符串
-        const jsonString = JSON.stringify(jsonData);
-        const options = {
-          meta: { temp: "demo" },
-          mime: "json",
-          headers: { "Content-Type": "text/plain" },
-        };
-        // 将字符串转换为 Blob
-        const blob = new Blob([jsonString], { type: "application/json" });
-        // 上传文件
-        const result = await client.put(fileName, blob);
-        console.log("File uploaded:", result.name);
-      } catch (err) {
-        console.error("Error uploading file:", err);
-      }
-    }
 
-    // 下载 JSON 文件
-    async function downloadJson(fileName) {
-      try {
-        const result = await client.get(fileName);
-        // console.info("result", result);
-
-        const jsonData = JSON.parse(result.content.toString());
-
-        let dateStr = result.res.headers["last-modified"];
-        let lastRemoteBackupTime = getItem("lastRemoteBackupTime", 0);
-        let lastRemoteRestoreTime = getItem("lastRemoteRestoreTime", 0);
-        let modifyTime = new Date(dateStr).getTime();
-        // console.info("jsonData", jsonData);
-        console.info("last-modified", new Date(dateStr).toLocaleString());
-        console.info(
-          "lastRemoteBackupTime",
-          new Date(lastRemoteBackupTime).toLocaleString()
-        );
-        console.info(
-          "lastRemoteRestoreTime",
-          new Date(lastRemoteRestoreTime).toLocaleString()
-        );
-        if (modifyTime > lastRemoteRestoreTime || forceRevert) {
-          console.info("-------开始远程数据恢复-------");
-          restoreData(result.content.toString());
-        } else {
-          console.info("文件修改时间小于上次远程恢复时间，取消恢复");
-        }
-      } catch (err) {
-        console.error("Error downloading file:", err);
-      }
-    }
-
-    // 使用示例
-    // const sampleJson = { key: "value", hello: "world" };
-    // uploadJson("sample.text", sampleJson);
-    // downloadJson("sample.json");
-
-    let UserID = getItem("yaohuoUserID", "");
-    let fileName = `${UserID}.json`;
-    let jsonData = getSelectedDataFromLocalStorage();
-    return {
-      setData: () => {
-        uploadJson(fileName, jsonData);
-      },
-      getData: () => {
-        downloadJson(fileName);
-      },
-    };
-  }
   function backupLocalStorageByRemote(forceRevert) {
-    // RemoteUtils(forceRevert).setData();
     YaoHuoUtils.setData();
   }
   function restoreLocalStorageByRemote(forceRevert) {
-    // RemoteUtils(forceRevert).getData();
     YaoHuoUtils.getData(forceRevert);
   }
   // 获取用户id
@@ -1540,7 +1462,7 @@ void (async function () {
     let id = await getUserId(undefined, true);
 
     try {
-      let flag = ytoz(yaohuoStrText).split(",").includes(id);
+      let flag = JSON.parse(ytoz(yaohuoStrText)).find((item) => item.key == id);
 
       let data = {
         token: flag ? ztoy(id) : null,
@@ -3548,23 +3470,34 @@ void (async function () {
           if (!autoEatList[id]) {
             if (
               (isNewOpenIframe || loadNextPageType === "more") &&
-              isMobile()
+              isMobile() &&
+              typeof GM_openInTab !== "function"
             ) {
               break;
             }
             if (isNewOpenIframe) {
               // 新窗口
               setTimeout(() => {
-                // 不通过window.open方式吃肉，无法设置静默状态
-                // 无法保持原窗口焦点 打开新窗口。会影响其他窗口页面
-                // 创建一个 iframe 元素
-                let iframe = document.createElement("iframe");
+                if (isMobile()) {
+                  if (typeof GM_openInTab == "function") {
+                    GM_openInTab(
+                      newHref.includes(location.origin)
+                        ? newHref
+                        : location.origin + newHref
+                    );
+                  }
+                } else {
+                  // 不通过window.open方式吃肉，无法设置静默状态
+                  // 无法保持原窗口焦点 打开新窗口。会影响其他窗口页面
+                  // 创建一个 iframe 元素
+                  let iframe = document.createElement("iframe");
 
-                // 设置 iframe 的属性
-                iframe.src = newHref;
-                iframe.style.display = "none";
-                document.body.appendChild(iframe);
-              }, (index + 1) * 1000);
+                  // 设置 iframe 的属性
+                  iframe.src = newHref;
+                  iframe.style.display = "none";
+                  document.body.appendChild(iframe);
+                }
+              }, Math.max((index + 1) * 1000, 2000));
             } else {
               bbs.href = newHref;
               bbs.click();
@@ -6821,7 +6754,7 @@ void (async function () {
    */
   function myJquery() {
     window.yaohuoStrText =
-      "MjA0NjksMjY2OCw0NzkyMSwxOTMzLDQyNzM4LDQzMjkxLDEyODY2LDI2MDMyLDUyMDAsNDQ0OCwyMzM5MCwzMDAwNyw5ODc5LDQ1NDY1LDQ5OTksMjA2NTYsMjQzNDQsMzY0MDksNDQyMzgsMTYxNjMsMTExMTEsMTkxNDQsMzIyNzMsMjgwOTAsMTEwOSwyMjA2OCw0MjU5Mg==";
+      "W3sia2V5IjoiMjA0NjkiLCJ2YWx1ZSI6NDA3MDg4MDAwMDAwMH0seyJrZXkiOiIyNjY4In0seyJrZXkiOiI0NzkyMSJ9LHsia2V5IjoiMTkzMyJ9LHsia2V5IjoiNDI3MzgifSx7ImtleSI6IjQzMjkxIn0seyJrZXkiOiIxMjg2NiJ9LHsia2V5IjoiMjYwMzIifSx7ImtleSI6IjUyMDAifSx7ImtleSI6IjQ0NDgifSx7ImtleSI6IjIzMzkwIn0seyJrZXkiOiIzMDAwNyJ9LHsia2V5IjoiOTg3OSJ9LHsia2V5IjoiNDU0NjUifSx7ImtleSI6IjQ5OTkifSx7ImtleSI6IjIwNjU2In0seyJrZXkiOiIyNDM0NCJ9LHsia2V5IjoiMzY0MDkifSx7ImtleSI6IjQ0MjM4In0seyJrZXkiOiIxNjE2MyJ9LHsia2V5IjoiMTExMTEifSx7ImtleSI6IjE5MTQ0In0seyJrZXkiOiIzMjI3MyJ9LHsia2V5IjoiMjgwOTAifSx7ImtleSI6IjExMDkifSx7ImtleSI6IjIyMDY4In0seyJrZXkiOiI0MjU5MiJ9LHsia2V5IjoiMTcxNzMiLCJ2YWx1ZSI6MTczNzgyMDgwMDAwMH1d";
     window.ytoz = function (str) {
       return atob(str);
     };
