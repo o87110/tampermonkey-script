@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【自用版】🔥拓展增强🔥妖火网插件R3Knos8Ccd
 // @namespace    https://yaohuo.me/
-// @version      5.4.0
+// @version      5.4.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -4321,11 +4321,6 @@ void (async function () {
           listReplyList = document.querySelectorAll(".post-content");
         }
 
-        window.replyAdd1Fn = (msg) => {
-          textarea.value = msg;
-          replyBtn.click();
-        };
-
         listReplyList.forEach((item) => {
           let reText = item.querySelector(".retext");
           let msg = "";
@@ -4340,8 +4335,19 @@ void (async function () {
           });
           item.insertAdjacentHTML(
             "beforeend",
-            `<span class='replyAdd1' style="${spanstyle}margin-left:2px" onclick='window.replyAdd1Fn("${msg}")'>回复+1</span>`
+            `<span class='replyAdd1' msg="${msg}" style="${spanstyle}margin-left:2px" >回复+1</span>`
           );
+        });
+
+        let wrap =
+          document.querySelector("forum-container") ||
+          document.querySelector(".recontent");
+        wrap.addEventListener("click", (event) => {
+          if (event.target.textContent === "回复+1") {
+            let msg = event.target.getAttribute("msg");
+            textarea.value = msg;
+            replyBtn.click();
+          }
         });
       }
     }
@@ -4574,18 +4580,24 @@ void (async function () {
 
       // 回复页不处理
       if (!window.location.pathname.includes("/bbs/book_re.aspx")) {
-        document
-          .querySelector(".recontent")
-          .addEventListener("click", (event) => {
-            if (event.target.innerText === "回") {
-              // 如果是回复指定楼层就定位到回复输入框
-              if (
-                /回复\d+楼/.test(document.querySelector(".sticky b")?.innerText)
-              ) {
-                window.scrollTo(0, document.querySelector(".sticky").offsetTop);
-              }
+        let wrap =
+          document.querySelector("forum-container") ||
+          document.querySelector(".recontent");
+        wrap.addEventListener("click", (event) => {
+          if (
+            event.target.innerText === "回" ||
+            event.target.className === "replyicon" ||
+            event.target.alt === "回复"
+          ) {
+            // 如果是回复指定楼层就定位到回复输入框
+            if (
+              /回复\d+楼/.test(document.querySelector(".sticky b")?.innerText)
+            ) {
+              console.info("跳转");
+              window.scrollTo(0, document.querySelector(".sticky").offsetTop);
             }
-          });
+          }
+        });
       }
     }
   }
