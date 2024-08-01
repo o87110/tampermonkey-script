@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      5.2.1
+// @version      5.2.2
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -4330,6 +4330,10 @@ void (async function () {
               msg += node.textContent;
             } else if (node.nodeName === "AUDIO") {
               msg += `[audio=X]${node.src}[/audio]`;
+            } else if (node.nodeName === "FONT") {
+              msg += `[forecolor=${node.color}]${node.textContent}[/forecolor]`;
+            } else {
+              msg += node.textContent;
             }
           });
           item.insertAdjacentHTML(
@@ -4345,7 +4349,11 @@ void (async function () {
           if (event.target.textContent === "回复+1") {
             let msg = event.target.getAttribute("msg");
             textarea.value = msg;
-            replyBtn.click();
+            if (selectedAutoSubmit) {
+              replyBtn.click();
+            } else {
+              window.scrollTo(0, document.querySelector(".sticky").offsetTop);
+            }
           }
         });
       }
@@ -4592,7 +4600,6 @@ void (async function () {
             if (
               /回复\d+楼/.test(document.querySelector(".sticky b")?.innerText)
             ) {
-              console.info("跳转");
               window.scrollTo(0, document.querySelector(".sticky").offsetTop);
             }
           }
