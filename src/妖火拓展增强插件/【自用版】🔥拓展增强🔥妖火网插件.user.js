@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【自用版】🔥拓展增强🔥妖火网插件R3Knos8Ccd
 // @namespace    https://yaohuo.me/
-// @version      5.3.1
+// @version      5.4.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -12,6 +12,7 @@
 // @run-at       document-end
 // @grant        GM_registerMenuCommand
 // @grant        GM_openInTab
+// @grant        none
 // @license      MIT
 // ==/UserScript==
 
@@ -202,6 +203,8 @@ void (async function () {
     imageInsertPosition: "插入到开头",
     // 是否增加快捷回复
     isAddQuickReply: false,
+    // 是否增加快捷回复+1
+    isAddReplyAdd1: true,
     // 关闭吹牛
     isCloseBoast: false,
     // 快捷回复默认
@@ -228,6 +231,9 @@ void (async function () {
       "这么爽吗",
     ].join("\n"),
     selectedAutoSubmit: false,
+
+    // 是否开启云同步
+    isOpenCloudSync: false,
   };
   let yaohuo_userData = null;
 
@@ -256,6 +262,8 @@ void (async function () {
     numStep,
 
     isShowSettingIcon,
+
+    isOpenCloudSync,
 
     settingBtnLeft,
     settingBtnTop,
@@ -341,6 +349,7 @@ void (async function () {
     isAutoAddMoney,
 
     isAddQuickReply,
+    isAddReplyAdd1,
 
     isCloseBoast,
     lessThan200CloseEat,
@@ -971,11 +980,11 @@ void (async function () {
   let isNewPage = false;
 
   const spanstyle =
-    "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #ccc;border-radius: 10%;";
+    "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #ccc;border-radius: 10%; cursor: pointer;";
   const a2style =
-    "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #d19275;border-radius: 10%;";
+    "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #d19275;border-radius: 10%; cursor: pointer;";
   const a3style =
-    "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #66ccff;border-radius: 10%;";
+    "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #66ccff;border-radius: 10%; cursor: pointer;";
   // ==主代码执行==
   (async function () {
     // 处理新帖也帖子列表页面下一步加载时，页面会到下一页
@@ -1169,6 +1178,11 @@ void (async function () {
   }
 
   function backupLocalStorageByRemote(forceRevert) {
+    let isOpenCloudSync = yaohuo_userData?.isOpenCloudSync;
+    if (!isOpenCloudSync) {
+      forceRevert && showTooltip("请先开启多端云同步功能", 0);
+      return;
+    }
     YaoHuoUtils.setData()
       .then((res) => {
         forceRevert && showTooltip(res, 1);
@@ -1178,6 +1192,11 @@ void (async function () {
       });
   }
   function restoreLocalStorageByRemote(forceRevert) {
+    let isOpenCloudSync = yaohuo_userData?.isOpenCloudSync;
+    if (!isOpenCloudSync) {
+      forceRevert && showTooltip("请先开启多端云同步功能", 0);
+      return;
+    }
     YaoHuoUtils.getData(forceRevert)
       .then((res) => {
         forceRevert && showTooltip(res, 1);
@@ -1427,20 +1446,6 @@ void (async function () {
       // 在桌面设备上执行的代码
     }
 
-    let lastRemoteRestoreTime = getItem("lastRemoteRestoreTime", 0);
-    let lastRemoteBackupTime = getItem("lastRemoteBackupTime", 0);
-    console.info(
-      "lastRemoteRestoreTime",
-      new Date(lastRemoteRestoreTime).toLocaleString()
-    );
-    if (
-      !lastRemoteRestoreTime ||
-      ((new Date().getTime() - lastRemoteRestoreTime) / 1000 > 30 &&
-        (new Date().getTime() - lastRemoteBackupTime) / 1000 > 5)
-    ) {
-      restoreLocalStorageByRemote();
-    }
-
     // 获取用户历史数据
     yaohuo_userData = getItem("yaohuo_userData");
 
@@ -1459,6 +1464,20 @@ void (async function () {
         yaohuo_userData[value] = settingData[value];
       }
     }
+    let lastRemoteRestoreTime = getItem("lastRemoteRestoreTime", 0);
+    let lastRemoteBackupTime = getItem("lastRemoteBackupTime", 0);
+    console.info(
+      "lastRemoteRestoreTime",
+      new Date(lastRemoteRestoreTime).toLocaleString()
+    );
+    if (
+      !lastRemoteRestoreTime ||
+      ((new Date().getTime() - lastRemoteRestoreTime) / 1000 > 30 &&
+        (new Date().getTime() - lastRemoteBackupTime) / 1000 > 5)
+    ) {
+      restoreLocalStorageByRemote();
+    }
+
     if (flag) {
       setItem("yaohuo_userData", yaohuo_userData);
     }
@@ -2104,6 +2123,16 @@ void (async function () {
               <div class="switch">
                 <input type="checkbox" id="isShowSettingIcon" data-key="isShowSettingIcon" />
                 <label for="isShowSettingIcon"></label>
+              </div>
+            </li>
+            <li>
+              <span>开启多端云同步${getIcon(
+                "tipIcon",
+                "提示：多设备自动备份、恢复插件数据到云端，如有需要可联系作者"
+              )}</span>
+              <div class="switch">
+                <input type="checkbox" id="isOpenCloudSync" data-key="isOpenCloudSync" />
+                <label for="isOpenCloudSync"></label>
               </div>
             </li>
             <li>
@@ -2778,6 +2807,13 @@ void (async function () {
               />
             </li>
             <hr>
+            <li>
+              <span>增加回复+1</span>
+              <div class="switch">
+                <input type="checkbox" id="isAddReplyAdd1" data-key="isAddReplyAdd1" />
+                <label for="isAddReplyAdd1"></label>
+              </div>
+            </li>
             <li>
               <span>增加快捷回复</span>
               <div class="switch">
@@ -4229,7 +4265,7 @@ void (async function () {
       (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
         viewPage.includes(window.location.pathname) ||
         isUserinfo) &&
-      isAddQuickReply
+      (isAddQuickReply || isAddReplyAdd1)
     ) {
       const form = document.getElementsByName("f")[0];
       const textarea =
@@ -4242,47 +4278,72 @@ void (async function () {
         form?.querySelector(".tongzhi") ||
         replyBtn;
 
-      // 添加表情展开按钮
-      sendmsg.insertAdjacentHTML(
-        isUserinfo ? "beforebegin" : "afterend",
-        `<select placeholder="快捷回复" class="quick-reply-wrap" style="width:100px;border: 1px solid #ccc;font-size: 12px;line-height: 18px;border-radius: 7px;margin: 0 2px;color: #333;padding-left: 5px;">
+      if (isAddQuickReply) {
+        // 添加表情展开按钮
+        sendmsg.insertAdjacentHTML(
+          isUserinfo ? "beforebegin" : "afterend",
+          `<select placeholder="快捷回复" class="quick-reply-wrap" style="width:100px;border: 1px solid #ccc;font-size: 12px;line-height: 18px;border-radius: 7px;margin: 0 2px;color: #333;padding-left: 5px;">
         </select>`
-      );
-      let quickReplyWrap = document.querySelector(".quick-reply-wrap");
-      // 空间和信箱页面自定义宽度和高度
-      if (isUserinfo) {
-        quickReplyWrap.style.width = "60%";
-        quickReplyWrap.style.height = "25px";
-        quickReplyWrap.style.margin = " 5px";
-      }
-      let allFaceHtml =
-        "<option value='' selected disabled hidden>快捷回复</option>";
-      // let allFaceHtml = "";
+        );
+        let quickReplyWrap = document.querySelector(".quick-reply-wrap");
+        // 空间和信箱页面自定义宽度和高度
+        if (isUserinfo) {
+          quickReplyWrap.style.width = "60%";
+          quickReplyWrap.style.height = "25px";
+          quickReplyWrap.style.margin = " 5px";
+        }
+        let allFaceHtml =
+          "<option value='' selected disabled hidden>快捷回复</option>";
 
-      let replyList = quickReplyStr.split("\n");
-      for (const item of replyList) {
-        allFaceHtml += `
+        let replyList = quickReplyStr.split("\n");
+        for (const item of replyList) {
+          allFaceHtml += `
         <option value="${item}">${item}</option>
         `;
-      }
-      quickReplyWrap.addEventListener("change", (e) => {
-        let text = e.target.value;
-        if (text) {
-          // 把光标移到文本框末尾
-          // textarea.focus();
-          // textarea.setSelectionRange(0, 0);
-          // textarea.setSelectionRange(
-          //   textarea.value.length,
-          //   textarea.value.length
-          // );
-          textarea.value += text;
-          // insertText(textarea, text, 0);
-          if (selectedAutoSubmit) {
-            replyBtn.click();
-          }
         }
-      });
-      quickReplyWrap.innerHTML = allFaceHtml;
+        quickReplyWrap.addEventListener("change", (e) => {
+          let text = e.target.value;
+          if (text) {
+            // 把光标移到文本框末尾
+            textarea.value += text;
+            if (selectedAutoSubmit) {
+              replyBtn.click();
+            }
+          }
+        });
+        quickReplyWrap.innerHTML = allFaceHtml;
+      }
+
+      if (!isUserinfo && isAddReplyAdd1) {
+        // 增加 回复 + 1
+        let listReplyList = document.querySelectorAll(".list-reply");
+        if (!listReplyList.length) {
+          listReplyList = document.querySelectorAll(".post-content");
+        }
+
+        window.replyAdd1Fn = (msg) => {
+          textarea.value = msg;
+          replyBtn.click();
+        };
+
+        listReplyList.forEach((item) => {
+          let reText = item.querySelector(".retext");
+          let msg = "";
+          reText.childNodes.forEach((node) => {
+            if (node.nodeName === "IMG") {
+              msg += `[img]${node.src}[/img]`;
+            } else if (node.nodeName === "#text") {
+              msg += node.textContent;
+            } else if (node.nodeName === "AUDIO") {
+              msg += `[audio=X]${node.src}[/audio]`;
+            }
+          });
+          item.insertAdjacentHTML(
+            "beforeend",
+            `<span class='replyAdd1' style="${spanstyle}margin-left:2px" onclick='window.replyAdd1Fn("${msg}")'>回复+1</span>`
+          );
+        });
+      }
     }
   }
   // 增加回帖表情
