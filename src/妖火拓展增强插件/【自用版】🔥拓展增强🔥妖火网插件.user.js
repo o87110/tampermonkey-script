@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【自用版】🔥拓展增强🔥妖火网插件R3Knos8Ccd
 // @namespace    https://yaohuo.me/
-// @version      5.5.0
+// @version      5.5.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -4327,7 +4327,6 @@ void (async function () {
         wrap.addEventListener("click", (event) => {
           if (event.target.textContent === "回复+1") {
             let msg = event.target.getAttribute("msg");
-            console.info("msg", msg);
             let flag = msg === textarea.value;
             textarea.value = msg;
 
@@ -4344,8 +4343,12 @@ void (async function () {
           }
         });
 
+        let domStr = location.pathname.includes("/bbs/book_re.aspx")
+          ? "#KL_show_next_list"
+          : ".recontent";
+
         // 选择要观察的DOM节点
-        const targetNode = document.querySelector("#KL_show_next_list");
+        const targetNode = document.querySelector(domStr);
 
         // 创建一个MutationObserver实例并传入回调函数
         const observer = new MutationObserver((mutationsList, observer) => {
@@ -4356,7 +4359,7 @@ void (async function () {
             }
           }
           if (flag) {
-            let targetNode = document.querySelector("#KL_show_next_list");
+            let targetNode = document.querySelector(domStr);
             let nextReplyList = targetNode.querySelectorAll(".list-reply");
             if (!nextReplyList.length) {
               nextReplyList = targetNode.querySelectorAll(".post-content");
