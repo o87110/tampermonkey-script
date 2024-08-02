@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      5.3.3
+// @version      5.3.4
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -827,7 +827,14 @@ void (async function () {
   ];
   const quickReplyList = [
     "感谢分享",
+    "哎哟不错哦",
+    "这么爽吗",
+    "下次一定",
+    "已阅",
     "帮顶",
+    "厉害了我的哥",
+    "你女朋友真棒",
+    "不明觉厉",
     "你小子又水贴",
     "你号没了",
     "很刑",
@@ -838,14 +845,11 @@ void (async function () {
     "黑丝小姐姐照片呢",
     "很好用已分手",
     "裤子脱了你就给我看这个",
-    "厉害了我的哥",
-    "你女朋友真棒",
     "你小子搞什么飞机",
     "牛批",
     "社会上的事少打听",
     "喜当爹",
     "有内鬼终止交易",
-    "这么爽吗",
   ];
   // 批量添加事件数组
   let addEventAry = [
@@ -3466,11 +3470,17 @@ void (async function () {
     if (!checkSaveSetting()) {
       return;
     }
+    let userData = getItem("yaohuo_userData");
+
+    let isChecked = document.querySelector("#isOpenCloudSync").checked;
+    let syncRemote = userData.isOpenCloudSync && isChecked;
     // winEndNumber winEndMoney
     setSettingInputEvent("save");
+    setItem("yaohuo_userData", yaohuo_userData, syncRemote, syncRemote);
+
     $("body").removeClass("overflow-hidden-scroll");
     $(".yaohuo-modal-mask").hide();
-    setItem("yaohuo_userData", yaohuo_userData, true, true);
+
     if (!yaohuo_userData.isShowSettingIcon) {
       $("#floating-setting-btn").hide();
     } else {
@@ -3479,7 +3489,7 @@ void (async function () {
     // 刷新页面
     setTimeout(function () {
       window.location.reload();
-    }, 300);
+    }, 500);
   }
   // 自动增加在线时长
   function handleAutoAddOnlineDuration() {
