@@ -1196,11 +1196,11 @@ void (async function () {
       });
   }
   function restoreLocalStorageByRemote(forceRevert) {
-    let isOpenCloudSync = yaohuo_userData?.isOpenCloudSync;
+    /* let isOpenCloudSync = yaohuo_userData?.isOpenCloudSync;
     if (!isOpenCloudSync) {
       forceRevert && showTooltip("请先开启多端云同步功能", 0);
       return;
-    }
+    } */
     YaoHuoUtils.getData(forceRevert)
       .then((res) => {
         forceRevert && showTooltip(res, 1);
@@ -1479,7 +1479,9 @@ void (async function () {
       ((new Date().getTime() - lastRemoteRestoreTime) / 1000 > 30 &&
         (new Date().getTime() - lastRemoteBackupTime) / 1000 > 5)
     ) {
-      restoreLocalStorageByRemote();
+      if (yaohuo_userData.isOpenCloudSync) {
+        restoreLocalStorageByRemote();
+      }
     }
 
     if (flag) {
@@ -3480,7 +3482,7 @@ void (async function () {
     setItem("yaohuo_userData", yaohuo_userData, syncRemote, syncRemote);
 
     $("body").removeClass("overflow-hidden-scroll");
-    $(".yaohuo-modal-mask").hide();
+    $(".yaohuo-modal-mask").remove();
 
     if (!yaohuo_userData.isShowSettingIcon) {
       $("#floating-setting-btn").hide();
