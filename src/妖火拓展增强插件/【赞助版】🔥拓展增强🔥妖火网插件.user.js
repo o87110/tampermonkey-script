@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      5.3.1
+// @version      5.3.2
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1499,7 +1499,7 @@ void (async function () {
         timestamp: new Date().getTime(),
       };
 
-      setItem("yaohuoLoginInfo", data, true);
+      setItem("yaohuoLoginInfo", data, true, true);
       setItem("notAutoEatBoastList", []);
     } catch (err) {
       console.info(err);
@@ -3470,7 +3470,7 @@ void (async function () {
     setSettingInputEvent("save");
     $("body").removeClass("overflow-hidden-scroll");
     $(".yaohuo-modal-mask").hide();
-    setItem("yaohuo_userData", yaohuo_userData, true);
+    setItem("yaohuo_userData", yaohuo_userData, true, true);
     if (!yaohuo_userData.isShowSettingIcon) {
       $("#floating-setting-btn").hide();
     } else {
@@ -4000,7 +4000,7 @@ void (async function () {
   }
 
   // 设置值
-  function setItem(key, value, syncRemote) {
+  function setItem(key, value, syncRemote, forceBackup) {
     // if (key === "autoEatList") {
     //   deleteExpiredID(value); //删除过期的肉帖
     // }
@@ -4029,8 +4029,9 @@ void (async function () {
 
     if (
       syncRemote &&
-      (new Date().getTime() - lastRemoteBackupTime) / 1000 > 5 &&
-      (new Date().getTime() - lastRemoteRestoreTime) / 1000 > 10
+      (((new Date().getTime() - lastRemoteBackupTime) / 1000 > 5 &&
+        (new Date().getTime() - lastRemoteRestoreTime) / 1000 > 5) ||
+        forceBackup)
     ) {
       console.info("---------进行远程同步---------", key);
       //
