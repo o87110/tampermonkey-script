@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      5.2.5
+// @version      5.3.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1020,7 +1020,7 @@ void (async function () {
     // 增加回帖表情
     handleAddReplyFace();
     // 优化回帖
-    handleReply();
+    // handleReply();
     // 回帖增加随机颜色
     handleAddReplyRandomColor();
     // 回帖快捷回复
@@ -4320,46 +4320,89 @@ void (async function () {
           listReplyList = document.querySelectorAll(".post-content");
         }
 
-        listReplyList.forEach((item) => {
-          let reText = item.querySelector(".retext");
-          let msg = "";
-          reText.childNodes.forEach((node) => {
-            if (node.nodeName === "IMG") {
-              msg += `[img]${node.src}[/img]`;
-            } else if (node.nodeName === "#text") {
-              msg += node.textContent;
-            } else if (node.nodeName === "AUDIO") {
-              msg += `[audio=X]${node.src}[/audio]`;
-            } else if (node.nodeName === "VIDEO") {
-              msg += `[movie=100%*100%]${node.src}|${node.poster}[/movie]`;
-            } else if (node.nodeName === "FONT") {
-              msg += `[forecolor=${node.color}]${node.textContent}[/forecolor]`;
-            } else if (node.nodeName === "A") {
-              msg += `[url=${node.href}]${node.textContent}[/url]`;
-            } else {
-              msg += node.textContent;
-            }
-          });
-          item.insertAdjacentHTML(
-            "beforeend",
-            `<span class='replyAdd1' msg="${msg}" style="${spanstyle}margin-left:2px;text-wrap: nowrap;" >回复+1</span>`
-          );
-        });
+        addReplyAdd1Dom(listReplyList);
 
-        let wrap =
-          document.querySelector("forum-container") ||
-          document.querySelector(".recontent");
+        let wrap = document.querySelector(".viewContent");
         wrap.addEventListener("click", (event) => {
           if (event.target.textContent === "回复+1") {
             let msg = event.target.getAttribute("msg");
+            console.info("msg", msg);
+            let flag = msg === textarea.value;
             textarea.value = msg;
+
             if (selectedAutoSubmit) {
               replyBtn.click();
             } else {
-              window.scrollTo(0, document.querySelector(".sticky").offsetTop);
+              if (document.querySelector(".sticky").style.position && flag) {
+                document.querySelector(".sticky").style = "";
+              } else {
+                document.querySelector(".sticky").style =
+                  "position: sticky; top: 0px;";
+              }
             }
           }
         });
+
+        // 选择要观察的DOM节点
+        const targetNode = document.querySelector("#KL_show_next_list");
+
+        // 创建一个MutationObserver实例并传入回调函数
+        const observer = new MutationObserver((mutationsList, observer) => {
+          let flag = false;
+          for (let mutation of mutationsList) {
+            if (mutation.type === "childList") {
+              flag = true;
+            }
+          }
+          if (flag) {
+            let targetNode = document.querySelector("#KL_show_next_list");
+            let nextReplyList = targetNode.querySelectorAll(".list-reply");
+            if (!nextReplyList.length) {
+              nextReplyList = targetNode.querySelectorAll(".post-content");
+            }
+
+            addReplyAdd1Dom(nextReplyList);
+          }
+        });
+
+        // 配置观察选项
+        const config = {
+          childList: true, // 观察子节点的变化
+          subtree: true, // 观察整个子树
+        };
+
+        // 开始观察
+        observer.observe(targetNode, config);
+
+        function addReplyAdd1Dom(nodeList) {
+          nodeList.forEach((item) => {
+            if (!item.querySelector(".replyAdd1")) {
+              let reText = item.querySelector(".retext");
+              let msg = "";
+              reText.childNodes.forEach((node) => {
+                if (node.nodeName === "IMG") {
+                  msg += `[img]${node.src}[/img]`;
+                } else if (node.nodeName === "#text") {
+                  msg += node.textContent;
+                } else if (node.nodeName === "AUDIO") {
+                  msg += `[audio=X]${node.src}[/audio]`;
+                } else if (node.nodeName === "VIDEO") {
+                  msg += `[movie=100%*100%]${node.src}|${node.poster}[/movie]`;
+                } else if (node.nodeName === "FONT") {
+                  msg += `[forecolor=${node.color}]${node.textContent}[/forecolor]`;
+                } else if (node.nodeName === "A") {
+                  msg += `[url=${node.href}]${node.textContent}[/url]`;
+                } else {
+                  msg += node.textContent;
+                }
+              });
+              item.insertAdjacentHTML(
+                "beforeend",
+                `<span class='replyAdd1' msg="${msg}" style="${spanstyle}margin-left:2px;text-wrap: nowrap;" >回复+1</span>`
+              );
+            }
+          });
+        }
       }
     }
   }
