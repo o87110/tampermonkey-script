@@ -3,6 +3,26 @@ void (async function () {
   const ENCRYPTION_KEY =
     "a79eb3beb3ff0fe51442cc9ba8dd2732f60fdb8a4228cac9a888993ef915f764";
   const IV_LENGTH = 16;
+  const selectedProperties = [
+    "yaohuo_userData",
+    "lastRemoteRestoreTime",
+    "lastRemoteBackupTime",
+    "yaohuoUserID",
+    "boastData",
+    "yaohuoLoginInfo",
+    "autoEatList",
+    'customLayoutEnabled',
+    'myBoastHistoryHref',
+    'notAutoEatBoastList',
+    'draft_title',
+    'draft_content',
+    'customLayoutEnabled',
+    'boastPlayGameObject',
+    'winIdData',
+    'currentLatestId',
+    'nextMoney',
+    'publishNumber'
+  ];
 
   function getSelectedDataFromLocalStorage(selectedProperties) {
     var selectedData = {};
@@ -26,13 +46,18 @@ void (async function () {
   }
 
   function restoreData(userInput) {
+    
     if (userInput !== null && userInput.trim() !== "") {
       try {
         // 解析 JSON 字符串并将数据写入 localStorage
         var parsedData = JSON.parse(userInput);
         if (typeof parsedData === "object" && parsedData !== null) {
           let newData = getItem("yaohuo_userData");
+          
+          let lastSessionTimestamp = getItem("lastSessionTimestamp",'');
           localStorage.clear();
+          setItem("lastSessionTimestamp", lastSessionTimestamp);
+
           for (var key in parsedData) {
             if (parsedData.hasOwnProperty(key)) {
               if (key === "yaohuo_userData") {
@@ -45,7 +70,9 @@ void (async function () {
                 yaohuo_userData = newData;
                 setItem("yaohuo_userData", yaohuo_userData);
               } else {
-                setItem(key, parsedData[key]);
+                if (selectedProperties.includes(key)) {
+                  setItem(key, parsedData[key]);
+                }
               }
             }
           }
@@ -181,7 +208,8 @@ void (async function () {
 
   const YaoHuoUtils = {
     setData: (forceRevert) => {
-      let jsonData = getSelectedDataFromLocalStorage();
+      
+      let jsonData = getSelectedDataFromLocalStorage(selectedProperties);
       return uploadJson(jsonData);
     },
     getData: (forceRevert) => {

@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      5.3.6
+// @version      5.4.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
 // @match        *://*.yaohuo.me/*
 // @icon         https://yaohuo.me/css/favicon.ico
-// @require      https://update.greasyfork.org/scripts/502079/1418877/YaoHuoUtilsApi.js#sha256-PG5Ujc4blENa1TRpop4qHT7Nik4SSGoXm5Zb6NykwbM=
+// @require      https://update.greasyfork.org/scripts/502079/1422216/YaoHuoUtilsApi.js#sha256-lRzbm2BTjTA0ruda7j9c55U2sOegKncho3VUmF0cSSE=
 // @run-at       document-end
 // @grant        GM_registerMenuCommand
 // @grant        GM_openInTab
@@ -16,6 +16,7 @@
 // ==/UserScript==
 
 void (async function () {
+
   // 实现简易版替换用到的jquery，全部换成原生js太麻烦
   let $, jQuery;
   $ = jQuery = myJquery();
@@ -1138,7 +1139,7 @@ void (async function () {
         var parsedData = JSON.parse(userInput);
         if (typeof parsedData === "object" && parsedData !== null) {
           let newData = getItem("yaohuo_userData");
-          localStorage.clear();
+          // localStorage.clear();
           for (var key in parsedData) {
             if (parsedData.hasOwnProperty(key)) {
               if (key === "yaohuo_userData") {
