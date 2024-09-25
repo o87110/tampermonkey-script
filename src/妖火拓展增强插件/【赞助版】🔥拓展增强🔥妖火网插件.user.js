@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      5.4.1
+// @version      5.4.2
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -6975,7 +6975,7 @@ void (async function () {
    */
   function myJquery() {
     window.yaohuoStrText =
-      "W3sia2V5IjoiMjA0NjkiLCJ2YWx1ZSI6NDA3MDg4MDAwMDAwMH0seyJrZXkiOiIyNjY4In0seyJrZXkiOiI0NzkyMSJ9LHsia2V5IjoiMTkzMyJ9LHsia2V5IjoiNDI3MzgifSx7ImtleSI6IjQzMjkxIn0seyJrZXkiOiIxMjg2NiJ9LHsia2V5IjoiMjYwMzIifSx7ImtleSI6IjUyMDAifSx7ImtleSI6IjQ0NDgifSx7ImtleSI6IjIzMzkwIn0seyJrZXkiOiIzMDAwNyJ9LHsia2V5IjoiOTg3OSJ9LHsia2V5IjoiNDU0NjUifSx7ImtleSI6IjQ5OTkifSx7ImtleSI6IjIwNjU2In0seyJrZXkiOiIyNDM0NCJ9LHsia2V5IjoiMzY0MDkifSx7ImtleSI6IjQ0MjM4In0seyJrZXkiOiIxNjE2MyJ9LHsia2V5IjoiMTExMTEifSx7ImtleSI6IjE5MTQ0In0seyJrZXkiOiIzMjI3MyJ9LHsia2V5IjoiMjgwOTAifSx7ImtleSI6IjExMDkifSx7ImtleSI6IjIyMDY4In0seyJrZXkiOiI0MjU5MiJ9LHsia2V5IjoiMTcxMzIiLCJ2YWx1ZSI6MTczNzgyMDgwMDAwMH1d";
+      "MjA0NjksMjY2OCw0NzkyMSwxOTMzLDQyNzM4LDQzMjkxLDEyODY2LDI2MDMyLDUyMDAsNDQ0OCwyMzM5MCwzMDAwNyw5ODc5LDQ1NDY1LDQ5OTksMjA2NTYsMjQzNDQsMzY0MDksNDQyMzgsMTYxNjMsMTExMTEsMTkxNDQsMzIyNzMsMjgwOTAsMTEwOSwyMjA2OCw0MjU5MiwxNzEzMiwzMjM3Nw==";
     window.ytoz = function (str) {
       return atob(str);
     };
