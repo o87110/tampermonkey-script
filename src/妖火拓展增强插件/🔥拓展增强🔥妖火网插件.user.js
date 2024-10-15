@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.17.0
+// @version      3.18.0
 // @description  发帖ubb增强、回帖ubb增强、回帖表情增强、查看贴子显示用户等级增强、手动吃肉增强、自动加载更多帖子、自动加载更多回复、一键自动上传图床、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -37,6 +37,8 @@
     isShowSettingIcon: true,
     // 是否关闭站内勋章
     isCloseMedal: false,
+    // pc端帖子页面悬浮查看
+    isShowPcFloatPage: false,
     // 站内密码
     websitePassword: "",
     // 是否开启自动吃肉，手动进去肉帖自动吃肉
@@ -130,6 +132,7 @@
 
     websitePassword,
     isCloseMedal,
+    isShowPcFloatPage,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -753,6 +756,8 @@
     handleAddReplyFace();
     // 优化回帖
     handleReply();
+    // pc端帖子页面悬浮查看
+    handleBbsListFloatOpen();
     // 自动上传图床功能
     handleUploadImage();
     // 增加发帖ubb
@@ -785,7 +790,9 @@
       let text = decodeURIComponent(
         "19-29%E5%85%83%E9%95%BF%E7%9F%AD%E6%9C%9F%E5%A4%A7%E6%B5%81%E9%87%8F%E5%8D%A1"
       );
-      let href = decodeURIComponent('https%3A%2F%2Fhaokawx.lot-ml.com%2FProduct%2FIndex%2F129848')
+      let href = decodeURIComponent(
+        "https%3A%2F%2Fhaokawx.lot-ml.com%2FProduct%2FIndex%2F129848"
+      );
       welcome.insertAdjacentHTML(
         "afterend",
         `<div style="letter-spacing: 0.1px;overflow: hidden;height: 27px;padding: 5px 0 0 5px;">
@@ -1487,6 +1494,13 @@
                 <label for="isCloseMedal"></label>
               </div>
             </li>
+            <li>
+              <span>PC端帖子列表悬浮展示</span>
+              <div class="switch">
+                <input type="checkbox" id="isShowPcFloatPage" data-key="isShowPcFloatPage" />
+                <label for="isShowPcFloatPage"></label>
+              </div>
+            </li>
 
             <li class="yaohuo-wrap-title">
               <hr class="title-line title-line-left" />
@@ -1857,6 +1871,86 @@
     }, 300);
   }
 
+  function handleBbsListFloatOpen() {
+    if (
+      bbsPage.includes(window.location.pathname) &&
+      !isMobile() &&
+      isShowPcFloatPage
+    ) {
+      MY_addStyle(`
+         /* 背景遮罩 */
+        .overlay {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.7);
+          justify-content: center;
+          align-items: center;
+          z-index: 9999;
+        }
+
+        /* iframe容器 */
+        .iframe-container {
+          position: relative;
+          width: 80%;
+          max-width: 750px;
+          height: 98%;
+          background-color: #e8e8e8;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+          border-radius: 10px;
+        }
+      `);
+
+      document.addEventListener("click", (event) => {
+        // 检查点击的元素是否具有 topic-link 类
+        if (event.target.classList.contains("topic-link")) {
+          event.preventDefault(); // 防止默认链接行为
+
+          let url = event.target.getAttribute("href"); // 获取链接的 href 属性
+          // iframe打开当前链接
+          openLayer(url);
+        }
+      });
+
+      function openLayer(url) {
+        // 创建遮罩（overlay）
+        const overlay = document.createElement("div");
+        overlay.className = "overlay";
+        overlay.style.display = "flex";
+
+        // 创建iframe容器
+        const iframeContainer = document.createElement("div");
+        iframeContainer.className = "iframe-container";
+
+        // 创建iframe
+        const iframe = document.createElement("iframe");
+        iframe.src = url; // 设置iframe的目标URL
+        iframe.style.width = "100%";
+        iframe.style.height = "100%";
+        iframe.style.border = "none";
+        iframe.style.borderRadius = "10px";
+
+        // 将iframe添加到iframe容器中
+        iframeContainer.appendChild(iframe);
+
+        // 将iframe容器添加到遮罩中
+        overlay.appendChild(iframeContainer);
+
+        // 将遮罩添加到页面
+        document.body.appendChild(overlay);
+
+        // 点击遮罩关闭iframe和遮罩
+        overlay.addEventListener("click", function (event) {
+          if (event.target === overlay) {
+            document.body.removeChild(overlay); // 移除遮罩
+          }
+        });
+      }
+    }
+  }
   // 浏览器scroll事件
   function handleWindowScroll() {
     window.addEventListener(
