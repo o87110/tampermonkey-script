@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      5.5.1
+// @version      5.6.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -2813,7 +2813,7 @@ void (async function () {
                 data-key="colorByCharacterRate"
                 min="${0}"
                 value="${colorByCharacterRate}"
-                max="${0.05}"
+                max="${0.1}"
                 step="${0.01}"
               />
             </li>
@@ -3527,7 +3527,7 @@ void (async function () {
         // 距离上次滚动超过30s才刷新页面
         let lastTimeInterval =
           (new Date().getTime() - getItem("scrollNowTime", "")) / 1000;
-        
+
         if (location.search.includes("search")) {
           console.log("搜索模式不自动刷新");
           return;
@@ -3535,7 +3535,9 @@ void (async function () {
           document.querySelector(".iframe-container") &&
           lastTimeInterval < 180
         ) {
-          console.log(`悬浮帖子模式距离上次滚动时间${lastTimeInterval}小于180s不刷新`);
+          console.log(
+            `悬浮帖子模式距离上次滚动时间${lastTimeInterval}小于180s不刷新`
+          );
           return;
         }
 
@@ -3565,7 +3567,9 @@ void (async function () {
               document.querySelector(".iframe-container") &&
               lastTimeInterval < 180
             ) {
-              console.log(`悬浮帖子模式距离上次滚动时间${lastTimeInterval}小于180s不刷新`);
+              console.log(
+                `悬浮帖子模式距离上次滚动时间${lastTimeInterval}小于180s不刷新`
+              );
               return;
             }
 
@@ -7063,8 +7067,11 @@ void (async function () {
       if (addByAll) {
         return `[forecolor=${randomColor}]${txt}[/forecolor]`;
       }
-      for (let char of txt) {
-        let randomColor = getColorWithinBrightnessRange();
+      let result = getGradientColor(txt);
+      for (let i = 0; i < txt.length; i++) {
+        let char = txt[i];
+        // let randomColor = getColorWithinBrightnessRange();
+        let randomColor = result[i];
         // 不匹配空白字符
         if (!/\s/.test(char)) {
           str += `[forecolor=${randomColor}]${char}[/forecolor]`;
@@ -7073,6 +7080,147 @@ void (async function () {
         }
       }
       return str;
+    }
+  }
+  // 获取渐变色
+  function getGradientColor(text = "") {
+    const colorConfig = [
+      ["#FF0000", "#0000FF"],
+      ["#12c2e9", "#c471ed", "#f64f59"],
+      [
+        "#FF0000",
+        "#FF7F00",
+        "#FFFF00",
+        "#00FF00",
+        "#00FFFF",
+        "#0000FF",
+        "#FF00FF",
+      ],
+      ["#00c4ff", "#ff0056"],
+      ["#40E0D0", "#FF8C00", "#FF0080"],
+
+      ["#fc00ff", "#00dbde"],
+      ["#40E0D0", "#FF8C00", "#FF0080"],
+      ["#833ab4", "#fd1d1d", "#fcb045"],
+      ["#f902ff", "#ff4b1f", "#1fddff"],
+      ["#ff4b1f", "#1fddff", "#f902ff"],
+    ];
+
+    let randomNumber = getRandomNumber(0, colorConfig.length - 1);
+    // console.info("用的颜色", randomNumber + 1);
+    let colors = colorConfig[randomNumber];
+    let result = applyGradientToText(colors, text);
+    return result;
+
+    function applyGradientToText(colors, text) {
+      if (!text || !text.length) {
+        return [];
+      }
+      let number = Math.min(6, 1 + Math.ceil(text.length / 5));
+      if (text.length > 20) {
+        number = Math.min(6, 3 + Math.ceil(text.length / 10));
+      }
+
+      let maxSteps = colors.length * number; // 最大步数限制，根据实际需要调整
+      // 特殊处理七彩
+      if (colors.length === 7) {
+        maxSteps = 35;
+      }
+
+      let steps = Math.min(text.length, maxSteps); // 根据文字长度动态计算步数
+
+      // console.warn("steps", steps, colors.length, text.length);
+
+      let gradientColors = generateGradientSteps(colors, steps);
+      // console.info(gradientColors, gradientColors.length, text.length);
+
+      let result = [];
+      for (let index = 0; index < text.length; index++) {
+        // 计算当前字符所属的循环次数
+        let cycleIndex = Math.floor(index / gradientColors.length);
+
+        // 判断当前循环是正序还是倒序
+        let colorIndex =
+          cycleIndex % 2 === 0
+            ? index % gradientColors.length // 正序
+            : gradientColors.length - 1 - (index % gradientColors.length); // 倒序
+
+        // colorIndex = index % gradientColors.length
+        result.push(gradientColors[colorIndex]);
+      }
+
+      // 预览文字渐变效果
+      let spanElements = text.split("").map((char, index) => {
+        let span = document.createElement("span");
+        span.textContent = char;
+        span.style.fontSize = "18px";
+        span.style.lineHeight = "20px";
+
+        // 设置颜色
+        span.style.color = result[index];
+        return span;
+      });
+      let p = document.createElement("p");
+      spanElements.forEach((span) => p.appendChild(span));
+      document.body.prepend(p);
+      console.info("result", result);
+      return result;
+    }
+    function hexToRgb(hex) {
+      let bigint = parseInt(hex.slice(1), 16);
+      let r = (bigint >> 16) & 255;
+      let g = (bigint >> 8) & 255;
+      let b = bigint & 255;
+      return [r, g, b];
+    }
+
+    function rgbToHex(r, g, b) {
+      return `#${((1 << 24) + (r << 16) + (g << 8) + b)
+        .toString(16)
+        .slice(1)
+        .toUpperCase()}`;
+    }
+
+    function interpolateColor(color1, color2, factor) {
+      if (arguments.length < 3) {
+        factor = 0.5;
+      }
+      let result = color1.slice();
+      for (let i = 0; i < 3; i++) {
+        result[i] = Math.round(result[i] + factor * (color2[i] - result[i]));
+      }
+      return result;
+    }
+
+    // 修改的函数，支持多颜色渐变
+    function generateGradientSteps(colors, steps) {
+      let gradientColors = [];
+      let colorCount = colors.length - 1; // 颜色段数
+      let segmentSteps = Math.ceil(steps / colorCount); // 每段颜色的步数
+
+      for (let i = 0; i < colorCount; i++) {
+        let start = hexToRgb(colors[i]);
+        let end = hexToRgb(colors[i + 1]);
+        let stepFactor = 1 / segmentSteps;
+
+        for (let j = 0; j < segmentSteps; j++) {
+          let interpolatedColor = interpolateColor(start, end, stepFactor * j);
+          gradientColors.push(
+            rgbToHex(
+              interpolatedColor[0],
+              interpolatedColor[1],
+              interpolatedColor[2]
+            )
+          );
+        }
+      }
+
+      // 如果总步数没有整除颜色段数，补充最后一个颜色
+      if (gradientColors.length < steps) {
+        gradientColors.push(colors[colors.length - 1]);
+      }
+
+      return gradientColors;
     }
   }
   function getSelectText(textarea) {
