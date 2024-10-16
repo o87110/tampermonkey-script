@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      5.5.0
+// @version      5.5.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -3523,14 +3523,21 @@ void (async function () {
     }
 
     if (isAddOnlineDuration) {
-      if (location.search.includes("search")) {
-        console.log("搜索模式不自动刷新");
-        return;
-      }
       timer = setInterval(function () {
         // 距离上次滚动超过30s才刷新页面
         let lastTimeInterval =
           (new Date().getTime() - getItem("scrollNowTime", "")) / 1000;
+        
+        if (location.search.includes("search")) {
+          console.log("搜索模式不自动刷新");
+          return;
+        } else if (
+          document.querySelector(".iframe-container") &&
+          lastTimeInterval < 180
+        ) {
+          console.log(`悬浮帖子模式距离上次滚动时间${lastTimeInterval}小于180s不刷新`);
+          return;
+        }
 
         if (lastTimeInterval > 20) {
           location.reload();
@@ -3546,14 +3553,21 @@ void (async function () {
       if (isFullAutoEat) {
         // 定时刷新页面
         if (!isAddOnlineDuration && !timer) {
-          if (location.search.includes("search")) {
-            console.log("搜索模式不自动刷新");
-            return;
-          }
           timer = setInterval(function () {
             // 距离上次滚动超过30s才刷新页面
             let lastTimeInterval =
               (new Date().getTime() - getItem("scrollNowTime", "")) / 1000;
+
+            if (location.search.includes("search")) {
+              console.log("搜索模式不自动刷新");
+              return;
+            } else if (
+              document.querySelector(".iframe-container") &&
+              lastTimeInterval < 180
+            ) {
+              console.log(`悬浮帖子模式距离上次滚动时间${lastTimeInterval}小于180s不刷新`);
+              return;
+            }
 
             if (lastTimeInterval > 20) {
               location.reload();
