@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      5.6.0
+// @version      5.6.1
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -2806,7 +2806,7 @@ void (async function () {
               </div>
             </li>
             <li>
-              <span>每个字随机颜色概率：<i class="range-num">${colorByCharacterRate}</i></span>
+              <span>整句彩色字概率：<i class="range-num">${colorByCharacterRate}</i></span>
               <input
                 type="range"
                 id="colorByCharacterRate"
@@ -7150,7 +7150,7 @@ void (async function () {
       }
 
       // 预览文字渐变效果
-      let spanElements = text.split("").map((char, index) => {
+      /* let spanElements = text.split("").map((char, index) => {
         let span = document.createElement("span");
         span.textContent = char;
         span.style.fontSize = "18px";
@@ -7163,7 +7163,7 @@ void (async function () {
       let p = document.createElement("p");
       spanElements.forEach((span) => p.appendChild(span));
       document.body.prepend(p);
-      console.info("result", result);
+      console.info("result", result); */
       return result;
     }
     function hexToRgb(hex) {
