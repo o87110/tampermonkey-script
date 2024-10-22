@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【自用版】🔥拓展增强🔥妖火网插件R3Knos8Ccd
 // @namespace    https://yaohuo.me/
-// @version      5.8.3
+// @version      5.9.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -6787,7 +6787,7 @@ void (async function () {
   function deleteExpiredID(obj, key) {
     let nowTime = new Date().getTime();
     // 吹牛数据默认存储7天
-    let expire = key === 'autoEatList' ? expiredDays : 1;
+    let expire = key === "autoEatList" ? expiredDays : 1;
     let lastTime;
     Object.keys(obj).forEach((item) => {
       if (key === "boastData") {
@@ -7111,25 +7111,17 @@ void (async function () {
   // 获取渐变色
   function getGradientColor(text = "") {
     const colorConfig = [
-      ["#FF0000", "#0000FF"],
-      ["#12c2e9", "#c471ed", "#f64f59"],
-      [
-        "#FF0000",
-        "#FF7F00",
-        "#FFFF00",
-        "#00FF00",
-        "#00FFFF",
-        "#0000FF",
-        "#FF00FF",
-      ],
-      ["#00c4ff", "#ff0056"],
-      ["#40E0D0", "#FF8C00", "#FF0080"],
+      ["#ff3cab", "#3574e8", "#2bf4e7"], // 符合++
+      ["#6e35ff", "#ee64c2", "#ff9b5f"], // 符合+
+      ["#FF0000", "#0000FF"], // 符合
+      ["#12c2e9", "#c471ed", "#f64f59"], // 符合+
+      ["#00c4ff", "#ff0056"], //符合+
+      ["#40E0D0", "#FF8C00", "#FF0080"], //符合+
 
-      ["#fc00ff", "#00dbde"],
-      ["#40E0D0", "#FF8C00", "#FF0080"],
-      ["#833ab4", "#fd1d1d", "#fcb045"],
-      ["#f902ff", "#ff4b1f", "#1fddff"],
-      ["#ff4b1f", "#1fddff", "#f902ff"],
+      ["#fc00ff", "#00dbde"], // 符合++
+      ["#40E0D0", "#FF8C00", "#FF0080"], //符合++
+      ["#f902ff", "#FF7F00", "#40E0D0"], // 符合
+      ["#ff4b1f", "#1fddff", "#f902ff"], // 符合+
     ];
 
     let randomNumber = getRandomNumber(0, colorConfig.length - 1);
