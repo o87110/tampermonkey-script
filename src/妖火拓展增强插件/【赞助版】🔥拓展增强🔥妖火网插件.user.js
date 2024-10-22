@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      5.6.2
+// @version      5.6.3
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -3664,7 +3664,8 @@ void (async function () {
   }
   function handleBbsListFloatOpen() {
     if (
-      bbsPage.includes(window.location.pathname) &&
+      (bbsPage.includes(window.location.pathname) ||
+        window.location.pathname === "/") &&
       !isMobile() &&
       isShowPcFloatPage
     ) {
@@ -3693,14 +3694,37 @@ void (async function () {
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
           border-radius: 10px;
         }
+
+        a.visited {
+          color: #bbb; /* 已访问的链接颜色 */
+        }
       `);
+      const visitedLinks = getItem("visitedLinks", []);
+
+      document
+        .querySelectorAll(".topic-link,a[href^='/bbs-']")
+        .forEach((link) => {
+          // 如果链接已经被访问过，添加 visited 类
+          let href = link.getAttribute("href");
+          if (visitedLinks.includes(href)) {
+            link.classList.add("visited");
+          }
+        });
 
       document.addEventListener("click", (event) => {
         // 检查点击的元素是否具有 topic-link 类
         if (event.target.classList.contains("topic-link")) {
+          event.target.classList.add("visited");
+
           event.preventDefault(); // 防止默认链接行为
 
           let url = event.target.getAttribute("href"); // 获取链接的 href 属性
+          // 保存已访问链接到 sessionStorage
+          if (!visitedLinks.includes(url)) {
+            visitedLinks.push(url);
+            setItem("visitedLinks", visitedLinks);
+          }
+
           // iframe打开当前链接
           openLayer(url);
         }
@@ -4084,7 +4108,7 @@ void (async function () {
   }
   // 获取值
   function getItem(key, defaultValue = {}) {
-    if (["boastData", "autoEatList"].includes(key)) {
+    if (["boastData", "autoEatList", "visitedLinks"].includes(key)) {
       let list = MY_getValue(key, defaultValue);
       // 删除过期的肉帖
       deleteExpiredID(list, key);
@@ -6762,7 +6786,7 @@ void (async function () {
   function deleteExpiredID(obj, key) {
     let nowTime = new Date().getTime();
     // 吹牛数据默认存储7天
-    let expire = key === "boastData" ? 1 : expiredDays;
+    let expire = key === 'autoEatList' ? expiredDays : 1;
     let lastTime;
     Object.keys(obj).forEach((item) => {
       if (key === "boastData") {
