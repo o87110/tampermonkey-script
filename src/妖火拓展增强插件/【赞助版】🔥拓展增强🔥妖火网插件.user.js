@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      5.7.2
+// @version      5.8.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -235,6 +235,10 @@ void (async function () {
 
     // 是否开启云同步
     isOpenCloudSync: false,
+    // 快速到顶部底部
+    quicklyReachTopOrBottom: false,
+    // 移动端生效
+    quicklyBtnOpacity: 0.35,
   };
   let yaohuo_userData = null;
 
@@ -361,6 +365,9 @@ void (async function () {
 
     quickReplyStr,
     selectedAutoSubmit,
+
+    quicklyReachTopOrBottom,
+    quicklyBtnOpacity,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -998,6 +1005,8 @@ void (async function () {
 
     // 修复网站更新样式错乱问题
     handleStyle();
+    // 处理返回顶部和底部
+    handleScrollTopOrBottom();
     // 处理浏览器滚动条事件
     handleWindowScroll();
     // 处理窗口改变事件
@@ -1564,6 +1573,142 @@ void (async function () {
     yaohuo_userData.settingBtnTop = top;
 
     setItem("yaohuo_userData", yaohuo_userData);
+  }
+
+  function handleScrollTopOrBottom() {
+    if (!quicklyReachTopOrBottom) return;
+    let opacity = isMobile() ? quicklyBtnOpacity : 0.6;
+    MY_addStyle(`
+      .scroll-buttons {
+        position: fixed;
+        right: 0px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        /* gap: 10px; */
+      }
+      .scroll-buttons svg {
+        opacity: ${opacity};
+        filter: drop-shadow(0px 0px 3px #666);
+      }
+
+      .scroll-btn {
+        width: 50px;
+        height: 50px;
+        cursor: pointer;
+        transition: opacity 0.3s ease;
+        margin: 0; /* 确保没有外边距 */
+        padding: 0; /* 确保没有内边距 */
+      }
+      #scrollTopBtn,
+      #scrollBottomBtn {
+        display: block;
+      }
+
+      .scroll-btn.hidden {
+        /* opacity: 0; */
+        display: none !important;
+        pointer-events: none;
+      }
+
+      /* 返回底部按钮通过旋转 180 度实现 */
+      .rotate {
+        transform: rotate(180deg);
+      }
+    `);
+
+    let innerH = `
+      <div class="scroll-buttons">
+        <!-- 返回顶部按钮 -->
+        <div id="scrollTopBtn" class="scroll-btn">
+          <svg
+            class="icon"
+            width="50"
+            height="50"
+            viewBox="0 0 1024 1024"
+            version="1.1"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0 0m102.4 0l819.2 0q102.4 0 102.4 102.4l0 819.2q0 102.4-102.4 102.4l-819.2 0q-102.4 0-102.4-102.4l0-819.2q0-102.4 102.4-102.4Z"
+              fill="#89898F"
+            />
+            <path
+              d="M709.504 256h-395.008A32.4864 32.4864 0 0 0 281.6 288a32.4864 32.4864 0 0 0 32.896 32h395.008A32.4864 32.4864 0 0 0 742.4 288 32.4864 32.4864 0 0 0 709.504 256z m-197.9392 128.256a16.5632 16.5632 0 0 0-11.6224 4.7104l-162.6112 158.3872c-6.144 5.9904-8.576 11.648-6.8352 15.8976s7.68 6.7328 16.512 6.7328h98.7392v166.016A32.4864 32.4864 0 0 0 478.72 768h65.8432a32.4864 32.4864 0 0 0 32.896-32v-166.016h98.7392c8.8832 0 14.7456-2.4064 16.512-6.7584s-0.6912-9.9072-6.8608-15.8976l-162.6624-158.3616a16.5632 16.5632 0 0 0-11.6224-4.7104z"
+              fill="#FFFFFF"
+            />
+          </svg>
+        </div>
+
+        <!-- 返回底部按钮，旋转180度 -->
+        <div id="scrollBottomBtn" class="scroll-btn rotate">
+          <svg
+            class="icon"
+            width="50"
+            height="50"
+            viewBox="0 0 1024 1024"
+            version="1.1"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0 0m102.4 0l819.2 0q102.4 0 102.4 102.4l0 819.2q0 102.4-102.4 102.4l-819.2 0q-102.4 0-102.4-102.4l0-819.2q0-102.4 102.4-102.4Z"
+              fill="#89898F"
+            />
+            <path
+              d="M709.504 256h-395.008A32.4864 32.4864 0 0 0 281.6 288a32.4864 32.4864 0 0 0 32.896 32h395.008A32.4864 32.4864 0 0 0 742.4 288 32.4864 32.4864 0 0 0 709.504 256z m-197.9392 128.256a16.5632 16.5632 0 0 0-11.6224 4.7104l-162.6112 158.3872c-6.144 5.9904-8.576 11.648-6.8352 15.8976s7.68 6.7328 16.512 6.7328h98.7392v166.016A32.4864 32.4864 0 0 0 478.72 768h65.8432a32.4864 32.4864 0 0 0 32.896-32v-166.016h98.7392c8.8832 0 14.7456-2.4064 16.512-6.7584s-0.6912-9.9072-6.8608-15.8976l-162.6624-158.3616a16.5632 16.5632 0 0 0-11.6224-4.7104z"
+              fill="#FFFFFF"
+            />
+          </svg>
+        </div>
+      </div>
+    `;
+
+    $("body").append(innerH);
+
+    const scrollTopBtn = document.getElementById("scrollTopBtn");
+    const scrollBottomBtn = document.getElementById("scrollBottomBtn");
+
+    // 返回顶部
+    scrollTopBtn.addEventListener("click", function () {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    });
+
+    // 返回底部
+    scrollBottomBtn.addEventListener("click", function () {
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: "smooth",
+      });
+    });
+
+    // 检测滚动位置，控制按钮显示
+    /* window.addEventListener(
+      "scroll",
+      throttle(() => {
+        const scrollTop =
+          window.pageYOffset || document.documentElement.scrollTop;
+        const scrollBottom =
+          document.body.scrollHeight - window.innerHeight - scrollTop;
+
+        // 距离顶部小于100px时隐藏返回顶部按钮
+        if (scrollTop < 100) {
+          scrollTopBtn.classList.add("hidden");
+        } else {
+          scrollTopBtn.classList.remove("hidden");
+        }
+
+        // 距离底部小于100px时隐藏返回底部按钮
+        if (scrollBottom < 100) {
+          scrollBottomBtn.classList.add("hidden");
+        } else {
+          scrollBottomBtn.classList.remove("hidden");
+        }
+      }, 100)
+    ); */
   }
 
   function addSettingBtn() {
@@ -2176,6 +2321,28 @@ void (async function () {
                 <input type="checkbox" id="isShowPcFloatPage" data-key="isShowPcFloatPage" />
                 <label for="isShowPcFloatPage"></label>
               </div>
+            </li>
+            <li>
+              <span>快速返回顶部底部</span>
+              <div class="switch">
+                <input type="checkbox" id="quicklyReachTopOrBottom" data-key="quicklyReachTopOrBottom" />
+                <label for="quicklyReachTopOrBottom"></label>
+              </div>
+            </li>
+            <li>
+              <span>快速按钮透明度${getIcon(
+                "tipIcon",
+                "提示：设置项仅移动端生效，PC端不考虑字体遮挡问题默认使用0.5透明度"
+              )} ：<i class="range-num">${quicklyBtnOpacity}</i></span>
+              <input
+                type="range"
+                id="quicklyBtnOpacity"
+                data-key="quicklyBtnOpacity"
+                min="${0.1}"
+                value="${quicklyBtnOpacity}"
+                max="${1}"
+                step="${0.01}"
+              />
             </li>
             <li>
               <span>站内密码设置</span>
@@ -2966,6 +3133,11 @@ void (async function () {
             autoShowElement({
               fatherIdAry: ["isShowSettingIcon"],
               childIdAry: ["settingIconMaxSize"],
+              dataKey,
+            });
+            autoShowElement({
+              fatherIdAry: ["quicklyReachTopOrBottom"],
+              childIdAry: ["quicklyBtnOpacity"],
               dataKey,
             });
             autoShowElement({
@@ -6929,7 +7101,7 @@ void (async function () {
    */
   function throttle(
     fn,
-    interval,
+    interval = 100,
     { leading = true, trailing = isExecTrail } = {}
   ) {
     let startTime = 0;
