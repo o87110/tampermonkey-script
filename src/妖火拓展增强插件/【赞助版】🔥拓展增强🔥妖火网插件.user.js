@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      5.8.2
+// @version      5.9.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -392,6 +392,9 @@ void (async function () {
     /\/bbs-.*\.html/,
     /\/bbs\/book_re_my\.aspx/, //我的回复页面
     // /\/bbs\/book_list_log\.aspx/,  //动态页面
+    /\/bbs\/book_list_hot\.aspx/, //热门页面
+    /\/bbs\/book_list_search\.aspx/, //查询用户界面
+    /\/bbs\/favlist\.aspx/, // 我的收藏页面
   ];
   // 404页面
   const notFoundPage = ["/404.htm"];
@@ -4010,7 +4013,9 @@ void (async function () {
               // 处理自动加载更多，需要放到最后
               handleLoadNextPage();
             } else if (
-              /\/bbs\/book_re_my\.aspx/.test(window.location.pathname)
+              ["/bbs/book_re_my.aspx", "/bbs/favlist.aspx"].includes(
+                window.location.pathname
+              )
             ) {
               // 回复页特殊处理，如果是加载更多也能使用下一步
               handleLoadNextPage();
@@ -7053,6 +7058,12 @@ void (async function () {
         (item) => item.innerText === "下一页\n上一页"
       );
 
+      // 我的回复页面和收藏页特殊处理
+      let isSpecialPage = [
+        "/bbs/book_re_my.aspx",
+        "/bbs/favlist.aspx",
+      ].includes(window.location.pathname);
+
       // 距离按钮最大多少就会触发
       let bottomMaxDistance = 250;
       if (loadNextPageType === "more" || !nextPageWrap) {
@@ -7062,12 +7073,9 @@ void (async function () {
         bottomMaxDistance = 0;
       }
       // 回复页特殊处理，如果是加载更多也能使用下一步
-      if (
-        /\/bbs\/book_re_my\.aspx/.test(window.location.pathname) &&
-        loadNextPageType === "more"
-      ) {
+      if (isSpecialPage && loadNextPageType === "more") {
         nextBtn = nextPageWrap.firstChild;
-        bottomMaxDistance = 0;
+        bottomMaxDistance = -50;
       }
       let A = nextBtn.getBoundingClientRect().bottom;
       let B = document.documentElement.clientHeight;
@@ -7082,7 +7090,14 @@ void (async function () {
         !isClickLoadMoreBtn &&
         newLength < maxLoadNum
       ) {
-        nextBtn.click();
+        if (isSpecialPage) {
+          isClickLoadMoreBtn = true;
+          setTimeout(() => {
+            nextBtn.click();
+          }, 1000);
+        } else {
+          nextBtn.click();
+        }
 
         // 放到加载更多按钮里面监听，此处不处理
         // isClickLoadMoreBtn = true;
