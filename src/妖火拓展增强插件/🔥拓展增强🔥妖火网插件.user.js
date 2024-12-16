@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.19.0
+// @version      3.19.1
 // @description  发帖ubb增强、回帖ubb增强、回帖表情增强、查看贴子显示用户等级增强、手动吃肉增强、自动加载更多帖子、自动加载更多回复、一键自动上传图床、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -772,7 +772,6 @@
 
   // ==其他功能函数和方法==
   function handleStyle() {
-    handleHome();
     MY_addStyle(`
       .centered-container {
         display: block !important;
@@ -784,25 +783,6 @@
     // 遍历选中的元素并添加额外的样式
     for (let i = 0; i < flexDivs.length; i++) {
       flexDivs[i].style.flexWrap = "wrap";
-    }
-  }
-  function handleHome() {
-    if (window.location.pathname === "/" || document.querySelector(".logo")) {
-      let welcome = document.querySelector(".welcome");
-      let text = decodeURIComponent(
-        "19-29%E5%85%83%E9%95%BF%E7%9F%AD%E6%9C%9F%E5%A4%A7%E6%B5%81%E9%87%8F%E5%8D%A1"
-      );
-      let href = decodeURIComponent(
-        "https%3A%2F%2Fhaokawx.lot-ml.com%2FProduct%2FIndex%2F129848"
-      );
-      welcome?.insertAdjacentHTML(
-        "afterend",
-        `<div style="letter-spacing: 0.1px;overflow: hidden;height: 27px;padding: 5px 0 0 5px;">
-            <img src="/bbs/medal/爱国之心.gif" width="16" height="20" style="vertical-align: text-bottom;"><a href="${href}" target="_blank" style="color: brown;">${text}</a>
-            <span></span>
-          </div>
-        `
-      );
     }
   }
   function handleCloseMedal() {
