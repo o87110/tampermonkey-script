@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      5.9.3
+// @version      5.9.4
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -7305,8 +7305,8 @@ void (async function () {
       ["#40E0D0", "#FF8C00", "#FF0080"], //符合+
       ["#fc00ff", "#00dbde"], // 符合++
       ["#f902ff", "#FF7F00", "#40E0D0"], // 符合
-      ["#833ab4", "#fd1d1d", "#fcb045"],
-      ["#ff4b1f", "#1fddff", "#f902ff"], // 符合+
+      // ["#833ab4", "#fd1d1d", "#fcb045"],
+      // ["#ff4b1f", "#1fddff", "#f902ff"], // 符合+
     ];
 
     let randomNumber = getRandomNumber(0, colorConfig.length - 1);
@@ -7319,7 +7319,7 @@ void (async function () {
       if (!text || !text.length) {
         return [];
       }
-      let number = Math.min(6, 1 + Math.ceil(text.length / 5));
+      let number = Math.min(6, 2 + Math.ceil(text.length / 5));
       if (text.length > 20) {
         number = Math.min(6, 3 + Math.ceil(text.length / 10));
       }
@@ -7331,7 +7331,7 @@ void (async function () {
       }
 
       let steps = Math.min(text.length, maxSteps); // 根据文字长度动态计算步数
-
+      steps = steps < 3 * colors.length ? maxSteps : steps;
       // console.warn("steps", steps, colors.length, text.length);
 
       let gradientColors = generateGradientSteps(colors, steps);
