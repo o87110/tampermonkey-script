@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      5.9.4
+// @version      5.10.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -105,6 +105,7 @@ void (async function () {
     inkToken: "",
     meetToken: "",
     speedFreeToken: "",
+    yunTuToken: "",
 
     // 站内密码
     websitePassword: "",
@@ -294,6 +295,7 @@ void (async function () {
     inkToken,
     meetToken,
     speedFreeToken,
+    yunTuToken,
 
     websitePassword,
     isOpenBoast,
@@ -2408,6 +2410,7 @@ void (async function () {
                 <option value="水墨图床">水墨图床</option>
                 <option value="极速图床">极速图床</option>
                 <option value="美团图床">美团图床</option>
+                <option value="云图图床">云图图床</option>
               </select>
             </li>
             <li>
@@ -2432,6 +2435,19 @@ void (async function () {
                   id="speedFreeToken" 
                   data-key="speedFreeToken"
                   value="${speedFreeToken}"
+                />
+                ${getIcon("eyeIcon")}
+              </div>
+            </li>
+            <li>
+              <span><a href="https://pic.yt" target="_blank">云图图床token</a></span>
+              <div class="password-container">
+                <input 
+                  type="password" 
+                  placeholder="为空则为游客上传"
+                  id="yunTuToken" 
+                  data-key="yunTuToken"
+                  value="${yunTuToken}"
                 />
                 ${getIcon("eyeIcon")}
               </div>
@@ -3173,6 +3189,7 @@ void (async function () {
                 "inkToken",
                 "meetToken",
                 "speedFreeToken",
+                "yunTuToken",
               ],
               dataKey,
             });
@@ -3562,6 +3579,7 @@ void (async function () {
         let config = {
           水墨图床: "#inkToken",
           极速图床: "#speedFreeToken",
+          云图图床: "#yunTuToken",
         };
         Object.keys(config).forEach((name) => {
           if (item.value === name) {
@@ -5125,6 +5143,11 @@ void (async function () {
             url: "https://aapi.helioho.st/upload.php",
             name: "image",
           },
+          云图图床: {
+            url: "https://pic.yt/api/v1/upload",
+            name: "file",
+            token: yunTuToken || "",
+          },
         };
         let {
           url: uploadUrl,
@@ -5145,6 +5168,15 @@ void (async function () {
               method: "POST",
               body: formData,
             });
+          } else if (imageBedType === "云图图床") {
+            response = await fetch(uploadUrl, {
+              method: "POST",
+              headers: {
+                Accept: "application/json",
+                Authorization: `Bearer ${uploadToken}`,
+              },
+              body: formData,
+            });
           } else {
             response = await fetch(uploadUrl, {
               method: "POST",
@@ -5157,12 +5189,17 @@ void (async function () {
 
           const res = await response.json();
 
-          let { code, url, data, msg } = res;
+          let { code, url, data, msg, status, message } = res;
 
-          if (code === 200 || code === 0 || url) {
+          if (code === 200 || code === 0 || url || status) {
             // 处理葫芦侠图床直接取url，其他取data.url
             if (!url) {
               url = data.url;
+            }
+
+            // 处理云图图床
+            if (!url) {
+              url = data.links.url;
             }
 
             if (url) {
@@ -5183,7 +5220,7 @@ void (async function () {
               insertText(textArea, `[img]${url}[/img]`, 0);
             }
           } else {
-            alert(msg);
+            alert(msg || message);
           }
         } catch (error) {
           alert(error);
