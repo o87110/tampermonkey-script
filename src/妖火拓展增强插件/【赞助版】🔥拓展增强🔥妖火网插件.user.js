@@ -1,13 +1,12 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      5.10.3
+// @version      6.0.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
 // @match        *://*.yaohuo.me/*
 // @icon         https://yaohuo.me/css/favicon.ico
-// @require      https://update.greasyfork.org/scripts/502079/1422216/YaoHuoUtilsApi.js#sha256-lRzbm2BTjTA0ruda7j9c55U2sOegKncho3VUmF0cSSE=
 // @run-at       document-end
 // @grant        GM_registerMenuCommand
 // @grant        GM_openInTab
@@ -16,14 +15,7 @@
 // ==/UserScript==
 
 void (async function () {
-  // 实现简易版替换用到的jquery，全部换成原生js太麻烦
-  let $, jQuery;
-  $ = jQuery = myJquery();
-
   // =====手动配置区域开始=====
-
-  // =====手动配置区域结束=====
-
   let settingData = {
     // 是否显示站内图标
     isShowSettingIcon: true,
@@ -241,6 +233,7 @@ void (async function () {
     // 移动端生效
     quicklyBtnOpacity: 0.35,
   };
+  // =====手动配置区域结束=====
   let yaohuo_userData = null;
 
   // 数据初始化
@@ -1004,7 +997,7 @@ void (async function () {
   const a3style =
     "color: #fff; padding: 2px 4px; font-size: 14px; background-color: #66ccff;border-radius: 10%; cursor: pointer;";
   // ==主代码执行==
-  (async function () {
+  (function () {
     // 处理新帖也帖子列表页面下一步加载时，页面会到下一页
     // handleMoreLoadNextPage();
 
@@ -1060,31 +1053,10 @@ void (async function () {
     // 打赏增强
     handleReward();
 
-    // handleTestOss();
     // handleStatisticalData();
   })();
 
   // ==其他功能函数和方法==
-  async function handleTestOss() {
-    console.info("YaoHuoUtils2", YaoHuoUtils2);
-
-    const userId = "20469";
-
-    // 模拟数据
-    const newData = {
-      id: userId,
-      name: "Test User",
-      timestamp: new Date().toLocaleString(),
-    };
-
-    // 备份数据
-    await YaoHuoUtils2.backupData(userId, newData);
-
-    YaoHuoUtils2.restoreData(userId);
-    // 恢复数据
-    // const restoredData = await restoreData(userId);
-    // console.log("恢复的数据:", restoredData);
-  }
   function handleReward() {
     if (/^\/bbs-.*\.html$/.test(window.location.pathname)) {
       let wrap = document.querySelector(".aui-grids");
@@ -1483,11 +1455,10 @@ void (async function () {
     document.head.appendChild(script); // 执行脚本
   }
   async function getOSS() {
-    let cacheUtils = getItem("cacheUtils");
-    // 60 * 60 * 24
+    let cacheUtils = getSession("cacheUtils");
     if (
       cacheUtils &&
-      (new Date().getTime() - cacheUtils.timestamp) / 1000 < 10
+      (new Date().getTime() - cacheUtils.timestamp) / 1000 < 6 * 60 * 60
     ) {
       eval(cacheUtils.text);
     } else {
@@ -1497,17 +1468,77 @@ void (async function () {
         ),
         0
       );
-      setItem("cacheUtils", {
+      setSession("cacheUtils", {
         text: res,
         timestamp: new Date().getTime(),
       });
       eval(res);
+      await YaoHuoUtils.init();
     }
   }
+
+  async function loadScript(url) {
+    return new Promise((resolve, reject) => {
+      var script = document.createElement("script");
+      script.src = url;
+
+      script.onload = () => {
+        resolve();
+      };
+
+      script.onerror = () => {
+        reject(new Error(`脚本加载失败: ${url}`));
+      };
+
+      document.head.appendChild(script);
+    });
+  }
+  async function getExternalScript() {
+    await loadScript(
+      "https://www.icbc.com.cn/resource/lib/jquery/jquery-3.6.0.min.js"
+    );
+    await loadScript(
+      "https://gosspublic.alicdn.com/aliyun-oss-sdk-6.20.0.min.js"
+    );
+  }
+  function setSession(key, value) {
+    if (typeof value === "object") {
+      value = JSON.stringify(value);
+    }
+    sessionStorage.setItem(key, value);
+  }
+  function getSession(key, defaultValue = {}) {
+    const value = sessionStorage.getItem(key) || defaultValue;
+    try {
+      return JSON.parse(value);
+    } catch (e) {
+      return value;
+    }
+  }
+  // 处理sessionStorage不同标签页数据共享
+  function handleSessionStorage() {
+    if (!sessionStorage.length) {
+      // 这个调用能触发目标事件，从而达到共享数据的目的
+      localStorage.setItem("getSessionStorage", Date.now());
+    }
+    // 该事件是核心
+    window.addEventListener("storage", function (event) {
+      if (event.key == "getSessionStorage") {
+        // 已存在的标签页会收到这个事件
+        localStorage.setItem("sessionStorage", JSON.stringify(sessionStorage));
+        localStorage.removeItem("sessionStorage");
+      } else if (event.key == "sessionStorage" && !sessionStorage.length) {
+        // 新开启的标签页会收到这个事件
+        let data = JSON.parse(event.newValue);
+        for (key in data) {
+          sessionStorage.setItem(key, data[key]);
+        }
+      }
+    });
+  }
   async function initSetting() {
-    window.setItem = setItem;
-    window.getItem = getItem;
-    // 获取用户id
+    handleSessionStorage();
+    await getExternalScript();
     await getUserId();
     await getOSS();
     // await getInfo();
@@ -1560,40 +1591,6 @@ void (async function () {
     initSettingBtnPosition("init");
   }
 
-  async function getInfo() {
-    if (getLoginStatus()) {
-      return;
-    }
-
-    let id = await getUserId(undefined, true);
-
-    try {
-      let result = ytoz(yaohuoStrText);
-      result = result.includes("[") ? JSON.parse(result) : result;
-
-      let flag =
-        typeof result === "string"
-          ? result.includes(id)
-          : result.find((item) => item.key == id);
-
-      let data = {
-        token: flag ? ztoy(id) : null,
-        timestamp: new Date().getTime(),
-      };
-
-      setItem("yaohuoLoginInfo", data, true);
-      setItem("notAutoEatBoastList", []);
-    } catch (err) {
-      console.info(err);
-      throw new Error("加载失败");
-    }
-
-    // async function getUserId(url = "/myfile.aspx") {
-    //   let res = await fetchData(url, 0);
-    //   let id = res.match(/我的ID(<.*?>)?:?\s*(\d+)/)?.[2];
-    //   return id;
-    // }
-  }
   // 更新按钮位置到最右边
   /**
    * 当按钮靠最右边时，设置按钮的left偏移
@@ -2426,7 +2423,7 @@ void (async function () {
               </div>
             </li>
             <li>
-              <span id="restoreLocal2" onclick="localStorage.clear();location.reload()"><a href="javascript:;">清除缓存</a></span>
+              <span id="restoreLocal2" onclick="localStorage.clear();sessionStorage.clear();location.reload()"><a href="javascript:;">清除缓存</a></span>
               <span id="backupLocal"><a href="javascript:;">备份数据</a></span>
               <span id="restoreLocal"><a href="javascript:;">恢复数据</a></span>
             </li>
@@ -4646,14 +4643,6 @@ void (async function () {
         handleEventListener(item.id, textarea, item.ubb, item.offset);
       });
     }
-  }
-  function getLoginStatus() {
-    let yaohuoLoginInfo = getItem("yaohuoLoginInfo", {});
-    return (
-      (new Date().getTime() - yaohuoLoginInfo.timestamp) / 1000 <
-        60 * 60 * 24 &&
-      atob(yaohuoLoginInfo.token || "") == getItem("yaohuoUserID", "")
-    );
   }
   // 增加快捷回复
   function handleAddQuickReply() {
@@ -7522,332 +7511,5 @@ void (async function () {
     let endPos = textarea.selectionEnd;
     let selectedText = textarea.value.substring(startPos, endPos);
     return selectedText;
-  }
-  /**
-   * 简易版jquery实现，用于替换之前写的部分语法，不引用cdn库
-   * @returns
-   */
-  function myJquery() {
-    window.yaohuoStrText =
-      "MjA0NjksMjY2OCw0NzkyMSwxOTMzLDQyNzM4LDQzMjkxLDEyODY2LDI2MDMyLDUyMDAsNDQ0OCwyMzM5MCwzMDAwNyw5ODc5LDQ1NDY1LDQ5OTksMjA2NTYsMjQzNDQsMzY0MDksNDQyMzgsMTYxNjMsMTExMTEsMTkxNDQsMzIyNzMsMjgwOTAsMTEwOSwyMjA2OCw0MjU5MiwxNzEzMiwzMjM3NywyNzMxNywxODM2Myw1MTY0LDE2MDEsMTg4ODg=";
-    window.ytoz = function (str) {
-      return atob(str);
-    };
-    window.ztoy = function (str) {
-      return btoa(str);
-    };
-    let jQuery = function (selector) {
-      return new jQuery.fn.init(selector);
-    };
-
-    jQuery.fn = jQuery.prototype = {
-      constructor: jQuery,
-
-      init: function (selector) {
-        if (!selector) {
-          return this;
-        }
-
-        if (typeof selector === "string") {
-          let elements = document.querySelectorAll(selector);
-          this.length = elements.length;
-          for (let i = 0; i < elements.length; i++) {
-            this[i] = elements[i];
-          }
-        } else if (selector.nodeType) {
-          this[0] = selector;
-          this.length = 1;
-        } else if (selector instanceof jQuery) {
-          return selector;
-        } else if (Array.isArray(selector)) {
-          for (let i = 0; i < selector.length; i++) {
-            this[i] = selector[i];
-          }
-          this.length = selector.length;
-          return this;
-        }
-
-        return this;
-      },
-
-      length: 0,
-
-      each: function (callback) {
-        for (let i = 0; i < this.length; i++) {
-          callback.call(this[i], i, this[i]);
-        }
-
-        return this;
-      },
-
-      css: function (prop, value) {
-        if (typeof prop === "string") {
-          if (value !== undefined) {
-            this.each(function () {
-              this.style[prop] = value;
-            });
-            return this;
-          } else {
-            return this[0].style[prop];
-          }
-        } else {
-          for (let key in prop) {
-            this.each(function () {
-              this.style[key] = prop[key];
-            });
-          }
-          return this;
-        }
-      },
-
-      text: function (text) {
-        if (text !== undefined) {
-          this.each(function () {
-            this.textContent = text;
-          });
-          return this;
-        } else {
-          let result = "";
-          this.each(function () {
-            result += this.textContent;
-          });
-          return result;
-        }
-      },
-
-      html: function (html) {
-        if (html !== undefined) {
-          this.each(function () {
-            this.innerHTML = html;
-          });
-          return this;
-        } else {
-          return this[0].innerHTML;
-        }
-      },
-
-      append: function (content) {
-        if (typeof content === "string") {
-          this.each(function () {
-            this.insertAdjacentHTML("beforeend", content);
-          });
-        } else if (content.nodeType) {
-          this.each(function () {
-            this.appendChild(content);
-          });
-        } else if (content instanceof jQuery) {
-          this.each(function () {
-            let self = this;
-            content.each(function () {
-              self.appendChild(this);
-            });
-          });
-        }
-
-        return this;
-      },
-
-      addClass: function (className) {
-        let classNames = className.split(" ");
-        this.each(function () {
-          for (let i = 0; i < classNames.length; i++) {
-            if (this.classList) {
-              this.classList.add(classNames[i]);
-            } else {
-              let currentClasses = this.className.split(" ");
-              if (currentClasses.indexOf(classNames[i]) === -1) {
-                this.className += " " + classNames[i];
-              }
-            }
-          }
-        });
-
-        return this;
-      },
-
-      removeClass: function (className) {
-        let classNames = className.split(" ");
-        this.each(function () {
-          for (let i = 0; i < classNames.length; i++) {
-            if (this.classList) {
-              this.classList.remove(classNames[i]);
-            } else {
-              let currentClasses = this.className.split(" ");
-              let index = currentClasses.indexOf(classNames[i]);
-              if (index !== -1) {
-                currentClasses.splice(index, 1);
-                this.className = currentClasses.join(" ");
-              }
-            }
-          }
-        });
-
-        return this;
-      },
-
-      show: function () {
-        this.each(function () {
-          // 恢复元素之前的display属性
-          let classDisplay = getComputedStyle(this).getPropertyValue("display");
-          let display =
-            this.getAttribute("data-display") ||
-            (classDisplay === "none" ? "block" : classDisplay);
-          this.style.display = display ? display : "";
-        });
-
-        return this;
-      },
-
-      hide: function () {
-        this.each(function () {
-          // 记住元素之前的display属性
-          let display =
-            this.style.display ||
-            getComputedStyle(this).getPropertyValue("display");
-          if (display !== "none") {
-            this.setAttribute("data-display", display);
-          }
-          this.style.display = "none";
-        });
-
-        return this;
-      },
-
-      click: function (callback) {
-        this.each(function () {
-          this.addEventListener("click", callback);
-        });
-
-        return this;
-      },
-
-      on: function (event, childSelector, data, handler) {
-        if (typeof childSelector === "function") {
-          handler = childSelector;
-          childSelector = null;
-          data = null;
-        } else if (typeof data === "function") {
-          handler = data;
-          data = null;
-        }
-
-        this.each(function () {
-          let element = this;
-
-          let listener = function (e) {
-            let target = e.target;
-            if (
-              !childSelector ||
-              element.querySelector(childSelector) === target
-            ) {
-              handler.call(target, e, data);
-            }
-          };
-
-          event.split(" ").forEach(function (type) {
-            element.addEventListener(type, listener);
-          });
-        });
-
-        return this;
-      },
-
-      prev: function () {
-        let prevElement = null;
-        this.each(function () {
-          prevElement = this.previousElementSibling;
-        });
-
-        return jQuery(prevElement);
-      },
-
-      next: function () {
-        let nextElement = null;
-        this.each(function () {
-          nextElement = this.nextElementSibling;
-        });
-
-        return new jQuery(nextElement);
-      },
-
-      children: function (selector) {
-        let childElements = [];
-        this.each(function () {
-          let children = this.children;
-          for (let i = 0; i < children.length; i++) {
-            if (!selector || children[i].matches(selector)) {
-              childElements.push(children[i]);
-            }
-          }
-        });
-
-        return jQuery(childElements);
-      },
-
-      parent: function (selector) {
-        let parentElements = [];
-        this.each(function () {
-          let parent = this.parentElement;
-          if (!selector || parent.matches(selector)) {
-            parentElements.push(parent);
-          }
-        });
-        return jQuery(parentElements);
-      },
-
-      closest: function (selector) {
-        var result = [];
-
-        this.each(function () {
-          var closestElement = this.closest(selector);
-
-          if (closestElement) {
-            result.push(closestElement);
-          }
-        });
-
-        return new jQuery(result);
-      },
-
-      prop: function (name, value) {
-        if (value === undefined) {
-          let element = this[0] || {};
-          return element[name];
-        } else {
-          this.each(function () {
-            this[name] = value;
-          });
-
-          return this;
-        }
-      },
-
-      remove: function () {
-        this.each(function () {
-          this.parentElement.removeChild(this);
-        });
-
-        return this;
-      },
-
-      height: function (value) {
-        if (value === undefined) {
-          if (this[0]) {
-            return this[0].clientHeight;
-          } else {
-            return null;
-          }
-        } else {
-          this.each(function () {
-            this.style.height = isNaN(value) ? value : value + "px";
-          });
-          return this;
-        }
-      },
-    };
-
-    jQuery.fn.init.prototype = jQuery.fn;
-
-    return jQuery;
   }
 })();
