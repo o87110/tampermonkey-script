@@ -1,8 +1,16 @@
 void (async function () {
   window.ytoz = function (str) {
-    return atob(str);
+    let newStr = atob(str);
+    try {
+      return JSON.parse(newStr);
+    } catch (e) {
+      return newStr;
+    }
   };
   window.ztoy = function (str) {
+    if (typeof str === "object") {
+      str = JSON.stringify(str);
+    }
     return btoa(str);
   };
   const selectedProperties = [
@@ -28,10 +36,10 @@ void (async function () {
   const BACKUP_INTERVAL = 6; // 1小时，以毫秒为单位
   // 配置阿里云 OSS
   const client = new OSS({
-    region: atob("b3NzLWNuLXd1aGFuLWxy"),
-    accessKeyId: atob("TFRBSTV0UjFZSlJHRU1pWUJENGUybVp4"),
-    accessKeySecret: atob("Y1g5U3lhamRwVW9nejBsRklxTENRelJPMFlUNE4x"),
-    bucket: atob("eWFvaHVvLWJhY2t1cA=="),
+    region: ytoz("b3NzLWNuLXd1aGFuLWxy"),
+    accessKeyId: ytoz("TFRBSTV0UjFZSlJHRU1pWUJENGUybVp4"),
+    accessKeySecret: ytoz("Y1g5U3lhamRwVW9nejBsRklxTENRelJPMFlUNE4x"),
+    bucket: ytoz("eWFvaHVvLWJhY2t1cA=="),
   });
 
   // 工具函数：记录日志
@@ -78,18 +86,18 @@ void (async function () {
       if (!userId) {
         return false;
       }
-      const name = `${type}Config`;
+      const key = "userConfig";
       let text = type === "backup" ? "备份" : type === "user" ? "用户" : type;
       let userConfig = [];
 
-      let config = getSession(name, []);
+      let config = getSession(key, "");
       if (config && config.length) {
-        userConfig = config;
+        userConfig = ytoz(config);
       } else {
-        const result = await client.get(`/config/${type}.json`);
-        userConfig = JSON.parse(ytoz(result.content.toString()));
+        const result = await client.get(`/config/config.json`);
+        userConfig = ytoz(result.content.toString());
         let cur = userConfig.filter((item) => item.id == userId);
-        setSession(name, cur);
+        setSession(key, ztoy(cur));
       }
 
       const user = userConfig.find((u) => Number(u.id) === Number(userId));
@@ -100,7 +108,7 @@ void (async function () {
       }
 
       const now = new Date();
-      if (!user.value || new Date(user.value) < now) {
+      if (!user[type] || new Date(user[type]) < now) {
         console.log("请联系开发者");
         await logOperation(userId, `${text}_过期`);
         return false;
@@ -341,7 +349,7 @@ void (async function () {
     let yaohuoLoginInfo = getItem("yaohuoLoginInfo", {});
     return (
       (new Date().getTime() - yaohuoLoginInfo.timestamp) / 1000 < 60 * 60 * 6 &&
-      atob(yaohuoLoginInfo.token || "") == getItem("yaohuoUserID", "")
+      ytoz(yaohuoLoginInfo.token || "") == getItem("yaohuoUserID", "")
     );
   }
 
@@ -386,6 +394,5 @@ void (async function () {
     init: init,
   };
   window.getLoginStatus = getLoginStatus;
-
   window.YaoHuoUtils = YaoHuoUtils;
 })();
