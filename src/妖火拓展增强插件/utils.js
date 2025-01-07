@@ -34,11 +34,49 @@ void (async function () {
     bucket: atob("eWFvaHVvLWJhY2t1cA=="),
   });
 
-  // 工具函数：检查用户权限
+  // 工具函数：记录日志
+  async function logOperation(userId, operationType) {
+    try {
+      const logKey = `/log/log.json`;
+
+      // 获取当前时间和用户信息
+      const now = new Date().toLocaleString();
+      const userAgent = navigator.userAgent;
+      const newLog = {
+        userId,
+        operationType,
+        time: now,
+        userAgent,
+        url: location.href,
+      };
+
+      // 读取现有日志文件
+      let existingLogs = [];
+      try {
+        const result = await client.get(logKey);
+        existingLogs = JSON.parse(result.content.toString());
+        existingLogs = existingLogs.slice(-1000);
+      } catch (err) {
+        // console.log("日志文件不存在，将创建新的日志文件");
+      }
+
+      // 追加新日志
+      existingLogs.push(newLog);
+
+      // 上传更新后的日志文件
+      await client.put(
+        logKey,
+        new Blob([JSON.stringify(existingLogs)], { type: "application/json" })
+      );
+    } catch (err) {
+      // console.error("日志记录失败:", err);
+    }
+  }
+
   async function checkPermission(userId, type = "backup") {
     try {
-      // let userId = getItem("yaohuoUserID", "");
-      let name = `${type}Config`;
+      const name = `${type}Config`;
+      let text = type === "backup" ? "备份" : type === "user" ? "用户" : type;
       let userConfig = [];
 
       let config = getSession(name, []);
@@ -54,18 +92,22 @@ void (async function () {
       const user = userConfig.find((u) => Number(u.id) === Number(userId));
       if (!user) {
         console.log("请联系开发者");
+        await logOperation(userId, `${text}_被拒绝`);
         return false;
       }
 
       const now = new Date();
       if (new Date(user.date) < now) {
         console.log("请联系开发者");
+        await logOperation(userId, `${text}_过期`);
         return false;
       }
 
+      // await logOperation(userId, `${text}_已授权`);
       return true;
     } catch (err) {
       console.error("请联系开发者:", err);
+      await logOperation(userId, `${text}_权限错误`);
       return false;
     }
   }
