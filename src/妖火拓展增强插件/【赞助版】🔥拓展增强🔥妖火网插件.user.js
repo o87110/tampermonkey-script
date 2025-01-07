@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      6.0.6
+// @version      6.0.7
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -2112,32 +2112,13 @@ void (async function () {
     };
     return iconConfig[icon];
   }
-  function getCloudSyncTip() {
-    let userId = getItem("yaohuoUserID", "");
-    let userConfig = getSession("userConfig", "")
-      ? ytoz(getSession("userConfig", ""))
-      : [];
-
-    let curBackupConfig = userConfig.find(
-      (u) => Number(u.id) === Number(userId)
-    );
-    let CloudSyncTip = "";
-    if (curBackupConfig) {
-      let date = curBackupConfig.backup;
-      CloudSyncTip =
-        new Date(date) > new Date("2099-1-1")
-          ? ` ：长期有效`
-          : ` ：${date}过期`;
-    }
-    return CloudSyncTip;
-  }
   async function setMenu() {
     // 避免重复添加
     if ($(".yaohuo-modal-mask").length) {
       return;
     }
 
-    let CloudSyncTip = getCloudSyncTip();
+    let CloudSyncTip = await YaoHuoUtils.getCloudSyncTip();
 
     MY_addStyle(`
       .yaohuo-modal-mask {

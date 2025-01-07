@@ -34,6 +34,7 @@ void (async function () {
     "publishNumber",
   ];
   const BACKUP_INTERVAL = 6; // 1小时，以毫秒为单位
+  const USER_INFO_KEY = "USER_INFO_KEY";
   // 配置阿里云 OSS
   const client = new OSS({
     region: ytoz("b3NzLWNuLXd1aGFuLWxy"),
@@ -41,6 +42,92 @@ void (async function () {
     accessKeySecret: ytoz("Y1g5U3lhamRwVW9nejBsRklxTENRelJPMFlUNE4x"),
     bucket: ytoz("eWFvaHVvLWJhY2t1cA=="),
   });
+
+  // 动态生成 AES-GCM 密钥
+  async function generateAESKey() {
+    return crypto.subtle.generateKey(
+      { name: "AES-GCM", length: 256 }, // 256 位密钥
+      true,
+      ["encrypt", "decrypt"]
+    );
+  }
+
+  // 导出密钥为 Base64
+  async function exportKeyToBase64(key) {
+    const rawKey = await crypto.subtle.exportKey("raw", key); // 导出为原始字节
+    return btoa(String.fromCharCode(...new Uint8Array(rawKey))); // 转为 Base64 字符串
+  }
+
+  // 从 Base64 导入密钥
+  async function importKeyFromBase64(base64Key) {
+    const rawKey = Uint8Array.from(atob(base64Key), (c) => c.charCodeAt(0)); // 转换为字节数组
+    return crypto.subtle.importKey("raw", rawKey, { name: "AES-GCM" }, true, [
+      "encrypt",
+      "decrypt",
+    ]);
+  }
+
+  // 加密函数
+  async function encryptData(data) {
+    // 获取或创建 secretKey
+    let secretKeyBase64 = sessionStorage.getItem(USER_INFO_KEY);
+    let secretKey;
+
+    if (!secretKeyBase64) {
+      // 如果不存在密钥，则生成新密钥并存储到 sessionStorage
+      secretKey = await generateAESKey();
+      secretKeyBase64 = await exportKeyToBase64(secretKey);
+      sessionStorage.setItem(USER_INFO_KEY, secretKeyBase64);
+    } else {
+      // 如果存在密钥，从 Base64 导入密钥
+      secretKey = await importKeyFromBase64(secretKeyBase64);
+    }
+
+    // 初始化向量（IV）
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+
+    // 加密数据
+    const encodedData = new TextEncoder().encode(JSON.stringify(data));
+    const cipherText = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv },
+      secretKey,
+      encodedData
+    );
+
+    // 返回加密数据和 IV
+    return {
+      cipherText: btoa(String.fromCharCode(...new Uint8Array(cipherText))), // 加密数据转为 Base64
+      iv: btoa(String.fromCharCode(...iv)), // IV 转为 Base64
+    };
+  }
+
+  // 解密函数
+  async function decryptData(encrypted) {
+    // 从 sessionStorage 获取 secretKey
+    const secretKeyBase64 = sessionStorage.getItem(USER_INFO_KEY);
+
+    if (!secretKeyBase64) {
+      throw new Error("解析数据失败！");
+    }
+
+    // 从 Base64 导入密钥
+    const secretKey = await importKeyFromBase64(secretKeyBase64);
+
+    // 解密数据
+    const iv = Uint8Array.from(atob(encrypted.iv), (c) => c.charCodeAt(0)); // Base64 转字节
+    const cipherText = Uint8Array.from(atob(encrypted.cipherText), (c) =>
+      c.charCodeAt(0)
+    ); // Base64 转字节
+
+    const decryptedBuffer = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      secretKey,
+      cipherText
+    );
+
+    // 解码并返回解密后的数据
+    return JSON.parse(new TextDecoder().decode(decryptedBuffer));
+  }
 
   // 工具函数：记录日志
   async function logOperation(userId, operationType) {
@@ -81,6 +168,24 @@ void (async function () {
     }
   }
 
+  async function getCloudSyncTip() {
+    let config = getSession("userConfig", {});
+    let userId = getItem("yaohuoUserID", "");
+    let cloudSyncTip = "：已过期";
+    if (config && config.cipherText) {
+      const userConfig = await decryptData(config);
+      const user = userConfig.find((u) => Number(u.id) === Number(userId));
+      if (user) {
+        let date = user?.backup;
+        cloudSyncTip =
+          new Date(date) > new Date("2099-1-1")
+            ? ` ：长期有效`
+            : ` ：${date}过期`;
+      }
+    }
+    return `<b>${cloudSyncTip}</b>`;
+  }
+
   async function checkPermission(userId, type = "backup") {
     try {
       if (!userId) {
@@ -90,14 +195,16 @@ void (async function () {
       let text = type === "backup" ? "备份" : type === "user" ? "用户" : type;
       let userConfig = [];
 
-      let config = getSession(key, "");
-      if (config && config.length) {
-        userConfig = ytoz(config);
+      let config = getSession(key, {});
+      if (config && config.cipherText) {
+        const decryptedData = await decryptData(config);
+        userConfig = decryptedData;
       } else {
         const result = await client.get(`/config/config.json`);
         userConfig = ytoz(result.content.toString());
         let cur = userConfig.filter((item) => item.id == userId);
-        setSession(key, ztoy(cur));
+        const encryptedData = await encryptData(cur);
+        setSession(key, encryptedData);
       }
 
       const user = userConfig.find((u) => Number(u.id) === Number(userId));
@@ -391,6 +498,7 @@ void (async function () {
     getData: (forceRevert = false) => {
       return downloadJson(forceRevert);
     },
+    getCloudSyncTip: getCloudSyncTip,
     init: init,
   };
   window.getLoginStatus = getLoginStatus;
