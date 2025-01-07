@@ -132,7 +132,7 @@ void (async function () {
   // 工具函数：记录日志
   async function logOperation(userId, operationType) {
     try {
-      const logKey = `/log/log.json`;
+      const logKey = `/log/${userId}.json`;
 
       // 获取当前时间和用户信息
       const now = new Date().toLocaleString();
@@ -149,10 +149,10 @@ void (async function () {
       let existingLogs = [];
       try {
         const result = await client.get(logKey);
-        existingLogs = JSON.parse(result.content.toString());
-        existingLogs = existingLogs.slice(-1000);
+        existingLogs = ytoz(JSON.parse(result.content.toString()));
+        existingLogs = existingLogs.slice(-200);
       } catch (err) {
-        // console.log("日志文件不存在，将创建新的日志文件");
+        // console.log("日志文件不存在，将创建新的日志文件", err);
       }
 
       // 追加新日志
@@ -161,10 +161,12 @@ void (async function () {
       // 上传更新后的日志文件
       await client.put(
         logKey,
-        new Blob([JSON.stringify(existingLogs)], { type: "application/json" })
+        new Blob([JSON.stringify(ztoy(existingLogs))], {
+          type: "application/json",
+        })
       );
     } catch (err) {
-      // console.error("日志记录失败:", err);
+      console.error("日志记录失败:", err);
     }
   }
 
@@ -196,36 +198,42 @@ void (async function () {
       let userConfig = [];
 
       let config = getSession(key, {});
+      let searchType = "";
       if (config && config.cipherText) {
         const decryptedData = await decryptData(config);
         userConfig = decryptedData;
+        searchType = "1";
       } else {
         const result = await client.get(`/config/config.json`);
         userConfig = ytoz(result.content.toString());
         let cur = userConfig.filter((item) => item.id == userId);
         const encryptedData = await encryptData(cur);
         setSession(key, encryptedData);
+        searchType = "2";
       }
 
       const user = userConfig.find((u) => Number(u.id) === Number(userId));
       if (!user) {
         console.log("请联系开发者");
-        await logOperation(userId, `${text}_被拒绝`);
+        await logOperation(userId, `${type}_rejected`);
         return false;
       }
 
       const now = new Date();
       if (!user[type] || new Date(user[type]) < now) {
         console.log("请联系开发者");
-        await logOperation(userId, `${text}_过期`);
+        await logOperation(userId, `${type}_timeout`);
         return false;
       }
 
-      // await logOperation(userId, `${text}_已授权`);
+      if (searchType === "2") {
+        await logOperation(userId, `${type}_success`);
+      }
+
       return true;
     } catch (err) {
       console.error("请联系开发者:", err);
-      await logOperation(userId, `${text}_权限错误`);
+      await logOperation(userId, `${type}_error`);
       return false;
     }
   }
