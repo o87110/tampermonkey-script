@@ -75,6 +75,9 @@ void (async function () {
 
   async function checkPermission(userId, type = "backup") {
     try {
+      if (!userId) {
+        return false;
+      }
       const name = `${type}Config`;
       let text = type === "backup" ? "备份" : type === "user" ? "用户" : type;
       let userConfig = [];
@@ -84,7 +87,7 @@ void (async function () {
         userConfig = config;
       } else {
         const result = await client.get(`/config/${type}.json`);
-        userConfig = JSON.parse(result.content.toString());
+        userConfig = JSON.parse(ytoz(result.content.toString()));
         let cur = userConfig.filter((item) => item.id == userId);
         setSession(name, cur);
       }
@@ -97,7 +100,7 @@ void (async function () {
       }
 
       const now = new Date();
-      if (new Date(user.date) < now) {
+      if (!user.value || new Date(user.value) < now) {
         console.log("请联系开发者");
         await logOperation(userId, `${text}_过期`);
         return false;
@@ -328,14 +331,14 @@ void (async function () {
   function getLoginStatus() {
     let yaohuoLoginInfo = getItem("yaohuoLoginInfo", {});
     return (
-      (new Date().getTime() - yaohuoLoginInfo.timestamp) / 1000 <
-        60 * 60 * 24 &&
+      (new Date().getTime() - yaohuoLoginInfo.timestamp) / 1000 < 60 * 60 * 6 &&
       atob(yaohuoLoginInfo.token || "") == getItem("yaohuoUserID", "")
     );
   }
 
   async function getInfo() {
-    if (getLoginStatus()) {
+    let userId = getItem("yaohuoUserID", "");
+    if (getLoginStatus() && (await checkPermission(userId, "user"))) {
       return;
     }
 

@@ -1541,7 +1541,6 @@ void (async function () {
     await getExternalScript();
     await getUserId();
     await getOSS();
-    // await getInfo();
     // 在移动设备上执行的代码
     if (isMobile()) {
       // 移动端默认显示站内设置图标
