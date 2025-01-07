@@ -258,6 +258,7 @@ void (async function () {
         console.info("utils--------开始远程数据恢复-------");
         restoreData(result.content.toString());
       } else {
+        setItem("lastRemoteRestoreTime", new Date().getTime());
         console.info("utils-文件修改时间小于上次远程恢复时间，取消恢复");
       }
       // return data;
@@ -297,9 +298,7 @@ void (async function () {
         if (typeof parsedData === "object" && parsedData !== null) {
           let newData = getItem("yaohuo_userData");
 
-          let lastSessionTimestamp = getItem("lastSessionTimestamp", "");
           localStorage.clear();
-          setItem("lastSessionTimestamp", lastSessionTimestamp);
 
           for (var key in parsedData) {
             if (parsedData.hasOwnProperty(key)) {
