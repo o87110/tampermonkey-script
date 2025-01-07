@@ -2118,7 +2118,7 @@ void (async function () {
       return;
     }
 
-    let CloudSyncTip = await YaoHuoUtils.getCloudSyncTip();
+    let CloudSyncTip = await YaoHuoUtils?.getCloudSyncTip();
 
     MY_addStyle(`
       .yaohuo-modal-mask {
