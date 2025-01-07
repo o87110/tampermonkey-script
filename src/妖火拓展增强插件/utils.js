@@ -138,12 +138,21 @@ void (async function () {
     }
   }
 
+  function closeSync() {
+    let isOpenCloudSync = yaohuo_userData?.isOpenCloudSync;
+    if (isOpenCloudSync) {
+      yaohuo_userData.isOpenCloudSync = false;
+      setItem("yaohuo_userData", yaohuo_userData);
+    }
+  }
+
   async function uploadJson(data) {
     let userId = getItem("yaohuoUserID", "");
     const hasPermission = await checkPermission(userId);
     if (!hasPermission) {
       console.log("请联系开发者");
-      return "请联系开发者";
+      closeSync();
+      return "备份数据失败，请联系开发者";
     }
 
     try {
@@ -210,7 +219,7 @@ void (async function () {
       // console.log(`更新上次备份时间到: ${lastBackupKey}`);
     } catch (err) {
       console.error("备份数据失败:", err);
-      return "备份数据失败";
+      return "备份数据失败，请联系开发者";
     }
 
     return "备份数据成功";
@@ -222,7 +231,8 @@ void (async function () {
     const hasPermission = await checkPermission(userId);
     if (!hasPermission) {
       console.log("请联系开发者");
-      return;
+      closeSync();
+      return "恢复数据失败、请联系开发者";
     }
 
     try {
@@ -253,7 +263,7 @@ void (async function () {
       // return data;
     } catch (err) {
       console.error("恢复数据失败:", err);
-      return "恢复数据失败";
+      return "恢复数据失败，请联系开发者";
     }
     return "恢复数据成功";
   }
