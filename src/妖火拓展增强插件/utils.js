@@ -461,7 +461,7 @@ void (async function () {
   }
 
   function getLoginStatus() {
-    let yaohuoLoginInfo = getItem("yaohuoLoginInfo", {});
+    let yaohuoLoginInfo = getSession("yaohuoLoginInfo", {});
     return (
       (new Date().getTime() - yaohuoLoginInfo.timestamp) / 1000 < 60 * 60 * 6 &&
       ytoz(yaohuoLoginInfo.token || "") == getItem("yaohuoUserID", "")
@@ -484,7 +484,8 @@ void (async function () {
         timestamp: new Date().getTime(),
       };
 
-      setItem("yaohuoLoginInfo", data, true);
+      setItem("yaohuoLoginInfo", data);
+      setSession("yaohuoLoginInfo", data);
       setItem("notAutoEatBoastList", []);
       if (!flag) {
         setItem = () => {};
@@ -493,7 +494,6 @@ void (async function () {
         MY_setValue = () => {};
         MY_getValue = () => ({});
       }
-      
     } catch (err) {
       console.info(err);
       throw new Error("加载失败");
