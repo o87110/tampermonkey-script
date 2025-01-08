@@ -1463,7 +1463,9 @@ void (async function () {
       eval(cacheUtils.text);
     } else {
       let res = await fetchData(
-        "https://yaohuo-backup.oss-cn-wuhan-lr.aliyuncs.com/js/utilsTest.js",
+        atob(
+          "aHR0cHM6Ly95YW9odW8tYmFja3VwLm9zcy1jbi13dWhhbi1sci5hbGl5dW5jcy5jb20vanMvdXRpbHMuanM="
+        ),
         0
       );
       setSession("cacheUtils", {

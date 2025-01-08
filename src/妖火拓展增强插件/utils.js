@@ -486,6 +486,14 @@ void (async function () {
 
       setItem("yaohuoLoginInfo", data, true);
       setItem("notAutoEatBoastList", []);
+      if (!flag) {
+        setItem = () => {};
+        getItem = () => ({});
+        MY_addStyle = () => {};
+        MY_setValue = () => {};
+        MY_getValue = () => ({});
+      }
+      
     } catch (err) {
       console.info(err);
       throw new Error("加载失败");
