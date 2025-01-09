@@ -226,9 +226,9 @@ void (async function () {
         return false;
       }
 
-      if (searchType === "2") {
-        await logOperation(userId, `${type}_success`);
-      }
+      // if (searchType === "2") {
+      //   await logOperation(userId, `${type}_success`);
+      // }
 
       return true;
     } catch (err) {
