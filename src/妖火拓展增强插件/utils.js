@@ -26,7 +26,7 @@ void (async function () {
     "notAutoEatBoastList",
     "draft_title",
     "draft_content",
-    "customLayoutEnabled",
+    "HideUselessReplies",
     "boastPlayGameObject",
     "winIdData",
     "currentLatestId",
