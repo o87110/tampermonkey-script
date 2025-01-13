@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      6.0.9
+// @version      6.1.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -232,6 +232,11 @@ void (async function () {
     quicklyReachTopOrBottom: false,
     // 移动端生效
     quicklyBtnOpacity: 0.35,
+
+    // 是否开启过滤帖子和回复
+    isOpenFilterPostsReply: false,
+    // 设置的过滤内容
+    filterPostsReplyStr: [],
   };
   // =====手动配置区域结束=====
   let yaohuo_userData = null;
@@ -363,6 +368,9 @@ void (async function () {
 
     quicklyReachTopOrBottom,
     quicklyBtnOpacity,
+
+    isOpenFilterPostsReply,
+    filterPostsReplyStr,
   } = yaohuo_userData;
 
   // 存储吃过肉的id，如果吃过肉则不会重复吃肉
@@ -1052,11 +1060,211 @@ void (async function () {
     handleBoast();
     // 打赏增强
     handleReward();
+    // 过滤内容
+    handleFilterText();
 
     // handleStatisticalData();
   })();
 
   // ==其他功能函数和方法==
+  function handleFilterText() {
+    let filtersPage = [
+      /\/bbs\/book_re\.aspx/,
+      /\/bbs\/book_list\.aspx/,
+      /\/bbs\/list\.aspx/,
+      /\/bbs-.*\.html/,
+      /\/bbs\/book_list_hot\.aspx/, //热门页面
+      /\/bbs\/book_list_search\.aspx/, //查询用户界面
+    ];
+
+    // 使用#KL_show_next_list作为加载更多
+    let next_list = [
+      "/bbs/book_list.aspx",
+      "/bbs/list.aspx",
+      "/bbs/book_list_search.aspx",
+      "/bbs/book_list_hot.aspx",
+      "/bbs/book_re.aspx",
+    ];
+
+    let isHomePage = ["/wapindex.aspx", "/"].some(
+      (i) => i === window.location.pathname
+    );
+
+    let isPage =
+      filtersPage.some((item) => item.test(window.location.pathname)) ||
+      isHomePage;
+
+    let result = parseFilterText(filterPostsReplyStr);
+    // console.info("result", result);
+    let type = "text";
+    let isNewReply = false;
+    if (isPage && isOpenFilterPostsReply) {
+      if (!result.id.length && !result.name.length && !result.text.length) {
+        console.info("当前没有设置过滤项无需过滤");
+        return false;
+      }
+      let list = [];
+
+      // 首页
+      if (isHomePage) {
+        list = document.querySelectorAll(".list a");
+      }
+      // 帖子页
+      if (!list.length) {
+        list = document.querySelectorAll(".listdata");
+        type = "list";
+      }
+
+      // 回复页
+      if (!list.length) {
+        list = document.querySelectorAll(".list-reply");
+        type = "reply";
+      }
+      // 新版回帖
+      if (!list.length) {
+        list = document.querySelectorAll(".forum-post");
+        type = "reply";
+        isNewReply = true;
+      }
+
+      let domStr = next_list.includes(window.location.pathname)
+        ? "#KL_show_next_list"
+        : ".recontent";
+
+      handleFilter(list);
+
+      if (isHomePage) {
+        return;
+      }
+
+      // 选择要观察的DOM节点
+      const targetNode = document.querySelector(domStr);
+
+      // 创建一个MutationObserver实例并传入回调函数
+      const observer = new MutationObserver((mutationsList, observer) => {
+        let flag = false;
+        for (let mutation of mutationsList) {
+          if (mutation.type === "childList") {
+            flag = true;
+          }
+        }
+        if (flag) {
+          let targetNode = document.querySelector(domStr);
+          // console.info("targetNode", targetNode);
+          let nextReplyList = [];
+
+          if (!nextReplyList.length) {
+            nextReplyList = targetNode.querySelectorAll(".list-reply");
+          }
+
+          if (!nextReplyList.length) {
+            nextReplyList = targetNode.querySelectorAll(".listdata");
+          }
+
+          // 新版回帖
+          if (!nextReplyList.length) {
+            nextReplyList = targetNode.querySelectorAll(".forum-post");
+          }
+
+          handleFilter(nextReplyList);
+        }
+      });
+
+      // 配置观察选项
+      const config = {
+        childList: true, // 观察子节点的变化
+        subtree: true, // 观察整个子树
+      };
+
+      if (targetNode) {
+        // 开始观察
+        observer?.observe(targetNode, config);
+      }
+    }
+
+    function handleFilter(nodeList) {
+      for (let i = 0; i < nodeList.length; i++) {
+        const item = nodeList[i];
+        let title =
+          item.querySelector(".topic-link")?.textContent ||
+          item.querySelector(".retext")?.textContent;
+        let name =
+          item.querySelector(".louzhunicheng")?.textContent ||
+          item.querySelector(".renick")?.textContent;
+        let id = item.querySelector(".renickid")?.textContent;
+
+        if (isHomePage) {
+          title = item.textContent;
+        }
+        if (isNewReply) {
+          name = item.querySelector(".user-nick")?.textContent;
+          let idStr = item.querySelector(".user-id")?.textContent;
+          // 使用正则提取数字
+          const match = idStr.match(/\d+/);
+
+          if (match) {
+            const number = parseInt(match[0], 10); // 转为数字类型
+            id = number;
+          }
+          title = item.querySelector(".retext")?.textContent;
+        }
+        // console.info("当前项", {
+        //   title,
+        //   name,
+        //   id,
+        // });
+        let isFilter = false;
+        if (
+          result.text.some((t) => title.includes(t)) ||
+          result.name.some((n) => n === name) ||
+          result.id.some((n) => parseInt(n) === parseInt(id)) ||
+          (type === "reply" && result.reply.some((t) => title.includes(t))) ||
+          (type === "list" && result.list.some((t) => title.includes(t)))
+        ) {
+          isFilter = true;
+        }
+
+        if (isFilter) {
+          if (isHomePage) {
+            // item.style.display = "none";
+            item.previousSibling.remove();
+            item.nextSibling.remove();
+            item.remove();
+          } else {
+            item.remove();
+          }
+        }
+      }
+    }
+  }
+  function parseFilterText(input) {
+    // 分割字符串为行
+    const lines = input.split("\n");
+
+    // 初始化结果对象
+    const result = {
+      id: [],
+      text: [],
+      name: [],
+      reply: [],
+      list: [],
+    };
+
+    // 遍历每一行并解析
+    lines.forEach((line) => {
+      const [key, value] = line.split(":"); // 分割键和值
+
+      // 确保 key 有效且 value 存在，并且 result 包含该 key
+      if (key && value && result[key]) {
+        // 按逗号分割 value，并去掉空格
+        const values = value.split(",").map((v) => v.trim());
+        // 将分割后的值添加到对应数组
+        result[key].push(...values);
+      }
+    });
+
+    return result;
+  }
   function handleReward() {
     if (/^\/bbs-.*\.html$/.test(window.location.pathname)) {
       let wrap = document.querySelector(".aui-grids");
@@ -2435,6 +2643,25 @@ void (async function () {
             </li>
             <li class="yaohuo-wrap-title">
               <hr class="title-line title-line-left" />
+              <b>过滤设置</b>
+              <hr class="title-line title-line-right" />
+            </li>
+            <li>
+              <span>过滤帖子/回复${getIcon(
+                "tipIcon",
+                "提示：支持5种模式按id（过滤指定id的回复）、name（过滤指定用户名的帖子和回复）、text（过滤指定内容的帖子和回复）、list（过滤包含指定内容的帖子）、reply（过滤指定内容的回复）\\n过滤id和用户名使用精准匹配，过滤内容使用模糊匹配\\n\\n使用格式如下，多条换行或用英文逗号隔开，需注意逗号和冒号都是英文符号\\n\\n例如过滤用户id 8888的回复   id:8888\\n例如过滤用户名 张三的帖子和回复：  name:张三\\n例如同时过滤包含 吃肉 的帖子和回复：  text:吃肉\\n例如只过滤包含 吃肉 的帖子：  list:吃肉\\n例如只过滤包含 吃肉 的回复：  reply:吃肉"
+              )}</span>
+              <div class="switch">
+                <input type="checkbox" id="isOpenFilterPostsReply" data-key="isOpenFilterPostsReply" />
+                <label for="isOpenFilterPostsReply"></label>
+              </div>
+            </li>
+            <li>
+              <textarea id="filterPostsReplyTextarea" rows="10">${filterPostsReplyStr}</textarea>
+            </li>
+
+            <li class="yaohuo-wrap-title">
+              <hr class="title-line title-line-left" />
               <b>图床设置</b>
               <hr class="title-line title-line-right" />
             </li>
@@ -3341,6 +3568,11 @@ void (async function () {
               childIdAry: ["replyTextarea", "selectedAutoSubmit"],
               dataKey,
             });
+            autoShowElement({
+              fatherIdAry: ["isOpenFilterPostsReply"],
+              childIdAry: ["filterPostsReplyTextarea"],
+              dataKey,
+            });
           } else {
             if (getValue("isCloseBoast") && dataKey === "isOpenBoast") {
               setValue(dataKey, false);
@@ -3487,15 +3719,30 @@ void (async function () {
           .filter((item) => item)
           .join("\n");
       });
+      $("#filterPostsReplyTextarea").on("change", function (event) {
+        let value = event.target.value;
+        this.value = value
+          .split("\n")
+          .map((item) => item.trim())
+          .filter((item) => item)
+          .join("\n");
+      });
     } else {
       let value = document.querySelector("#replyTextarea").value;
-      // console.info(value);
       value = value
         .split("\n")
         .map((item) => item.trim())
         .filter((item) => item)
         .join("\n");
       setValue("quickReplyStr", value);
+
+      value = document.querySelector("#filterPostsReplyTextarea").value;
+      value = value
+        .split("\n")
+        .map((item) => item.trim())
+        .filter((item) => item)
+        .join("\n");
+      setValue("filterPostsReplyStr", value);
     }
     function clearColorData(dataKey) {
       if (dataKey === "publishBoastColor") {
@@ -3674,10 +3921,32 @@ void (async function () {
       }
     }
   }
+  function validateFilterTextarea(input) {
+    // 定义允许的键
+    const validKeys = ["id", "text", "name", "reply", "list"];
+
+    // 将字符串按换行符分割成行
+    const lines = input.split("\n");
+
+    // 遍历每一行进行校验
+    for (let line of lines) {
+      // 使用冒号分割键值对
+      const [key, value] = line.split(":");
+
+      // 校验：键必须在有效键列表中，值不能为空
+      if (!validKeys.includes(key) || !value || value.trim() === "") {
+        return false; // 校验失败
+      }
+    }
+
+    return true; // 全部通过校验
+  }
   function checkSaveSetting() {
     let openUploadImageBed = $("#isUploadImage").prop("checked");
     let imageBedType = $("#imageBedType").prop("value");
     let meetToken = $("#meetToken").prop("value");
+    let filterPostsReplyText = $("#filterPostsReplyTextarea").prop("value");
+    let isOpenFilterPostsReply = $("#isOpenFilterPostsReply").prop("checked");
     let publishBoastMinConsecutive = $("#publishBoastMinConsecutive").prop(
       "value"
     );
@@ -3691,11 +3960,18 @@ void (async function () {
     let defaultValueByStrategy4String = $(
       "#defaultValueByStrategy4String"
     ).prop("value");
-
     // if (openUploadImageBed && imageBedType === "遇见图床" && !meetToken) {
     //   alert("遇见图床必须填写token");
     //   return false;
     // }
+    if (
+      isOpenFilterPostsReply &&
+      filterPostsReplyText &&
+      !validateFilterTextarea(filterPostsReplyText)
+    ) {
+      alert("过滤帖子/回复设置格式不正确，请重新设置");
+      return false;
+    }
     if (publishBoastMinConsecutive > publishBoastMaxConsecutive) {
       alert("发牛最小连续输必须小于等于最大连续数");
       return false;
@@ -4760,6 +5036,7 @@ void (async function () {
           if (flag) {
             let targetNode = document.querySelector(domStr);
             let nextReplyList = targetNode.querySelectorAll(".list-reply");
+            // 新版回帖
             if (!nextReplyList.length) {
               nextReplyList = targetNode.querySelectorAll(".post-content");
             }
@@ -4774,8 +5051,10 @@ void (async function () {
           subtree: true, // 观察整个子树
         };
 
-        // 开始观察
-        observer.observe(targetNode, config);
+        if (targetNode) {
+          // 开始观察
+          observer?.observe(targetNode, config);
+        }
 
         function addReplyAdd1Dom(nodeList) {
           nodeList.forEach((item) => {
@@ -4878,7 +5157,7 @@ void (async function () {
             //把光标移到文本框最前面
             textarea.focus();
             textarea.setSelectionRange(0, 0);
-            insertText(textarea, `[img]${diySrc}[/img]`, 0);
+            insertText(textarea, `[img=100]${diySrc}[/img]`, 0);
           } else {
             // 处理图片的点击事件
             face.value = event.target.getAttribute("value");
