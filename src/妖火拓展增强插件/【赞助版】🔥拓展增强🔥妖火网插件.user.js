@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      6.1.2
+// @version      6.1.3
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1039,6 +1039,8 @@ void (async function () {
     handleBbsListFloatOpen();
     // 自动上传图床功能
     handleUploadImage();
+    // 过滤内容
+    handleFilterText();
     // 增加回帖ubb
     handleAddReplyUBB();
     // 增加回帖表情
@@ -1060,9 +1062,6 @@ void (async function () {
     handleBoast();
     // 打赏增强
     handleReward();
-    // 过滤内容
-    handleFilterText();
-
     // handleStatisticalData();
   })();
 
@@ -2650,7 +2649,7 @@ void (async function () {
             <li>
               <span>过滤帖子/回复${getIcon(
                 "tipIcon",
-                "提示：支持5种模式按id（过滤指定id的回复）、name（过滤指定用户名的帖子和回复）、text（过滤指定内容的帖子和回复）、list（过滤包含指定内容的帖子）、reply（过滤指定内容的回复）\\n过滤id和用户名使用精准匹配，过滤内容使用模糊匹配\\n\\n使用格式如下，多条换行或用英文逗号隔开，需注意逗号和冒号都是英文符号\\n\\n例如过滤用户id 8888的回复   id:8888\\n例如过滤用户名 张三的帖子和回复：  name:张三\\n例如同时过滤包含 吃肉 的帖子和回复：  text:吃肉\\n例如只过滤包含 吃肉 的帖子：  list:吃肉\\n例如只过滤包含 吃肉 的回复：  reply:吃肉"
+                "提示：支持5种模式按id（过滤指定id的回复）、name（过滤指定用户名的帖子和回复）、text（过滤包含指定内容的帖子和回复）、list（过滤包含指定内容的帖子）、reply（过滤包含指定内容的回复）\\n过滤id和用户名使用精准匹配，过滤内容使用模糊匹配\\n\\n使用格式如下，多条换行或用英文逗号隔开，需注意逗号和冒号都是英文符号\\n\\n例如过滤用户id 8888,9999的回复   id:8888,9999\\n例如过滤用户名 张三的帖子和回复：  name:张三\\n例如同时过滤包含 吃肉 的帖子和回复：  text:吃肉\\n例如只过滤包含 吃肉 的帖子：  list:吃肉\\n例如只过滤包含 吃肉 的回复：  reply:吃肉"
               )}</span>
               <div class="switch">
                 <input type="checkbox" id="isOpenFilterPostsReply" data-key="isOpenFilterPostsReply" />
