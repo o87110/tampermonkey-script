@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      6.1.7
+// @version      6.1.8
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -2538,7 +2538,7 @@ void (async function () {
     let innerH = `
       <div class="yaohuo-modal-mask">
         <div class="yaohuo-wrap">
-          <header>🔥拓展增强🔥插件设置<a href="https://update.greasyfork.org/scripts/523035/%E3%80%90%E8%B5%9E%E5%8A%A9%E7%89%88%E3%80%91%F0%9F%94%A5%E6%8B%93%E5%B1%95%E5%A2%9E%E5%BC%BA%F0%9F%94%A5%E5%A6%96%E7%81%AB%E7%BD%91%E6%8F%92%E4%BB%B6.meta.js" target="_blank">【检测更新】</a></header>
+          <header>🔥拓展增强🔥插件设置<a href="https://update.greasyfork.org/scripts/523035/%E3%80%90%E8%B5%9E%E5%8A%A9%E7%89%88%E3%80%91%F0%9F%94%A5%E6%8B%93%E5%B1%95%E5%A2%9E%E5%BC%BA%F0%9F%94%A5%E5%A6%96%E7%81%AB%E7%BD%91%E6%8F%92%E4%BB%B6.user.js" target="_blank">【检测更新】</a></header>
           <ul>
             <li class="yaohuo-wrap-title">
               <hr class="title-line title-line-left" />
