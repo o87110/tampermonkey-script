@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      6.1.4
+// @version      6.1.5
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -236,7 +236,9 @@ void (async function () {
     // 是否开启过滤帖子和回复
     isOpenFilterPostsReply: false,
     // 设置的过滤内容
-    filterPostsReplyStr: [],
+    filterPostsReplyStr: ["reply:吃,肉,口乞,chi,chile,7肉,7了,肉肉,777"].join(
+      "\n"
+    ),
   };
   // =====手动配置区域结束=====
   let yaohuo_userData = null;
@@ -1067,6 +1069,9 @@ void (async function () {
 
   // ==其他功能函数和方法==
   function handleFilterText() {
+    if (!isOpenFilterPostsReply) {
+      return;
+    }
     let filtersPage = [
       /\/bbs\/book_re\.aspx/,
       /\/bbs\/book_list\.aspx/,
@@ -1099,7 +1104,7 @@ void (async function () {
     let isNewReply = false;
     let userId = getItem("yaohuoUserID", "");
 
-    if (isPage && isOpenFilterPostsReply) {
+    if (isPage) {
       if (!Object.values(result).flat().length) {
         console.info("当前没有设置过滤项无需过滤");
         return false;
@@ -1861,8 +1866,8 @@ void (async function () {
       }
 
       .scroll-btn {
-        width: 50px;
-        height: 50px;
+        width: 40px;
+        height: 40px;
         cursor: pointer;
         transition: opacity 0.3s ease;
         margin: 0; /* 确保没有外边距 */
@@ -1891,8 +1896,8 @@ void (async function () {
         <div id="scrollTopBtn" class="scroll-btn">
           <svg
             class="icon"
-            width="50"
-            height="50"
+            width="40"
+            height="40"
             viewBox="0 0 1024 1024"
             version="1.1"
             xmlns="http://www.w3.org/2000/svg"
@@ -1912,8 +1917,8 @@ void (async function () {
         <div id="scrollBottomBtn" class="scroll-btn rotate">
           <svg
             class="icon"
-            width="50"
-            height="50"
+            width="40"
+            height="40"
             viewBox="0 0 1024 1024"
             version="1.1"
             xmlns="http://www.w3.org/2000/svg"
@@ -4195,6 +4200,12 @@ void (async function () {
     }
   }
   function handleBbsListFloatOpen() {
+    let bbsPage = [
+      "/bbs/book_list.aspx",
+      "/bbs/list.aspx",
+      "/bbs/book_list_hot.aspx", //热门页面
+      "/bbs/book_list_search.aspx", //查询用户界面
+    ];
     if (
       (bbsPage.includes(window.location.pathname) ||
         window.location.pathname === "/") &&
@@ -4228,7 +4239,7 @@ void (async function () {
         }
 
         a.visited {
-          color: #bbb; /* 已访问的链接颜色 */
+          color: #A3A3A3; /* 已访问的链接颜色 */
         }
       `);
       const visitedLinks = getItem("visitedLinks", []);

@@ -32,6 +32,7 @@ void (async function () {
     "currentLatestId",
     "nextMoney",
     "publishNumber",
+    "visitedLinks",
   ];
   const BACKUP_INTERVAL = 6; // 1小时，以毫秒为单位
   const USER_INFO_KEY = "USER_INFO_KEY";
