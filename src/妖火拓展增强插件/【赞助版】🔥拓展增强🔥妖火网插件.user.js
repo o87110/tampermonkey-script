@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      6.1.6
+// @version      6.1.7
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -4199,7 +4199,7 @@ void (async function () {
       }
     }
   }
-  function handleBbsListFloatOpen() {
+  function handleBbsListFloatOpen(isShowVisited = false) {
     let bbsPage = [
       "/bbs/book_list.aspx",
       "/bbs/list.aspx",
@@ -4212,6 +4212,27 @@ void (async function () {
       !isMobile() &&
       isShowPcFloatPage
     ) {
+      let visitedLinks = getItem("visitedLinks", {});
+      if (Array.isArray(visitedLinks)) {
+        visitedLinks = {};
+        setItem("visitedLinks", {});
+      }
+
+      document
+        .querySelectorAll(".topic-link,a[href^='/bbs-']")
+        .forEach((link) => {
+          // 如果链接已经被访问过，添加 visited 类
+          let url = link.href;
+          const { pathname } = new URL(url);
+          if (visitedLinks[pathname]) {
+            link.classList.add("visited");
+          }
+        });
+
+      if (isShowVisited) {
+        return;
+      }
+
       MY_addStyle(`
          /* 背景遮罩 */
         .overlay {
@@ -4242,17 +4263,6 @@ void (async function () {
           color: #A3A3A3; /* 已访问的链接颜色 */
         }
       `);
-      const visitedLinks = getItem("visitedLinks", []);
-
-      document
-        .querySelectorAll(".topic-link,a[href^='/bbs-']")
-        .forEach((link) => {
-          // 如果链接已经被访问过，添加 visited 类
-          let href = link.getAttribute("href");
-          if (visitedLinks.includes(href)) {
-            link.classList.add("visited");
-          }
-        });
 
       document.addEventListener("click", (event) => {
         // 检查点击的元素是否具有 topic-link 类
@@ -4261,11 +4271,12 @@ void (async function () {
 
           event.preventDefault(); // 防止默认链接行为
 
-          let url = event.target.getAttribute("href"); // 获取链接的 href 属性
+          let url = event.target.href;
+          const { pathname } = new URL(url);
           // 保存已访问链接到 sessionStorage
-          if (!visitedLinks.includes(url)) {
-            visitedLinks.push(url);
-            setItem("visitedLinks", visitedLinks);
+          if (!visitedLinks[pathname]) {
+            visitedLinks[pathname] = new Date().getTime();
+            setItem("visitedLinks", visitedLinks, true, 120);
           }
 
           if (window.self !== window.top) {
@@ -4377,6 +4388,7 @@ void (async function () {
               if (isClickLoadMoreBtn && isNewPage) {
                 // 滚动时加载新页的时候自动吃肉
                 handleFullAutoEat();
+                handleBbsListFloatOpen(true);
               }
 
               isClickLoadMoreBtn = false;
@@ -4728,15 +4740,22 @@ void (async function () {
       );
     }
 
+    let backupInterval = 5;
+    if (typeof forceBackup === "number" && backupInterval >= 5) {
+      backupInterval = forceBackup;
+    }
+
+    let nowTime = new Date().getTime();
+
     if (
       syncRemote &&
-      (((new Date().getTime() - lastRemoteBackupTime) / 1000 > 5 &&
-        (new Date().getTime() - lastRemoteRestoreTime) / 1000 > 5) ||
-        forceBackup)
+      (((nowTime - lastRemoteBackupTime) / 1000 > backupInterval &&
+        (nowTime - lastRemoteRestoreTime) / 1000 > 5) ||
+        forceBackup === true)
     ) {
       console.info("---------进行远程同步---------", key);
       //
-      setItem("lastRemoteBackupTime", new Date().getTime());
+      setItem("lastRemoteBackupTime", nowTime);
       backupLocalStorageByRemote();
     }
   }
@@ -7480,7 +7499,6 @@ void (async function () {
         newLength < maxLoadNum
       ) {
         if (isSpecialPage) {
-          isClickLoadMoreBtn = true;
           setTimeout(() => {
             nextBtn.click();
           }, 1000);
