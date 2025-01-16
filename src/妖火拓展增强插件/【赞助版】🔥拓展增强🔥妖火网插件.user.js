@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      6.1.8
+// @version      6.1.9
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -4209,75 +4209,78 @@ void (async function () {
     if (
       (bbsPage.includes(window.location.pathname) ||
         window.location.pathname === "/") &&
-      !isMobile() &&
       isShowPcFloatPage
     ) {
+      MY_addStyle(`
+        /* 背景遮罩 */
+       .overlay {
+         display: none;
+         position: fixed;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+         background: rgba(0, 0, 0, 0.7);
+         justify-content: center;
+         align-items: center;
+         z-index: 9999;
+       }
+
+       /* iframe容器 */
+       .iframe-container {
+         position: relative;
+         width: 80%;
+         max-width: 750px;
+         height: 98%;
+         background-color: #e8e8e8;
+         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+         border-radius: 10px;
+       }
+
+       a.visited {
+         color: #A3A3A3; /* 已访问的链接颜色 */
+       }
+     `);
+
       let visitedLinks = getItem("visitedLinks", {});
       if (Array.isArray(visitedLinks)) {
         visitedLinks = {};
         setItem("visitedLinks", {});
       }
 
-      document
-        .querySelectorAll(".topic-link,a[href^='/bbs-']")
-        .forEach((link) => {
-          // 如果链接已经被访问过，添加 visited 类
-          let url = link.href;
-          const { pathname } = new URL(url);
-          if (visitedLinks[pathname]) {
-            link.classList.add("visited");
-          }
-        });
-
-      if (isShowVisited) {
-        return;
+      if (Object.keys(visitedLinks).length) {
+        document
+          .querySelectorAll(".topic-link,a[href^='/bbs-']")
+          .forEach((link) => {
+            // 如果链接已经被访问过，添加 visited 类
+            let url = link.href;
+            const { pathname } = new URL(url);
+            if (visitedLinks[pathname]) {
+              link.classList.add("visited");
+            }
+          });
       }
 
-      MY_addStyle(`
-         /* 背景遮罩 */
-        .overlay {
-          display: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0, 0, 0, 0.7);
-          justify-content: center;
-          align-items: center;
-          z-index: 9999;
-        }
-
-        /* iframe容器 */
-        .iframe-container {
-          position: relative;
-          width: 80%;
-          max-width: 750px;
-          height: 98%;
-          background-color: #e8e8e8;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-          border-radius: 10px;
-        }
-
-        a.visited {
-          color: #A3A3A3; /* 已访问的链接颜色 */
-        }
-      `);
-
       document.addEventListener("click", (event) => {
-        // 检查点击的元素是否具有 topic-link 类
-        if (event.target.classList.contains("topic-link")) {
+        if (event.target.nodeName !== "A") {
+          return;
+        }
+
+        let url = event.target.href;
+        const { pathname } = new URL(url);
+
+        if (!/^\/bbs-\d+\.html$/.test(pathname)) {
+          return;
+        }
+
+        if (!visitedLinks[pathname]) {
+          visitedLinks[pathname] = new Date().getTime();
+          setItem("visitedLinks", visitedLinks, true, 120);
+        }
+
+        if (!isMobile()) {
           event.target.classList.add("visited");
-
           event.preventDefault(); // 防止默认链接行为
-
-          let url = event.target.href;
-          const { pathname } = new URL(url);
-          // 保存已访问链接到 sessionStorage
-          if (!visitedLinks[pathname]) {
-            visitedLinks[pathname] = new Date().getTime();
-            setItem("visitedLinks", visitedLinks, true, 120);
-          }
 
           if (window.self !== window.top) {
             window.location.href = url;
