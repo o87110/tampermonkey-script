@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      6.1.10
+// @version      6.2.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1043,6 +1043,8 @@ void (async function () {
     handleUploadImage();
     // 过滤内容
     handleFilterText();
+    // 同步已访问链接
+    handleVisitedLinks();
     // 增加回帖ubb
     handleAddReplyUBB();
     // 增加回帖表情
@@ -2591,7 +2593,10 @@ void (async function () {
               </div>
             </li>
             <li>
-              <span>PC端帖子列表悬浮展示</span>
+              <span>PC端帖子列表悬浮展示${getIcon(
+                "tipIcon",
+                "提示：开启后PC端帖子页面可以在当前页面悬浮查看帖子，如果开启了云同步功能还会额外同步已访问的帖子链接，换设备后也能看到之前已访问的链接变为灰色"
+              )}</span>
               <div class="switch">
                 <input type="checkbox" id="isShowPcFloatPage" data-key="isShowPcFloatPage" />
                 <label for="isShowPcFloatPage"></label>
@@ -4276,7 +4281,7 @@ void (async function () {
           return;
         }
 
-        if (!visitedLinks[pathname]) {
+        if (!visitedLinks[pathname] && !isMobile()) {
           visitedLinks[pathname] = new Date().getTime();
           setItem("visitedLinks", visitedLinks, true, 120);
         }
@@ -4879,6 +4884,17 @@ void (async function () {
             showTooltip("请勿频繁操作", 0);
           }
         });
+    }
+  }
+  function handleVisitedLinks() {
+    let pathname = window.location.pathname;
+    if (/^\/bbs-\d+\.html$/.test(pathname) && isMobile() && isShowPcFloatPage) {
+      let visitedLinks = getItem("visitedLinks", {});
+
+      if (!visitedLinks[pathname]) {
+        visitedLinks[pathname] = new Date().getTime();
+        setItem("visitedLinks", visitedLinks, true, 120);
+      }
     }
   }
   // 增加回帖ubb
