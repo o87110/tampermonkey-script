@@ -505,9 +505,29 @@ void (async function () {
     await getInfo();
   }
 
+  function checkedRestoreData() {
+    let lastRemoteRestoreTime = getItem("lastRemoteRestoreTime", 0);
+    let lastRemoteBackupTime = getItem("lastRemoteBackupTime", 0);
+    let userId = getItem("yaohuoUserID", "");
+
+    let interval = 30;
+    if (Number(userId) === 20469) {
+      interval = 10;
+    }
+    if (
+      !lastRemoteRestoreTime ||
+      ((new Date().getTime() - lastRemoteRestoreTime) / 1000 > interval &&
+        (new Date().getTime() - lastRemoteBackupTime) / 1000 > 5)
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   const YaoHuoUtils = {
-    checkUser: (userId) => checkPermission(userId, "user"),
-    checkBackup: (userId) => checkPermission(userId, "backup"),
+    // checkUser: (userId) => checkPermission(userId, "user"),
+    // checkBackup: (userId) => checkPermission(userId, "backup"),
+    checkedRestoreData,
     setData: () => {
       let jsonData = getSelectedDataFromLocalStorage(selectedProperties);
       return uploadJson(jsonData);
