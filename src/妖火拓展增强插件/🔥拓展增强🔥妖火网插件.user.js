@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.19.1
+// @version      3.19.2
 // @description  发帖ubb增强、回帖ubb增强、回帖表情增强、查看贴子显示用户等级增强、手动吃肉增强、自动加载更多帖子、自动加载更多回复、一键自动上传图床、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -1431,9 +1431,11 @@
               <span>教程、交流群</span>
               
               <div>
-                <a href="/bbs-1183941.html" target="_blank">原贴直达</a>
+                <a href="/bbs-1183941.html" target="_blank">原贴</a>
                 / 
-                <a href="http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=B8jHwcToRt8GnMoJa3jDk01xt6XFP2yi&authKey=WULG168m8oDAcLqoRa2moGO5%2FWXGFAYhMtO4RjhEVDHbzQoDmHBPqfGlv8ya50Ty&noverify=0&group_code=768664029" target="_blank">插件交流群</a>
+                <a href="http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=B8jHwcToRt8GnMoJa3jDk01xt6XFP2yi&authKey=WULG168m8oDAcLqoRa2moGO5%2FWXGFAYhMtO4RjhEVDHbzQoDmHBPqfGlv8ya50Ty&noverify=0&group_code=768664029" target="_blank">交流群</a>
+                /
+                <a onclick="alert('为爱发电难长久，感谢支持过的妖友，凡是办理过上方链接中任意流量卡的，可联系我进内测版（赞助版），适合喜欢尝鲜的妖友，功能更丰富体验更好，更新更频繁，支持需求个性化定制等')">内测版</a>
               </div>
             </li>
             <li>
