@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      6.2.2
+// @version      6.3.0
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -98,6 +98,7 @@ void (async function () {
     meetToken: "",
     speedFreeToken: "",
     yunTuToken: "",
+    helloToken: "",
 
     // 站内密码
     websitePassword: "",
@@ -296,6 +297,7 @@ void (async function () {
     meetToken,
     speedFreeToken,
     yunTuToken,
+    helloToken,
 
     websitePassword,
     isOpenBoast,
@@ -2702,6 +2704,7 @@ void (async function () {
                 <option value="极速图床">极速图床</option>
                 <option value="美团图床">美团图床</option>
                 <option value="云图图床">云图图床</option>
+                <option value="hello图床">hello图床</option>
               </select>
             </li>
             <li>
@@ -2739,6 +2742,19 @@ void (async function () {
                   id="yunTuToken" 
                   data-key="yunTuToken"
                   value="${yunTuToken}"
+                />
+                ${getIcon("eyeIcon")}
+              </div>
+            </li>
+            <li>
+              <span><a href="https://www.helloimg.com" target="_blank">hello图床token</a></span>
+              <div class="password-container">
+                <input 
+                  type="password" 
+                  placeholder="为空则为游客上传"
+                  id="helloToken" 
+                  data-key="helloToken"
+                  value="${helloToken}"
                 />
                 ${getIcon("eyeIcon")}
               </div>
@@ -3488,6 +3504,7 @@ void (async function () {
                 "meetToken",
                 "speedFreeToken",
                 "yunTuToken",
+                "helloToken",
               ],
               dataKey,
             });
@@ -3897,6 +3914,7 @@ void (async function () {
           水墨图床: "#inkToken",
           极速图床: "#speedFreeToken",
           云图图床: "#yunTuToken",
+          hello图床: "#helloToken",
         };
         Object.keys(config).forEach((name) => {
           if (item.value === name) {
@@ -5538,6 +5556,11 @@ void (async function () {
             name: "file",
             token: yunTuToken || "",
           },
+          hello图床: {
+            url: "https://www.helloimg.com/api/v1/upload",
+            name: "file",
+            token: helloToken || "",
+          },
         };
         let {
           url: uploadUrl,
@@ -5558,7 +5581,7 @@ void (async function () {
               method: "POST",
               body: formData,
             });
-          } else if (imageBedType === "云图图床") {
+          } else if (["云图图床", "hello图床"].includes(imageBedType)) {
             response = await fetch(uploadUrl, {
               method: "POST",
               headers: {
