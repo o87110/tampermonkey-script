@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      6.3.2
+// @version      6.3.3
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -5424,6 +5424,15 @@ void (async function () {
       let isReplyPage =
         /^\/bbs-.*\.html$/.test(window.location.pathname) ||
         viewPage.includes(window.location.pathname);
+
+      let insertDom = textArea;
+      let isMessagePage = ["/bbs/messagelist_view.aspx"].includes(
+        window.location.pathname
+      );
+      if (isMessagePage) {
+        insertDom = textArea.parentNode;
+      }
+
       MY_addStyle(`
         .upload-wrap {
           position: relative;
@@ -5438,6 +5447,7 @@ void (async function () {
           text-align: center;
           cursor: pointer;
           transition: all 0.3s;
+          margin-bottom: ${isMessagePage ? "5px" : 0};
         }
         .upload-wrap-disabled{
           background: #ddd;
@@ -5478,8 +5488,9 @@ void (async function () {
           100% { transform: rotate(360deg); }
         }
       `);
-      textArea.insertAdjacentHTML(
-        "afterend",
+
+      insertDom.insertAdjacentHTML(
+        isMessagePage ? "beforebegin" : "afterend",
         `<label for="upload-input" class="upload-wrap">
             <div class="upload-loading" style="display: none"></div>
             <span class="upload-input-label">
