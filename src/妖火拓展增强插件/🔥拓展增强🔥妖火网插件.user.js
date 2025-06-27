@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      3.19.3
+// @version      3.19.4
 // @description  发帖ubb增强、回帖ubb增强、回帖表情增强、查看贴子显示用户等级增强、手动吃肉增强、自动加载更多帖子、自动加载更多回复、一键自动上传图床、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -26,7 +26,7 @@
  */
 
 (function () {
-  "use strict";
+  ("use strict");
 
   // 实现简易版替换用到的jquery，全部换成原生js太麻烦
   let $, jQuery;
@@ -141,6 +141,10 @@
   const viewPage = ["/bbs/book_re.aspx", "/bbs/book_view.aspx"];
   // 帖子列表页面
   const bbsPage = ["/bbs/book_list.aspx", "/bbs/list.aspx"];
+  // 帖子浏览页面
+  const isBbsViewPage = [/^\/bbs-.*\.html$/, /\/bbs\/view.aspx/].some((item) =>
+    item.test(window.location.pathname)
+  );
   // 发帖
   const postPage = [
     "/bbs/book_view_add.aspx",
@@ -764,8 +768,6 @@
     handleUploadImage();
     // 增加发帖ubb
     handleAddNewPostUBB();
-    // 显示用户等级
-    // handleShowUserLevel();
     // 处理404页面跳回新帖页面
     handleNotFoundPage();
   })();
@@ -1987,7 +1989,7 @@
   }
   // 自动吃肉：手动进入肉帖自动吃
   function handleAutoEat() {
-    if (/^\/bbs-.*\.html$/.test(window.location.pathname) && isAutoEat) {
+    if (isBbsViewPage && isAutoEat) {
       const form = document.getElementsByName("f")[0];
       let isAutoEatBbs = window.location.search.includes("open=new");
       if (!form) {
@@ -2002,7 +2004,8 @@
 
       const textarea = document.querySelector(".retextarea");
       // 帖子标识id
-      let id = window.location.pathname.match(/\d+/)[0];
+      let id =
+        window.location.pathname.match(/\d+/)?.[0] || getUrlParameters().id;
 
       // 吃肉 必须放在后面
       const fileTag = document.querySelector(
@@ -2138,9 +2141,33 @@
     }
     obj.focus();
   }
+  // 获取url参数
+  function getUrlParameters(url) {
+    // 如果未传递URL参数，则使用当前页面的URL
+    if (!url) {
+      url = window.location.href;
+    }
+
+    // 创建一个URL对象
+    let urlObj = new URL(url);
+
+    // 获取查询参数部分
+    let queryParams = urlObj.searchParams;
+
+    // 创建一个对象来存储参数
+    let params = {};
+
+    // 遍历参数并将它们存储在对象中
+    queryParams.forEach(function (value, key) {
+      params[key] = value;
+    });
+
+    return params;
+  }
   // 吃完肉的回调
   function autoEatCallback() {
-    let id = window.location.pathname.match(/\d+/)[0];
+    let id =
+      window.location.pathname.match(/\d+/)?.[0] || getUrlParameters().id;
     let isAutoEatBbs = window.location.search.includes("open=new");
     // let autoEatList = getItem("autoEatList");
 
@@ -2297,8 +2324,7 @@
   // 增加回帖ubb
   function handleAddReplyUBB() {
     if (
-      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
-        viewPage.includes(window.location.pathname)) &&
+      (isBbsViewPage || viewPage.includes(window.location.pathname)) &&
       isAddReplyUBB
     ) {
       const form = document.getElementsByName("f")[0];
@@ -2386,8 +2412,7 @@
   // 增加回帖表情
   function handleAddReplyFace() {
     if (
-      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
-        viewPage.includes(window.location.pathname)) &&
+      (isBbsViewPage || viewPage.includes(window.location.pathname)) &&
       isAddReplyFace
     ) {
       const form = document.getElementsByName("f")[0];
@@ -2479,8 +2504,7 @@
   }
   function handleReply() {
     if (
-      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
-        viewPage.includes(window.location.pathname)) &&
+      (isBbsViewPage || viewPage.includes(window.location.pathname)) &&
       (isAddReplyUBB || isAddReplyFace)
     ) {
       // 取消回复文本框粘性定位。
@@ -2516,8 +2540,7 @@
       if (/^\/games\/\w+\/index\.aspx$/.test(window.location.pathname)) return;
 
       let isReplyPage =
-        /^\/bbs-.*\.html$/.test(window.location.pathname) ||
-        viewPage.includes(window.location.pathname);
+        isBbsViewPage || viewPage.includes(window.location.pathname);
 
       let insertDom = textArea;
       let isMessagePage = ["/bbs/messagelist_view.aspx"].includes(
@@ -2782,54 +2805,6 @@
         delete value[key];
       }
     });
-  }
-  // 获取用户等级
-  function handleShowUserLevel() {
-    if (!/^\/bbs-.*\.html$/.test(window.location.pathname) || !isShowLevel) {
-      return;
-    }
-
-    let user_id =
-      document.getElementsByClassName("subtitle")[0].firstElementChild.href;
-
-    function success(rp) {
-      let lv_zz = /<\/b>(\S*)级/;
-      let lv_text = rp.match(lv_zz)?.[1] || "0";
-      // console.log(lv_text);
-      addLvTip(lv_text);
-    }
-
-    function fail(code) {
-      console.log("error");
-    }
-
-    let request = new XMLHttpRequest();
-
-    request.onreadystatechange = function () {
-      if (request.readyState === 4) {
-        if (request.status === 200) {
-          return success(request.responseText);
-        } else {
-          return fail(request.status);
-        }
-      } else {
-      }
-    };
-    request.open("GET", user_id);
-    //request.responseType = 'document';
-    request.send();
-
-    function addLvTip(lv) {
-      let info_d = document.getElementsByClassName("subtitle")[0];
-      let user_name_d = info_d.children[1];
-      console.log(user_name_d);
-
-      let lv_d = document.createElement("div");
-      lv_d.innerText = "Lv " + lv;
-      lv_d.style =
-        "display:inline;margin-left:10px; text-align:center; margin-right:10px;color:#ff4234;font-size:17px;border-radius: 30px;";
-      info_d.insertBefore(lv_d, user_name_d);
-    }
   }
   function handleAddLoadMoreBtnClick() {
     // 如果打开了全自动吃肉和自动加载更多，并且在帖子列表页才添加事件

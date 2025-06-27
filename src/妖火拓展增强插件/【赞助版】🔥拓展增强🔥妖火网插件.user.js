@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         【赞助版】🔥拓展增强🔥妖火网插件
 // @namespace    https://yaohuo.me/
-// @version      6.3.4
+// @version      6.3.5
 // @description  发帖ubb增强、回帖ubb增强、查看贴子显示用户等级增强、半自动吃肉增强、全自动吃肉增强、自动加载更多帖子、自动加载更多回复、支持个性化菜单配置
 // @author       龙少c(id:20469)开发，参考其他大佬：外卖不用券(id:23825)、侯莫晨、Swilder-M
 // @match        *://yaohuo.me/*
@@ -383,6 +383,10 @@ void (async function () {
   const viewPage = ["/bbs/book_re.aspx", "/bbs/book_view.aspx"];
   // 帖子列表页面
   const bbsPage = ["/bbs/book_list.aspx", "/bbs/list.aspx"];
+  // 帖子浏览页面
+  const isBbsViewPage = [/^\/bbs-.*\.html$/, /\/bbs\/view.aspx/].some((item) =>
+    item.test(window.location.pathname)
+  );
   // 发帖
   const postPage = [
     "/bbs/book_view_add.aspx",
@@ -1060,8 +1064,6 @@ void (async function () {
 
     // 增加发帖ubb
     handleAddNewPostUBB();
-    // 显示用户等级
-    // handleShowUserLevel();
     // 处理404页面跳回新帖页面
     handleNotFoundPage();
     // 吹牛增强
@@ -1288,7 +1290,7 @@ void (async function () {
     return result;
   }
   function handleReward() {
-    if (/^\/bbs-.*\.html$/.test(window.location.pathname)) {
+    if (isBbsViewPage) {
       let wrap = document.querySelector(".aui-grids");
       let item = document.querySelectorAll(".aui-grids-item");
       let typeAmount = document.getElementById("type-amount");
@@ -4076,7 +4078,7 @@ void (async function () {
     // 是否自动增加时长
     if (
       postPage.includes(window.location.pathname.toLocaleLowerCase()) ||
-      /^\/bbs-.*\.html$/.test(window.location.pathname) ||
+      isBbsViewPage ||
       viewPage.includes(window.location.pathname)
     ) {
       return;
@@ -4456,10 +4458,7 @@ void (async function () {
   }
   // 自动吃肉：手动进入肉帖自动吃
   function handleAutoEat() {
-    if (
-      /^\/bbs-.*\.html$/.test(window.location.pathname) &&
-      (isAutoEat || isFullAutoEat)
-    ) {
+    if (isBbsViewPage && (isAutoEat || isFullAutoEat)) {
       const form = document.getElementsByName("f")[0];
       let isAutoEatBbs = window.location.search.includes("open=new");
       if (!form) {
@@ -4474,7 +4473,8 @@ void (async function () {
 
       const textarea = document.querySelector(".retextarea");
       // 帖子标识id
-      let id = window.location.pathname.match(/\d+/)[0];
+      let id =
+        window.location.pathname.match(/\d+/)?.[0] || getUrlParameters().id;
 
       // 吃肉 必须放在后面
       const fileTag = document.querySelector(
@@ -4656,7 +4656,8 @@ void (async function () {
   }
   // 吃完肉的回调
   function autoEatCallback(iSEaten = true) {
-    let id = window.location.pathname.match(/\d+/)[0];
+    let id =
+      window.location.pathname.match(/\d+/)?.[0] || getUrlParameters().id;
     let isAutoEatBbs = window.location.search.includes("open=new");
     // 只有吃过肉才记录
     if (iSEaten) {
@@ -4918,7 +4919,7 @@ void (async function () {
   // 增加回帖ubb
   function handleAddReplyUBB() {
     if (
-      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
+      (isBbsViewPage ||
         viewPage.includes(window.location.pathname) ||
         ["/bbs/userguessbook.aspx"].includes(window.location.pathname)) &&
       isAddReplyUBB
@@ -5018,7 +5019,7 @@ void (async function () {
     ];
     let isUserinfo = pathName.includes(window.location.pathname);
     if (
-      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
+      (isBbsViewPage ||
         viewPage.includes(window.location.pathname) ||
         isUserinfo) &&
       (isAddQuickReply || isAddReplyAdd1)
@@ -5172,8 +5173,7 @@ void (async function () {
   // 增加回帖表情
   function handleAddReplyFace() {
     if (
-      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
-        viewPage.includes(window.location.pathname)) &&
+      (isBbsViewPage || viewPage.includes(window.location.pathname)) &&
       isAddReplyFace
     ) {
       const form = document.getElementsByName("f")[0];
@@ -5265,8 +5265,7 @@ void (async function () {
   }
   function handleAddReplyRandomColor() {
     if (
-      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
-        viewPage.includes(window.location.pathname)) &&
+      (isBbsViewPage || viewPage.includes(window.location.pathname)) &&
       isAddReplyRandomColor
     ) {
       const form = document.getElementsByName("f")[0];
@@ -5278,17 +5277,18 @@ void (async function () {
       let isAutoEatBbs = window.location.search.includes("open=new");
 
       let randomColor = getColorWithinBrightnessRange(0, 200);
-      let random = Math.random();
-      // 整句随机颜色
-      let isAddColorByAll = random < colorByAllRate;
-      // 每个字符随机颜色
-      let isAddColorByCharacter = random < colorByCharacterRate;
+
       let reg = /\[(\w+)=?([^\]]+)?\]([\s\S]*?)\[\/\1\]/;
       let colorReg =
         /\[forecolor=(#[0-9A-Fa-f]{6}|[A-Za-z]+)\].*?\[\/forecolor\]/;
       replyBtn.addEventListener(
         "click",
         (e) => {
+          let random = Math.random();
+          // 整句随机颜色
+          let isAddColorByAll = random < colorByAllRate;
+          // 每个字符随机颜色
+          let isAddColorByCharacter = random < colorByCharacterRate;
           // 取消提交
           if (!isAutoEatBbs && !colorReg.test(textarea.value)) {
             // 有ubb的不加
@@ -5388,8 +5388,7 @@ void (async function () {
   }
   function handleReply() {
     if (
-      (/^\/bbs-.*\.html$/.test(window.location.pathname) ||
-        viewPage.includes(window.location.pathname)) &&
+      (isBbsViewPage || viewPage.includes(window.location.pathname)) &&
       (isAddReplyUBB || isAddReplyFace)
     ) {
       // 取消回复文本框粘性定位。
@@ -5425,8 +5424,7 @@ void (async function () {
       if (/^\/games\/\w+\/index\.aspx$/.test(window.location.pathname)) return;
 
       let isReplyPage =
-        /^\/bbs-.*\.html$/.test(window.location.pathname) ||
-        viewPage.includes(window.location.pathname);
+        isBbsViewPage || viewPage.includes(window.location.pathname);
 
       let insertDom = textArea;
       let isMessagePage = ["/bbs/messagelist_view.aspx"].includes(
@@ -7439,53 +7437,6 @@ void (async function () {
         delete obj[item];
       }
     });
-  }
-  // 获取用户等级
-  function handleShowUserLevel() {
-    if (!/^\/bbs-.*\.html$/.test(window.location.pathname) || !isShowLevel) {
-      return;
-    }
-
-    let user_id =
-      document.querySelector(".louzhunicheng").firstElementChild.href;
-
-    function success(rp) {
-      let lv_zz = /<\/b>(\S*)级/;
-      let lv_text = rp.match(lv_zz)?.[1] || "0";
-      addLvTip(lv_text);
-    }
-
-    function fail(code) {
-      console.log("error");
-    }
-
-    let request = new XMLHttpRequest();
-
-    request.onreadystatechange = function () {
-      if (request.readyState === 4) {
-        if (request.status === 200) {
-          return success(request.responseText);
-        } else {
-          return fail(request.status);
-        }
-      } else {
-      }
-    };
-    request.open("GET", user_id);
-    //request.responseType = 'document';
-    request.send();
-
-    function addLvTip(lv) {
-      let info_d = document.getElementsByClassName("subtitle")[0];
-      let user_name_d = info_d.children[1];
-      console.log(user_name_d);
-
-      let lv_d = document.createElement("div");
-      lv_d.innerText = "Lv " + lv;
-      lv_d.style =
-        "display:inline;margin-left:10px; text-align:center; margin-right:10px;color:#ff4234;font-size:17px;border-radius: 30px;";
-      info_d.insertBefore(lv_d, user_name_d);
-    }
   }
   function handleAddLoadMoreBtnClick() {
     // 如果打开了全自动吃肉和自动加载更多，并且在帖子列表页才添加事件
